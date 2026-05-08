@@ -6,10 +6,10 @@ import { promisify } from "util";
 
 const resolveMx = promisify(dns.resolveMx);
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+const app = express();
+const PORT = 3000;
 
+export async function createServer() {
   app.use(express.json());
 
   // API Routes
@@ -25,9 +25,9 @@ async function startServer() {
     }
 
     try {
-      // Add a 2s timeout for DNS lookups to prevent hanging
+      // Add a 3s timeout for DNS lookups to prevent hanging
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('DNS Timeout')), 2000)
+        setTimeout(() => reject(new Error('DNS Timeout')), 3000)
       );
       
       const records = await Promise.race([
@@ -63,9 +63,15 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  return app;
+}
+
+if (process.env.NODE_ENV !== "test") {
+  createServer().then((app) => {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
   });
 }
 
-startServer();
+export default app;

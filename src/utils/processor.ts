@@ -119,70 +119,86 @@ export const verifyEmail = async (
     excludeSpamTraps: boolean;
   }
 ): Promise<Partial<ProcessedContact>> => {
-  // STEP 1 — INPUT CLEANING & NORMALIZATION
-  // lowercase, trim, remove invisible characters, remove quotes, remove malformed formatting
+  // STEP 1 — INPUT CLEANING & NORMALIZATION (Strict Protocol)
   let cleanEmail = String(email || '')
     .toLowerCase()
     .trim()
+    .replace(/[\s]/g, '') // remove all internal whitespace
     .replace(/[\u200B-\u200D\uFEFF]/g, '') // invisible characters
     .replace(/["']/g, '') // quotes
+    .replace(/[,;]/g, '.') // fix common comma typos in domain
+    .replace(/\.{2,}/g, '.') // fix double dots
+    .replace(/^[\.]+|[\.]+$/g, '') // remove leading/trailing dots
     .replace(/[\r\n]/g, ''); // line breaks
 
-  let score = 100;
-  let reasons: string[] = [];
-  
+  // STEP 1.5 — AUTO-CORRECTION HEURISTICS
+  // Fix cases where @ might be missing but domain is obvious
+  if (!cleanEmail.includes('@') && cleanEmail.includes('gmail.')) {
+     // rudimentary attempt if it looks like a prefix + domain
+     const knownDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com'];
+     for(const d of knownDomains) {
+       if (cleanEmail.endsWith(d)) {
+         cleanEmail = cleanEmail.replace(d, '@' + d);
+         break;
+       }
+     }
+  }
+
   // STEP 2 — SYNTAX VALIDATION (RFC-compliant)
   const syntaxRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   if (!syntaxRegex.test(cleanEmail)) {
     return { 
       verificationStatus: 'blocked', 
-      verificationReason: 'Syntax Violation: RFC Non-Compliant', 
+      verificationReason: 'Fatal Syntax: Impossible Identity Structure', 
       confidenceScore: 0, 
       bounceRisk: 'Dangerous',
       reputationImpact: 'Critical',
-      mxRecordFound: false
+      mxRecordFound: false,
+      email: cleanEmail // Return the cleaned but still failing email
     };
   }
 
-  const parts = cleanEmail.split('@');
-  const localPart = parts[0];
-  const domain = parts[1];
+  let parts = cleanEmail.split('@');
+  let localPart = parts[0];
+  let domain = parts[1];
 
-  // STEP 3 — DOMAIN VALIDATION (DNS/MX/SPF)
+  // STEP 3 — TYPO AUTO-FIX ENGINE (Correction before Rejection)
+  const commonTypos: Record<string, string[]> = {
+    'gmail.com': ['gmal.com', 'gmaill.com', 'gamil.com', 'gmali.com', 'gnail.com', 'googlemail.com', 'g.mail.com', 'g-mail.com', 'gmai.com'],
+    'yahoo.com': ['yaho.com', 'yhoo.com', 'yahuo.com', 'yahoocome.com', 'yahoo.co', 'ymail.com'],
+    'hotmail.com': ['hotmial.com', 'hormail.com', 'hotmal.com', 'hitmail.com', 'hotail.com'],
+    'outlook.com': ['outlok.com', 'outlouk.com', 'outloock.com', 'outlooj.com'],
+    'icloud.com': ['icloud.co', 'iclowd.com', 'iclud.com']
+  };
+
+  let wasCorrected = false;
+  for (const [correct, typos] of Object.entries(commonTypos)) {
+    if (typos.includes(domain)) {
+      domain = correct;
+      cleanEmail = `${localPart}@${domain}`;
+      wasCorrected = true;
+      break;
+    }
+  }
+
+  // STEP 4 — DOMAIN ACCESSIBILITY (MX/DNS)
   const hasMX = await checkMXRecords(domain);
   if (!hasMX) {
     return { 
       verificationStatus: 'rejected', 
-      verificationReason: 'MX Check Failed: No Domain Reception protocol', 
+      verificationReason: 'Engine Rejected: Dead Domain (No MX Records)', 
       confidenceScore: 0, 
       bounceRisk: 'Dangerous',
       reputationImpact: 'Critical',
-      mxRecordFound: false
+      mxRecordFound: false,
+      email: cleanEmail
     };
   }
+
+  let score = wasCorrected ? 85 : 100; // Slight penalty for corrected typos
+  let reasons: string[] = wasCorrected ? ["Identity Auto-Corrected"] : [];
   
-  // Typo Detection
-  const commonTypos: Record<string, string[]> = {
-    'gmail.com': ['gmal.com', 'gmaill.com', 'gamil.com', 'gmali.com', 'gnail.com', 'googlemail.co'],
-    'yahoo.com': ['yaho.com', 'yhoo.com', 'yahuo.com', 'yahoocome.com'],
-    'hotmail.com': ['hotmial.com', 'hormail.com', 'hotmal.com', 'hitmail.com'],
-    'outlook.com': ['outlok.com', 'outlouk.com', 'outloock.com']
-  };
-
-  for (const [correct, typos] of Object.entries(commonTypos)) {
-    if (typos.includes(domain)) {
-      return { 
-        verificationStatus: 'rejected', 
-        verificationReason: `Critical Typo: Found ${domain}, expected ${correct}`, 
-        confidenceScore: 5, 
-        bounceRisk: 'High',
-        reputationImpact: 'Negative',
-        mxRecordFound: true
-      };
-    }
-  }
-
-  // STEP 4 — DISPOSABLE EMAIL DETECTION
+  // STEP 5 — DISPOSABLE & USELESS EMAIL DETECTION (Professional Grade)
   const deaList = [
     'temp-mail.org', 'guerrillamail.com', 'mailinator.com', '10minutemail.com', 
     'dispostable.com', 'getnada.com', 'throwawaymail.com', 'maildrop.cc', 
@@ -190,23 +206,34 @@ export const verifyEmail = async (
     'boun.cr', 'sharklasers.com', 'mail-fake.com', 'fakeinbox.com',
     'mailchecker.net', 'temp-mail.me', 'guerrillamail.biz', 'mail-temp.com',
     'emailfake.com', 'tmail.com', 'spam4.me', 'fastmail.xyz', 'yopmail.fr',
-    'maildrop.cc', 'tempmailaddress.com', 'mytemp.email', 'disposable.com'
+    'maildrop.cc', 'tempmailaddress.com', 'mytemp.email', 'disposable.com',
+    'example.com', 'example.org', 'example.net', 'test.com', 'foo.com', 'bar.com'
   ];
+
+  const uselessPatterns = [
+    'test', 'example', 'noreply', 'no-reply', 'sample', 'asdf', 'qwerty', 
+    '12345', 'info@example', 'admin@example', 'mail@example', 'user@example',
+    'abc@abc', 'xxx@xxx', 'temp', 'junk', 'trash', 'spam'
+  ];
+
   const isDisposable = deaList.some(dea => domain.includes(dea));
-  if (isDisposable) {
+  const isUseless = uselessPatterns.some(pattern => cleanEmail.includes(pattern));
+
+  if (isDisposable || isUseless) {
     if (options.excludeDisposable) {
       return { 
         verificationStatus: 'blocked', 
-        verificationReason: 'Blacklisted: Disposable/Temporary Provider', 
+        verificationReason: isDisposable ? 'Blacklisted: Disposable Provider' : 'Rejected: Low Quality / Test Data Signature', 
         confidenceScore: 0, 
         bounceRisk: 'Dangerous',
         reputationImpact: 'Critical',
         mxRecordFound: true,
-        isDisposable: true
+        isDisposable: true,
+        email: cleanEmail
       };
     } else {
-      score -= 60;
-      reasons.push("Disposable Flag Attached");
+      score -= 70;
+      reasons.push(isDisposable ? "Disposable Provider Detected" : "Low Quality Profile Signature");
     }
   }
 
@@ -312,10 +339,12 @@ export const verifyEmail = async (
   else if (bounceRisk === 'High') reputationImpact = 'Negative';
   else if (bounceRisk === 'Medium') reputationImpact = 'Neutral';
 
-  // Final decision: Only score > 90 is verified/safe
+  // Final Assessment logic: Be even more strict (Accuracy > Volume)
   let finalStatus: 'verified' | 'risky' | 'rejected' = 'verified';
-  if (score < 75) finalStatus = 'rejected';
-  else if (score < 90) finalStatus = 'risky';
+  
+  // 0% Bounce Policy: Any score below 92 is considered risky/rejected to ensure safety
+  if (score < 80) finalStatus = 'rejected';
+  else if (score < 92) finalStatus = 'risky';
 
   return { 
     verificationStatus: finalStatus, 
@@ -332,7 +361,8 @@ export const verifyEmail = async (
     syntaxValid: true,
     spfExists: Math.random() > 0.2, // Simulated
     dkimExists: Math.random() > 0.3, // Simulated
-    domainAge: "Verified > 1yr" // Simulated
+    domainAge: "Verified > 1yr", // Simulated
+    email: cleanEmail // Always return the potentially corrected/cleaned email
   };
 };
 
@@ -369,8 +399,13 @@ const processSingleContact = async (item: any, mappings: any, rules: any, origin
     };
   }
 
-  // Use original keys to update data in-place
+  // Update in-place using the mapping keys
   const updatedItem = { ...item };
+
+  // Sync the potentially corrected email back to the result if it was valid
+  if (mappings.emailKey && verificationResult.email) {
+    updatedItem[mappings.emailKey] = verificationResult.email;
+  }
 
   // Update in-place using the mapping keys
   if (mappings.firstNameKey) updatedItem[mappings.firstNameKey] = cleanText(item[mappings.firstNameKey], rules.strictTitleCase);
