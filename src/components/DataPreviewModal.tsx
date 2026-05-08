@@ -15,7 +15,7 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
   const [searchTerm, setSearchTerm] = React.useState('');
   
   const headers = data.length > 0 ? Object.keys(data[0]).filter(k => 
-    !['originalIndex', 'verificationStatus', 'verificationReason', 'confidenceScore', 'bounceRisk', 'reputationImpact', 'mxRecordFound', 'isCatchAll', 'isDisposable', 'isRoleBased', 'isSpamtrapProbability', 'smtpValid', 'syntaxValid', 'domainAge', 'spfExists', 'dkimExists'].includes(k)
+    !['originalIndex', 'verificationStatus', 'verificationReason', 'confidenceScore', 'bounceRisk', 'reputationImpact', 'mxRecordFound', 'isCatchAll', 'isDisposable', 'isRoleBased', 'isSpamtrapProbability', 'smtpValid', 'syntaxValid', 'domainAge', 'spfExists', 'dkimExists', '__originalData'].includes(k)
   ) : [];
 
   const filteredData = data.filter(item => 

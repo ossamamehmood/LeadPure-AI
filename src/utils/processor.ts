@@ -210,20 +210,19 @@ export const verifyEmail = async (
     'example.com', 'example.org', 'example.net', 'test.com', 'foo.com', 'bar.com'
   ];
 
-  const uselessPatterns = [
-    'test', 'example', 'noreply', 'no-reply', 'sample', 'asdf', 'qwerty', 
-    '12345', 'info@example', 'admin@example', 'mail@example', 'user@example',
-    'abc@abc', 'xxx@xxx', 'temp', 'junk', 'trash', 'spam'
-  ];
-
+  // More precise patterns to avoid blocking genuine leads with "test" or "info" in name
   const isDisposable = deaList.some(dea => domain.includes(dea));
-  const isUseless = uselessPatterns.some(pattern => cleanEmail.includes(pattern));
+  const isClearlyFake = (
+    /^(asdf|qwerty|12345|test|example|abc|xyz|sample)@/i.test(cleanEmail) ||
+    /@(example|test|sample|domain)\.com$/i.test(cleanEmail) ||
+    /^[a-z]@/i.test(localPart) && localPart.length === 1 // single letter local parts are suspicious
+  );
 
-  if (isDisposable || isUseless) {
+  if (isDisposable || isClearlyFake) {
     if (options.excludeDisposable) {
       return { 
-        verificationStatus: 'blocked', 
-        verificationReason: isDisposable ? 'Blacklisted: Disposable Provider' : 'Rejected: Low Quality / Test Data Signature', 
+        verificationStatus: 'rejected', 
+        verificationReason: isDisposable ? 'Verified: Disposable Provider' : 'Rejected: Dummy Identifier Syntax', 
         confidenceScore: 0, 
         bounceRisk: 'Dangerous',
         reputationImpact: 'Critical',
@@ -232,8 +231,8 @@ export const verifyEmail = async (
         email: cleanEmail
       };
     } else {
-      score -= 70;
-      reasons.push(isDisposable ? "Disposable Provider Detected" : "Low Quality Profile Signature");
+      score -= 75;
+      reasons.push(isDisposable ? "Disposable Provider Flag" : "Dummy Profile Signature");
     }
   }
 
@@ -426,9 +425,10 @@ const processSingleContact = async (item: any, mappings: any, rules: any, origin
 
   return { 
     valid: {
-      ...updatedItem,
       ...verificationResult,
+      ...updatedItem, // Spread original/updated data AFTER metadata so it wins in case of name collisions
       originalIndex,
+      __originalData: updatedItem // Explicitly store a protected copy for export
     } as ProcessedContact
   };
 };

@@ -120,26 +120,8 @@ export default function App() {
     const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
     const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
     
-    // Only export original columns as requested
-    const exportData = processor.processedData.map(({ 
-      originalIndex, 
-      verificationStatus, 
-      verificationReason, 
-      confidenceScore, 
-      bounceRisk, 
-      reputationImpact,
-      mxRecordFound,
-      isCatchAll,
-      isDisposable,
-      isRoleBased,
-      smtpValid,
-      syntaxValid,
-      domainAge,
-      spfExists,
-      dkimExists,
-      isSpamtrapProbability,
-      ...originalData 
-    }) => originalData);
+    // Only export original columns as requested (using protected data copy)
+    const exportData = processor.processedData.map(item => item.__originalData || item);
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
@@ -170,25 +152,7 @@ export default function App() {
     const extension = item.fileName.substring(item.fileName.lastIndexOf('.')).toLowerCase();
     const baseName = item.fileName.substring(0, item.fileName.lastIndexOf('.')) || item.fileName;
 
-    const exportData = item.processedData.map(({ 
-      originalIndex, 
-      verificationStatus, 
-      verificationReason, 
-      confidenceScore, 
-      bounceRisk, 
-      reputationImpact,
-      mxRecordFound,
-      isCatchAll,
-      isDisposable,
-      isRoleBased,
-      smtpValid,
-      syntaxValid,
-      domainAge,
-      spfExists,
-      dkimExists,
-      isSpamtrapProbability,
-      ...originalData 
-    }) => originalData);
+    const exportData = item.processedData.map(p => p.__originalData || p);
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();

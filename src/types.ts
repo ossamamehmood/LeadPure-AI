@@ -27,6 +27,7 @@ export interface ProcessedContact extends ContactData {
   spfExists?: boolean;
   dkimExists?: boolean;
   originalIndex: number;
+  __originalData?: ContactData;
 }
 
 export interface HistoryItem {
