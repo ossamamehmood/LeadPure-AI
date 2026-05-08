@@ -1,0 +1,62 @@
+export interface ContactData {
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  country?: string;
+  city?: string;
+  postalCode?: string;
+  [key: string]: string | number | boolean | undefined;
+}
+
+export interface ProcessedContact extends ContactData {
+  verificationStatus: 'verified' | 'rejected' | 'valid' | 'risky' | 'blocked';
+  verificationReason?: string;
+  confidenceScore: number; // 0-100
+  bounceRisk: 'Low' | 'Medium' | 'High' | 'Dangerous';
+  reputationImpact: 'Positive' | 'Neutral' | 'Negative' | 'Critical';
+  mxRecordFound: boolean;
+  isCatchAll?: boolean;
+  isDisposable?: boolean;
+  isRoleBased?: boolean;
+  isSpamtrapProbability?: number; // 0 to 1
+  smtpValid?: boolean;
+  syntaxValid?: boolean;
+  domainAge?: string;
+  spfExists?: boolean;
+  dkimExists?: boolean;
+  originalIndex: number;
+}
+
+export interface HistoryItem {
+  id: string;
+  date: string;
+  fileName: string;
+  totalRows: number;
+  validRows: number;
+  processedData: ProcessedContact[];
+  eliminatedData: any[];
+  mappings: any;
+  stats: {
+    removed: number;
+    phoneFormatted: number;
+    avgConfidence: number;
+  };
+}
+
+export interface ValidationRules {
+  strictTitleCase: boolean;
+  forcePlusSign: boolean;
+  excludeDisposable: boolean;
+  excludeRoleBased: boolean;
+  excludeCatchAll: boolean;
+  excludeSpamTraps: boolean;
+}
+
+export interface CleaningStats {
+  total: number;
+  valid: number;
+  invalid: number;
+  cleaned: number;
+}

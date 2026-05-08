@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-brand-cyan: #02FEDC;
+  --color-brand-blue: #5A5CFF;
+  --color-brand-pink: #F502FD;
+  
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2.5rem;
+}
+
+:root {
+  background-color: #000000;
+  color: #F8FAFC; /* slate-50 */
+}
+
+a.brand-link {
+  @apply text-inherit no-underline hover:text-[#02FEDC] transition-colors;
+}
+
+.gradient-text {
+  background: linear-gradient(to right, #02FEDC, #5A5CFF, #F502FD);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glossy-card {
+  @apply relative border border-white/[0.08] backdrop-blur-2xl bg-[#0c0c0c]/80 overflow-hidden;
+  background-image: 
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.02), transparent 40%);
+  box-shadow: 
+    0 10px 40px -10px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.glossy-card:hover {
+  @apply border-white/20 bg-[#121212]/90 -translate-y-1;
+  box-shadow: 
+    0 20px 60px -15px rgba(0, 0, 0, 0.8),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.glossy-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.03),
+    transparent
+  );
+  transition: 0.8s;
+  pointer-events: none;
+}
+
+.glossy-card:hover::after {
+  left: 150%;
+}
+
+.glow-cyan { box-shadow: 0 0 30px -10px rgba(2, 254, 220, 0.2), inset 0 0 20px -10px rgba(2, 254, 220, 0.1); }
+.glow-pink { box-shadow: 0 0 30px -10px rgba(245, 2, 253, 0.2), inset 0 0 20px -10px rgba(245, 2, 253, 0.1); }
+.glow-blue { box-shadow: 0 0 30px -10px rgba(90, 92, 255, 0.2), inset 0 0 20px -10px rgba(90, 92, 255, 0.1); }
+
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(to right, #02FEDC, #5A5CFF, #F502FD);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.gradient-border:hover::after {
+  opacity: 1;
+}
+
+.gradient-bg {
+  background: linear-gradient(to right, #02FEDC, #5A5CFF, #F502FD);
+}
