@@ -25,31 +25,49 @@ export async function createServer() {
     }
 
     try {
-      // Use Google DNS-over-HTTPS for more reliable lookups in serverless environments
-      // and to bypass potential local DNS restrictions/slowness
-      const response = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`);
+      // Use both Google and Cloudflare DoH in parallel for maximum reliability and consistency across environments
+      const domain_clean = domain.toLowerCase().trim();
       
-      if (!response.ok) {
-        throw new Error(`Google DNS API returned ${response.status}`);
+      const [googleRes, cloudflareRes] = await Promise.allSettled([
+        fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`),
+        fetch(`https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`, {
+          headers: { 'accept': 'application/dns-json' }
+        })
+      ]);
+      
+      let hasMx = false;
+      let records: any[] = [];
+
+      // If Google confirms MX, we're good
+      if (googleRes.status === 'fulfilled' && googleRes.value.ok) {
+        const data = await googleRes.value.json() as any;
+        if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
+          hasMx = true;
+          records = data.Answer;
+        }
       }
-      
-      const data = await response.json() as any;
-      
-      // Google DNS Status 0 means NOERROR
-      const hasMx = data.Status === 0 && data.Answer && data.Answer.length > 0;
+
+      // If Cloudflare confirms MX (and Google didn't or was slow), use that
+      if (!hasMx && cloudflareRes.status === 'fulfilled' && cloudflareRes.value.ok) {
+        const data = await cloudflareRes.value.json() as any;
+        if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
+          hasMx = true;
+          records = data.Answer;
+        }
+      }
       
       res.json({ 
         hasMx: hasMx,
-        records: data.Answer || []
+        records: records 
       });
     } catch (error) {
-      console.error(`MX check failed for ${domain}:`, error);
-      // Fallback to local DNS if DoH fails
+      console.error(`DNS check failed for ${domain}:`, error);
+      // Final fallback to native DNS resolution
       try {
-        const records = await resolveMx(domain);
+        const dnsRecords = await resolveMx(domain);
         res.json({ 
-          hasMx: records && records.length > 0,
-          records: records || []
+          hasMx: dnsRecords && dnsRecords.length > 0,
+          records: dnsRecords || []
         });
       } catch (localError) {
         res.json({ 
