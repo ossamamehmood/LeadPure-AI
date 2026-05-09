@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, RefreshCw } from 'lucide-react';
+import { Download, RefreshCw, Sun, Moon, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface HeaderProps {
@@ -7,32 +7,68 @@ interface HeaderProps {
   isProcessing: boolean;
   onDownload: () => void;
   onReset: () => void;
+  theme: 'dark' | 'light';
+  onToggleTheme: () => void;
 }
 
-export function Header({ appState, isProcessing, onDownload, onReset }: HeaderProps) {
+export function Header({ appState, isProcessing, onDownload, onReset, theme, onToggleTheme }: HeaderProps) {
   return (
-    <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#000000] shrink-0">
-      <h1 className="text-xl font-black text-white tracking-tighter flex items-center gap-2 uppercase italic">
-        Lead<span className="gradient-text">Pure</span> AI
-        {appState === 'results' && <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded uppercase border border-white/10 font-bold ml-2 gradient-text inline-flex items-center">Cleaning Complete</span>}
-      </h1>
-      <div className="flex gap-4">
+    <header className="h-24 border-b border-app-border flex items-center justify-between px-10 bg-app-bg/40 backdrop-blur-3xl shrink-0 sticky top-0 z-50 transition-colors duration-300">
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 group cursor-pointer">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white shadow-[0_0_15px_rgba(90,92,255,0.3)] transition-transform group-hover:rotate-12">
+            <Zap className="w-4 h-4 fill-white" />
+          </div>
+          <h1 className="text-2xl font-black text-app-text tracking-tighter flex items-center gap-2 uppercase italic select-none">
+            Lead<span className="gradient-text">Pure</span><span className="text-zinc-600 font-medium not-italic ml-1">AI</span>
+          </h1>
+        </div>
+        <div className="h-6 w-px bg-app-border hidden md:block" />
+        <div className="hidden md:flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
+          <span className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full gradient-bg shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
+            v2.4.0 High-Accuracy
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-6">
         {appState === 'results' && (
           <button 
             onClick={onDownload}
-            className="px-6 py-2 bg-[#5A5CFF] hover:bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2 shadow-xl shadow-[#5A5CFF]/30 active:scale-95 italic"
+            className="px-8 py-3 bg-brand-blue hover:bg-brand-blue/90 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center gap-3 shadow-2xl shadow-brand-blue/30 active:scale-95 group"
           >
-            <Download className="w-4 h-4" />
-            Export Optimized List
+            <Download className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+            Deploy Cleaned List
           </button>
         )}
-        <button 
-          onClick={onReset}
-          className="p-3 bg-white/5 rounded-xl text-slate-500 hover:text-white transition-all border border-white/10 hover:border-white/20"
-          title="Reset"
-        >
-          <RefreshCw className={cn("w-5 h-5", isProcessing && "animate-spin")} />
-        </button>
+        
+        <div className="flex gap-2">
+          <button 
+            onClick={onToggleTheme}
+            className="p-3.5 bg-white/[0.03] hover:bg-white/[0.08] rounded-2xl text-slate-500 hover:text-brand-blue transition-all border border-white/5 hover:border-white/10 active:scale-90 flex items-center justify-center overflow-hidden"
+            title={theme === 'dark' ? "Switch to Light Node" : "Switch to Dark Node"}
+          >
+            <div className="relative w-5 h-5">
+              <Sun className={cn(
+                "w-5 h-5 absolute inset-0 transition-transform duration-500",
+                theme === 'dark' ? "translate-y-8" : "translate-y-0"
+              )} />
+              <Moon className={cn(
+                "w-5 h-5 absolute inset-0 transition-transform duration-500",
+                theme === 'dark' ? "translate-y-0" : "-translate-y-8"
+              )} />
+            </div>
+          </button>
+
+          <button 
+            onClick={onReset}
+            className="p-3.5 bg-white/[0.03] hover:bg-white/[0.08] rounded-2xl text-slate-500 hover:text-white transition-all border border-white/5 hover:border-white/10 active:scale-90"
+            title="Purge Session"
+          >
+            <RefreshCw className={cn("w-5 h-5", isProcessing && "animate-spin text-brand-blue shadow-[0_0_12px_rgba(90,92,255,0.3)]")} />
+          </button>
+        </div>
       </div>
     </header>
   );

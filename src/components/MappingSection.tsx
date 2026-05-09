@@ -39,7 +39,7 @@ export function MappingSection({
           <div className="text-center md:text-right flex flex-col items-center md:items-end gap-2">
             <button 
               onClick={onPreview}
-              className="px-4 py-1.5 bg-white/5 hover:bg-white/10 text-[8px] rounded-full uppercase font-black tracking-widest border border-white/10 transition-all text-slate-500 hover:text-brand-cyan"
+              className="px-4 py-1.5 bg-white/5 hover:bg-white/10 text-[8px] rounded-full uppercase font-black tracking-widest border border-white/10 transition-all text-slate-500 hover:text-brand-blue shadow-[0_0_10px_rgba(90,92,255,0.1)] hover:shadow-[0_0_15px_rgba(90,92,255,0.3)]"
             >
               Preview Leads
             </button>
@@ -57,7 +57,7 @@ export function MappingSection({
               <select 
                 value={mappings[key]}
                 onChange={(e) => setMappings({ ...mappings, [key]: e.target.value })}
-                className="w-full h-12 px-5 rounded-2xl border border-white/5 bg-[#000]/40 backdrop-blur-md text-slate-300 text-xs font-bold focus:border-[#02FEDC] focus:ring-1 focus:ring-[#02FEDC] focus:bg-[#000]/60 outline-none transition-all appearance-none uppercase tracking-widest cursor-pointer hover:border-white/20"
+                className="w-full h-12 px-5 rounded-2xl border border-app-border bg-app-bg/40 backdrop-blur-md text-slate-300 text-xs font-bold focus:border-brand-blue/40 focus:ring-1 focus:ring-brand-blue/30 focus:bg-app-bg/60 outline-none transition-all appearance-none uppercase tracking-widest cursor-pointer hover:border-white/20"
               >
                 <option value="">[ NOT MAPPED ]</option>
                 {headers.map(h => <option key={h} value={h}>{h}</option>)}
@@ -70,10 +70,10 @@ export function MappingSection({
           <button
             onClick={onStartProcessing}
             disabled={!mappings.emailKey || isProcessing}
-            className="w-full gradient-bg disabled:opacity-20 disabled:grayscale text-white h-16 rounded-[24px] font-black text-xl uppercase italic tracking-tighter flex items-center justify-center gap-4 transition-all shadow-[0_0_30px_rgba(2,254,220,0.2)] active:scale-[0.98]"
+            className="w-full gradient-bg disabled:opacity-20 disabled:grayscale text-black h-16 rounded-[24px] font-black text-xl uppercase italic tracking-tighter flex items-center justify-center gap-4 transition-all shadow-[0_10px_30px_rgba(90,92,255,0.3)] active:scale-[0.98] hover:shadow-[0_15px_50px_rgba(90,92,255,0.5)]"
           >
             Start Verification Scan
-            <ShieldCheck className="w-5 h-5" />
+            <ShieldCheck className="w-5 h-5 transition-transform group-hover:scale-110" />
           </button>
         </div>
       </GlossyCard>

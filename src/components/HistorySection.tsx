@@ -15,7 +15,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
     <div className="max-w-4xl mx-auto w-full">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Audit Archive</h2>
+          <h2 className="text-3xl font-black text-app-text uppercase italic tracking-tighter transition-colors duration-500">Audit Archive</h2>
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1">IDENTITY INFRASTRUCTURE LOGS</p>
         </div>
         <button 
@@ -27,7 +27,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
       </div>
 
       {history.length === 0 ? (
-        <div className="bg-[#050505] p-20 rounded-[40px] border border-slate-900 text-center border-dashed">
+        <div className="bg-app-card p-20 rounded-[40px] border border-app-border text-center border-dashed transition-colors duration-500">
           <Clock className="w-12 h-12 text-slate-800 mx-auto mb-4" />
           <p className="text-slate-600 font-black uppercase tracking-widest text-[10px]">No Data Detected</p>
         </div>
@@ -37,15 +37,15 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
             <GlossyCard 
               key={item.id} 
               onClick={() => loadItem(item)}
-              className="p-4 md:p-6 rounded-[24px] hover:border-[#02FEDC]/50 flex flex-col md:flex-row items-center justify-between gap-4"
+              className="p-4 md:p-6 rounded-[24px] hover:border-brand-blue/50 flex flex-col md:flex-row items-center justify-between gap-4"
             >
               <div className="absolute top-0 left-0 w-1 h-full gradient-bg opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="flex items-center gap-6 w-full md:w-auto">
-                <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-slate-500 group-hover:gradient-text transition-colors border border-white/5">
+                <div className="w-14 h-14 bg-app-bg rounded-2xl flex items-center justify-center text-slate-500 group-hover:gradient-text transition-colors border border-app-border">
                   <FileCheck className="w-7 h-7" />
                 </div>
                 <div>
-                  <p className="font-black text-white text-xl uppercase italic tracking-tighter">{item.fileName}</p>
+                  <p className="font-black text-app-text text-xl uppercase italic tracking-tighter transition-colors duration-500">{item.fileName}</p>
                   <div className="flex items-center gap-3 text-[9px] text-slate-600 font-black uppercase tracking-widest mt-1">
                     <span>{new Date(item.date).toLocaleDateString()}</span>
                     <span className="text-white/10">•</span>
@@ -55,7 +55,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
               </div>
               <div className="flex items-center justify-between md:justify-end gap-6 md:gap-10 w-full md:w-auto">
                 <div className="text-right">
-                  <p className="text-xl font-black text-white font-mono tracking-tighter">{item.validRows}</p>
+                  <p className="text-xl font-black text-app-text font-mono tracking-tighter transition-colors duration-500">{item.validRows}</p>
                   <p className="text-[8px] uppercase font-black gradient-text tracking-widest">Optimized</p>
                 </div>
                 <div className="text-right">

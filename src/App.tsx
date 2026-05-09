@@ -13,6 +13,7 @@ import { HistorySection } from './components/HistorySection';
 import { ResultsDashboard } from './components/ResultsDashboard';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { DataPreviewModal } from './components/DataPreviewModal';
+import { SingleValidation } from './components/SingleValidation';
 
 // Hooks & Types
 import { useHistory } from './hooks/useHistory';
@@ -26,6 +27,14 @@ type AppState = 'upload' | 'mapping' | 'processing' | 'results' | 'rules' | 'his
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>('upload');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
   const [fileData, setFileData] = useState<ContactData[]>([]);
   const [fileName, setFileName] = useState('');
   const [headers, setHeaders] = useState<string[]>([]);
@@ -61,7 +70,14 @@ export default function App() {
 
     reader.onload = (e) => {
       const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: 'array' });
+      // Optimized for large datasets by disabling unnecessary features
+      const workbook = XLSX.read(data, { 
+        type: 'array',
+        cellDates: true,
+        cellText: false,
+        cellFormula: false,
+        cellHTML: false
+      });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json<ContactData>(worksheet);
 
@@ -116,6 +132,23 @@ export default function App() {
     }
   };
 
+  const handleDownloadEliminated = () => {
+    const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+    const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+    
+    const exportData = processor.eliminatedData.map(item => ({
+      ...(item.__originalData || item),
+      elimination_reason: item.verificationReason || item.reason || 'Security Protocol'
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Filtered Leads');
+    
+    XLSX.writeFile(workbook, `${baseName}_Filtered${extension}`);
+    toast('EXPORT COMPLETE: FILTERED NODES ARCHIVED', 'warning');
+  };
+
   const handleDownload = () => {
     const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
     const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
@@ -165,57 +198,88 @@ export default function App() {
   const reset = () => {
     setAppState('upload');
     setFileData([]);
+    setFileName('');
+    setHeaders([]);
+    setMappings({
+      firstNameKey: '', lastNameKey: '', nameKey: '',
+      emailKey: '', phoneKey: '', countryKey: '',
+      cityKey: '', postalCodeKey: ''
+    });
     processor.resetProcessor();
+    toast('PROTOCOL_PURGE: EMERGENCY RESET ENGAGED', 'success');
   };
 
   return (
-    <div className="flex h-screen bg-[#000000] text-slate-100 font-sans overflow-hidden relative">
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[9999] mix-blend-overlay" 
+    <div className="flex h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white transition-colors duration-300" data-theme={theme}>
+      {/* Premium Background Layering */}
+      <div className="mesh-background" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(90,92,255,0.05),transparent_50%)] pointer-events-none" />
+      
+      <div className="fixed inset-0 pointer-events-none opacity-[0.02] z-[9999] mix-blend-overlay" 
            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
       </div>
 
       <Sidebar currentTab={appState} setTab={setAppState} />
 
-      <main className="flex-1 flex flex-col overflow-hidden pb-24 lg:pb-0">
+      <main className="flex-1 flex flex-col overflow-hidden pb-24 lg:pb-0 relative z-10">
         <Header 
           appState={appState} 
           isProcessing={processor.isProcessing} 
           onDownload={handleDownload} 
           onReset={reset} 
+          theme={theme}
+          onToggleTheme={toggleTheme}
         />
 
-        <section className="flex-1 p-8 overflow-y-auto flex flex-col gap-8 bg-[#000000]">
-          <AnimatePresence mode="wait">
-            {appState === 'upload' && <LeadUpload onDrop={onDrop} />}
-            {appState === 'mapping' && (
-              <MappingSection 
-                fileName={fileName} totalLeads={fileData.length} headers={headers} 
-                mappings={mappings} setMappings={setMappings} 
-                onStartProcessing={handleStartProcessing} isProcessing={processor.isProcessing} 
-                onPreview={() => openPreview(fileData, 'Original Data Preview')}
-              />
-            )}
-            {appState === 'rules' && (
-              <RulesSection 
-                rules={validationRules} 
-                onToggle={(key) => setValidationRules(p => ({ ...p, [key]: !p[key]}))} 
-              />
-            )}
-            {appState === 'history' && (
-              <HistorySection 
-                history={history} loadItem={loadHistoryItem} 
-                downloadItem={downloadHistoryItem} clearHistory={clearHistory} 
-              />
-            )}
-            {appState === 'results' && (
-              <ResultsDashboard 
-                processedData={processor.processedData} 
-                eliminatedData={processor.eliminatedData} 
-                mappings={mappings} 
-                onPreview={openPreview}
-              />
-            )}
-          </AnimatePresence>
+        <section className="flex-1 p-6 md:p-10 overflow-y-auto flex flex-col gap-10 scrollbar-hide">
+          <div className="max-w-7xl mx-auto w-full">
+            <AnimatePresence mode="wait">
+              {appState === 'upload' && (
+                <div key="upload-state" className="space-y-20 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
+                  <SingleValidation />
+                  <LeadUpload onDrop={onDrop} />
+                </div>
+              )}
+              {appState === 'mapping' && (
+                <div key="mapping-state" className="animate-in fade-in scale-in-95 duration-500">
+                  <MappingSection 
+                    fileName={fileName} totalLeads={fileData.length} headers={headers} 
+                    mappings={mappings} setMappings={setMappings} 
+                    onStartProcessing={handleStartProcessing} isProcessing={processor.isProcessing} 
+                    onPreview={() => openPreview(fileData, 'Original Data Preview')}
+                  />
+                </div>
+              )}
+              {appState === 'rules' && (
+                <div key="rules-state" className="animate-in fade-in slide-in-from-left-4 duration-500">
+                  <RulesSection 
+                    rules={validationRules} 
+                    onToggle={(key) => setValidationRules(p => ({ ...p, [key]: !p[key]}))} 
+                  />
+                </div>
+              )}
+              {appState === 'history' && (
+                <div key="history-state" className="animate-in fade-in slide-in-from-right-4 duration-500">
+                  <HistorySection 
+                    history={history} loadItem={loadHistoryItem} 
+                    downloadItem={downloadHistoryItem} clearHistory={clearHistory} 
+                  />
+                </div>
+              )}
+              {appState === 'results' && (
+                <div key="results-state" className="animate-in fade-in slide-in-from-top-4 duration-700">
+                  <ResultsDashboard 
+                    processedData={processor.processedData} 
+                    eliminatedData={processor.eliminatedData} 
+                    mappings={mappings} 
+                    onPreview={openPreview}
+                    onDownloadEliminated={handleDownloadEliminated}
+                    onDownloadValid={handleDownload}
+                  />
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
         </section>
 
         <Footer />

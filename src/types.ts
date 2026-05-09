@@ -10,11 +10,16 @@ export interface ContactData {
   [key: string]: string | number | boolean | undefined;
 }
 
-export interface ProcessedContact extends ContactData {
+export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
   verificationStatus: 'verified' | 'rejected' | 'valid' | 'risky' | 'blocked';
   verificationReason?: string;
+  subStatus?: string;
+  provider?: string;
+  isFreeEmail?: boolean;
+  domainAgeDays?: number;
+  mxRecord?: string;
   confidenceScore: number; // 0-100
-  bounceRisk: 'Low' | 'Medium' | 'High' | 'Dangerous';
+  bounceRisk: 'Safe' | 'Medium' | 'High' | 'Dangerous';
   reputationImpact: 'Positive' | 'Neutral' | 'Negative' | 'Critical';
   mxRecordFound: boolean;
   isCatchAll?: boolean;
@@ -27,7 +32,7 @@ export interface ProcessedContact extends ContactData {
   spfExists?: boolean;
   dkimExists?: boolean;
   originalIndex: number;
-  __originalData?: ContactData;
+  __originalData?: any;
 }
 
 export interface HistoryItem {

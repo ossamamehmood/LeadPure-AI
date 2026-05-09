@@ -46,11 +46,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               exit={{ opacity: 0, x: 50, scale: 0.9 }}
               className={cn(
                 "pointer-events-auto min-w-[300px] glossy-card p-4 rounded-2xl flex items-center gap-4 shadow-2xl",
-                t.type === 'success' && "border-brand-cyan/20 bg-brand-cyan/5",
+                t.type === 'success' && "border-brand-blue/20 bg-brand-blue/5 shadow-[0_0_20px_rgba(90,92,255,0.1)]",
                 t.type === 'error' && "border-rose-500/20 bg-rose-500/5",
               )}
             >
-              {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-brand-cyan shrink-0" />}
+              {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-brand-blue shrink-0 drop-shadow-[0_0_8px_rgba(90,92,255,0.4)]" />}
               {t.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />}
               <p className="text-xs font-bold text-white flex-1">{t.message}</p>
               <button 

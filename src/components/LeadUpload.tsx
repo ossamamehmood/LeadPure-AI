@@ -15,69 +15,98 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
       'application/vnd.ms-excel': ['.xls'],
       'text/csv': ['.csv'],
-    }
+    },
+    multiple: false
   });
 
   return (
-    <div className="max-w-4xl mx-auto w-full space-y-12">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <GlossyCard glow="cyan" className="p-6 rounded-[24px] shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-all duration-500" />
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-slate-500 text-xs font-black uppercase tracking-[0.2em]">Safety Goal</p>
-            <span className="px-2 py-1 bg-white/5 text-[8px] rounded-full uppercase font-black tracking-widest border border-white/10 whitespace-nowrap gradient-text">0% Bounces</span>
+    <div className="max-w-5xl mx-auto w-full space-y-16 py-8">
+      {/* Top Value Propositions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <GlossyCard glow="gradient" className="p-8 rounded-[32px] group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="flex justify-between items-start mb-6">
+            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Protocol</p>
+            <span className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-[9px] rounded-full uppercase font-black tracking-widest border border-brand-blue/20">0% Bounces</span>
           </div>
-          <h3 className="text-4xl font-black text-white mt-2 tracking-tighter">Gold <span className="text-xl font-medium text-slate-600">Standard</span></h3>
+          <h3 className="text-2xl font-black text-app-text tracking-widest uppercase italic transition-all duration-500 group-hover:translate-x-1">Gold Standard</h3>
+          <p className="text-slate-500 text-xs mt-3 leading-relaxed font-medium">Our proprietary validation logic ensures maximum deliverability by purging dead nodes.</p>
         </GlossyCard>
         
-        <GlossyCard glow="pink" className="p-6 rounded-[24px] shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 via-cyan-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-all duration-500" />
-          <p className="text-slate-500 text-xs font-black uppercase tracking-[0.2em] mb-4">Smart Filtering</p>
-          <h3 className="text-3xl font-black text-white mt-2 tracking-tighter uppercase italic">Auto-Purge</h3>
+        <GlossyCard glow="blue" className="p-8 rounded-[32px] group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-6">Logic Core</p>
+          <h3 className="text-2xl font-black text-brand-blue tracking-widest uppercase italic group-hover:translate-x-1 transition-transform">Auto-Purge</h3>
+          <p className="text-slate-500 text-xs mt-3 leading-relaxed font-medium">Synthetically generated addresses and commercial bots are automatically stripped from your sequence.</p>
         </GlossyCard>
-
-        <GlossyCard glow="blue" className="p-6 rounded-[24px] shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
-          <p className="text-slate-500 text-xs font-black uppercase tracking-[0.2em] mb-4">Verification Check</p>
-          <h3 className="text-4xl font-black gradient-text mt-2 tracking-tighter uppercase italic">Deep Scan</h3>
+        
+        <GlossyCard glow="purple" className="p-8 rounded-[32px] group">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-6">Audit Depth</p>
+          <h3 className="text-2xl font-black gradient-text tracking-widest uppercase italic group-hover:translate-x-1 transition-transform">Deep Scan</h3>
+          <p className="text-slate-500 text-xs mt-3 leading-relaxed font-medium">Every identity undergoes a multi-layer verification check including SMTP and infrastructure audits.</p>
         </GlossyCard>
       </div>
 
-      <div 
-        {...getRootProps()} 
-        className={cn(
-          "border-2 border-dashed rounded-[40px] p-12 md:p-24 transition-all duration-500 cursor-pointer text-center group relative overflow-hidden",
-          isDragActive 
-            ? "border-[#02FEDC] bg-[#02FEDC]/5 scale-[0.98] shadow-[0_0_50px_rgba(2,254,220,0.1)]" 
-            : "border-white/5 hover:border-[#F502FD]/50 bg-[#050505]/40 hover:shadow-[0_0_40px_rgba(245,2,253,0.05)]"
-        )}
-      >
-        <input {...getInputProps()} />
-        <div className="space-y-8 relative z-10">
-          <div className="w-24 h-24 md:w-28 md:h-28 bg-[#000] border border-white/5 rounded-[32px] flex items-center justify-center mx-auto group-hover:border-white/20 group-hover:-rotate-3 transition-all duration-700 shadow-2xl">
-            <Upload className={cn("w-8 h-8 md:w-10 md:h-10 transition-all duration-500", isDragActive ? "text-[#02FEDC] scale-125" : "text-slate-700 group-hover:text-[#02FEDC]")} />
+      {/* Main Dropzone */}
+      <div className="relative group">
+        <div className="absolute -inset-4 bg-gradient-to-r from-brand-cyan/10 via-brand-blue/10 to-brand-purple/10 rounded-[48px] blur-3xl opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
+        
+        <div 
+          {...getRootProps()} 
+          className={cn(
+            "relative transition-all duration-700 rounded-[40px] border-2 border-dashed overflow-hidden flex flex-col items-center justify-center min-h-[480px] group/drop cursor-pointer",
+            isDragActive 
+              ? "border-brand-blue bg-brand-blue/5 scale-[0.99]" 
+              : "border-app-border hover:border-brand-blue/40 bg-app-bg/40 backdrop-blur-3xl shadow-2xl transition-colors duration-500"
+          )}
+        >
+          {/* Internal Mesh Effect */}
+          <div className="absolute inset-0 opacity-10 group-hover/drop:opacity-20 transition-opacity duration-700">
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_20%_30%,#5A5CFF_0%,transparent_50%)]" />
+            <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,#9D00FF_0%,transparent_50%)]" />
           </div>
-          <div>
-            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tighter uppercase italic">Import & Clean Contacts</h2>
-            <p className="text-slate-500 mt-3 max-w-sm mx-auto text-sm leading-relaxed font-medium">
-              Eliminate risky emails that damage your reputation. Upload your list to achieve a 0% bounce rate.
-            </p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-4">
-            <span className="bg-white/5 border border-white/5 text-slate-500 px-6 py-2 rounded-full text-[10px] font-black tracking-[0.3em] uppercase">BounceZero AI Active</span>
-            <span className="bg-white/5 border border-white/5 text-slate-500 px-6 py-2 rounded-full text-[10px] font-black tracking-[0.3em] uppercase italic underline underline-offset-4 decoration-[#02FEDC]">Auto-Filter Active</span>
-          </div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-black text-slate-500 max-w-lg mx-auto text-center border-t border-white/5 pt-10 tracking-[0.2em] uppercase italic">
-        <div className="flex items-center justify-center gap-3 opacity-60 hover:opacity-100 transition-opacity">
-          <ShieldCheck className="w-4 h-4 gradient-text" />
-          <span>Privacy Secured</span>
-        </div>
-        <div className="flex items-center justify-center gap-3 opacity-60 hover:opacity-100 transition-opacity">
-          <PhoneCall className="w-4 h-4 text-[#F502FD]" />
-          <span>Global Format</span>
+          <div className="relative z-10 flex flex-col items-center text-center p-12 space-y-10">
+            <div className={cn(
+              "w-28 h-28 rounded-[36px] bg-app-card border border-app-border flex items-center justify-center transition-all duration-700 shadow-2xl relative group-hover/drop:-rotate-6",
+              isDragActive ? "border-brand-blue shadow-[0_0_40px_rgba(90,92,255,0.3)]" : "group-hover/drop:border-brand-blue/40"
+            )}>
+              <Upload className={cn(
+                "w-10 h-10 transition-all duration-700",
+                isDragActive ? "text-brand-blue scale-125" : "text-slate-600 group-hover/drop:text-slate-100"
+              )} />
+              {/* Dynamic Particles effect could go here in future */}
+            </div>
+            
+            <div className="space-y-4">
+              <h2 className="text-4xl md:text-5xl font-black text-app-text tracking-widest uppercase italic transition-all duration-700">
+                Identity <span className="gradient-text">Ingestion</span>
+              </h2>
+              <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed font-medium uppercase tracking-widest">
+                Deploy your database for deep verification. 
+              </p>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-10 border-t border-white/5 pt-10">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="w-4 h-4 text-brand-blue" />
+                <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Enterprise Vault</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-brand-pink animate-pulse" />
+                <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Live Validation Active</span>
+              </div>
+            </div>
+            
+            <div className="flex gap-4">
+              <div className="px-4 py-1.5 bg-white/5 rounded-lg border border-white/10 text-[9px] font-black tracking-widest text-slate-500 uppercase">.XLSX</div>
+              <div className="px-4 py-1.5 bg-white/5 rounded-lg border border-white/10 text-[9px] font-black tracking-widest text-slate-500 uppercase">.CSV</div>
+              <div className="px-4 py-1.5 bg-white/5 rounded-lg border border-white/10 text-[9px] font-black tracking-widest text-slate-500 uppercase">.XLS</div>
+            </div>
+          </div>
+          
+          <input {...getInputProps()} />
         </div>
       </div>
     </div>

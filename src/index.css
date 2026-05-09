@@ -7,43 +7,137 @@
   --color-brand-cyan: #02FEDC;
   --color-brand-blue: #5A5CFF;
   --color-brand-pink: #F502FD;
+  --color-brand-purple: #9D00FF;
+  --color-brand-teal: #00FFC2;
   
   --radius-xl: 1rem;
   --radius-2xl: 1.5rem;
   --radius-3xl: 2.5rem;
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-glow: glow 2s ease-in-out infinite alternate;
+
+  --color-app-bg: var(--bg-color, #030303);
+  --color-app-text: var(--text-color, #F8FAFC);
+  --color-app-border: var(--border-color, rgba(255, 255, 255, 0.05));
+  --color-app-card: var(--card-color, rgba(10, 10, 10, 0.7));
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 10px -2px rgba(90, 92, 255, 0.3); }
+  to { box-shadow: 0 0 20px 2px rgba(90, 92, 255, 0.5); }
 }
 
 :root {
-  background-color: #000000;
-  color: #F8FAFC; /* slate-50 */
+  --bg-color: #030303;
+  --text-color: #F8FAFC;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --card-color: rgba(10, 10, 10, 0.7);
+}
+
+[data-theme='light'] {
+  --bg-color: #F8FAFC;
+  --text-color: #0F172A;
+  --border-color: rgba(0, 0, 0, 0.1);
+  --card-color: rgba(255, 255, 255, 0.82);
+}
+
+/* Base Body Style */
+body {
+  @apply selection:bg-brand-blue/30 selection:text-white transition-colors duration-300 bg-app-bg text-app-text;
+  overflow-y: overlay;
+}
+
+/* Custom Gradient Scrollbar */
+::-webkit-scrollbar {
+  width: 14px;
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+  border-radius: 0px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 20px;
+  background: linear-gradient(
+    180deg, 
+    #02FEDC 0%,   /* Green */
+    #5A5CFF 50%,  /* Blue */
+    #F502FD 100%  /* Pink */
+  );
+  border: 4px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg, 
+    #F502FD 0%,   /* Pink */
+    #5A5CFF 50%,  /* Blue */
+    #02FEDC 100%  /* Green */
+  );
+  background-clip: content-box;
+}
+
+.mesh-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(90, 92, 255, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(157, 0, 255, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(245, 2, 253, 0.05) 0%, transparent 50%);
+  z-index: -1;
+  transition: background 0.6s ease-in-out;
+}
+
+[data-theme='light'] .mesh-background {
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(90, 92, 255, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(157, 0, 255, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(2, 254, 220, 0.15) 0%, transparent 60%);
 }
 
 a.brand-link {
-  @apply text-inherit no-underline hover:text-[#02FEDC] transition-colors;
+  @apply text-inherit no-underline hover:text-brand-blue transition-colors;
 }
 
 .gradient-text {
-  background: linear-gradient(to right, #02FEDC, #5A5CFF, #F502FD);
+  background: linear-gradient(135deg, #02FEDC 0%, #5A5CFF 50%, #F502FD 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
+.glass-panel {
+  @apply bg-app-bg/40 backdrop-blur-2xl border border-app-border shadow-2xl;
+}
+
 .glossy-card {
-  @apply relative border border-white/[0.08] backdrop-blur-2xl bg-[#0c0c0c]/80 overflow-hidden;
+  @apply relative border border-app-border backdrop-blur-3xl bg-app-card overflow-hidden transition-colors duration-300;
   background-image: 
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 40%),
-    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.02), transparent 40%);
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.03), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.01), transparent 30%);
   box-shadow: 
-    0 10px 40px -10px rgba(0, 0, 0, 0.5),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    0 8px 32px 0 rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease-in-out;
 }
 
 .glossy-card:hover {
-  @apply border-white/20 bg-[#121212]/90 -translate-y-1;
+  @apply border-app-border/40 bg-app-card/90 -translate-y-1;
   box-shadow: 
-    0 20px 60px -15px rgba(0, 0, 0, 0.8),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+    0 24px 64px -12px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .glossy-card::after {
@@ -67,9 +161,13 @@ a.brand-link {
   left: 150%;
 }
 
-.glow-cyan { box-shadow: 0 0 30px -10px rgba(2, 254, 220, 0.2), inset 0 0 20px -10px rgba(2, 254, 220, 0.1); }
-.glow-pink { box-shadow: 0 0 30px -10px rgba(245, 2, 253, 0.2), inset 0 0 20px -10px rgba(245, 2, 253, 0.1); }
-.glow-blue { box-shadow: 0 0 30px -10px rgba(90, 92, 255, 0.2), inset 0 0 20px -10px rgba(90, 92, 255, 0.1); }
+.glow-cyan { box-shadow: 0 0 40px -15px rgba(2, 254, 220, 0.15), 0 0 40px -15px rgba(90, 92, 255, 0.2), inset 0 0 20px -12px rgba(2, 254, 220, 0.1); }
+.glow-pink { box-shadow: 0 0 40px -15px rgba(245, 2, 253, 0.25), inset 0 0 20px -12px rgba(245, 2, 253, 0.2); }
+.glow-blue { box-shadow: 0 0 40px -15px rgba(90, 92, 255, 0.25), inset 0 0 20px -12px rgba(90, 92, 255, 0.2); }
+.glow-purple { box-shadow: 0 0 40px -15px rgba(157, 0, 255, 0.25), inset 0 0 20px -12px rgba(157, 0, 255, 0.2); }
+.glow-gradient { box-shadow: 0 10px 40px -10px rgba(90, 92, 255, 0.25), 0 5px 20px -5px rgba(245, 2, 253, 0.2); }
+
+[data-theme='light'] .glow-gradient { box-shadow: 0 10px 40px -10px rgba(90, 92, 255, 0.15), 0 5px 20px -5px rgba(245, 2, 253, 0.1); }
 
 .gradient-border {
   position: relative;
@@ -94,5 +192,5 @@ a.brand-link {
 }
 
 .gradient-bg {
-  background: linear-gradient(to right, #02FEDC, #5A5CFF, #F502FD);
+  background: linear-gradient(135deg, #02FEDC 0%, #5A5CFF 50%, #F502FD 100%);
 }
