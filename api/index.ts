@@ -9,4 +9,4 @@ export default async (req: any, res: any) => {
   }
   const appInstance = await serverPromise;
   return appInstance(req, res);
-};
+}; 
