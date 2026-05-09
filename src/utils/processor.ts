@@ -96,21 +96,24 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
 /**
  * DNS Cache to prevent redundant MX checks for the same domain in the same session
  */
-const mxCache: Record<string, boolean> = {};
+const mxCache = new Map<string, boolean>();
 
 /**
  * Perform a reliable DNS MX check via server-side proxy with local caching
  */
 export const checkMXRecords = async (domain: string): Promise<boolean> => {
-  if (mxCache[domain] !== undefined) return mxCache[domain];
+  if (mxCache.has(domain)) return mxCache.get(domain)!;
   
   try {
     const response = await fetch(`/api/check-mx?domain=${encodeURIComponent(domain)}`);
+    if (!response.ok) throw new Error('Response error');
     const data = await response.json();
-    mxCache[domain] = !!data.hasMx;
-    return mxCache[domain];
+    const hasMx = !!data.hasMx;
+    mxCache.set(domain, hasMx);
+    return hasMx;
   } catch (error) {
     console.error("DNS check failed", error);
+    // On failure, we assume true to avoid false positives in filtering unless DNS is explicitly failing
     return true; 
   }
 };
@@ -512,16 +515,21 @@ export const processContacts = async (
   // Deduplication Registry (Deterministic Case-Insensitive)
   const seenEmails = new Set<string>();
 
-  const BATCH_SIZE = 100; // Increased for better throughput on large lists
+  const BATCH_SIZE = 50; // Smaller batch size for better responsiveness and lower concurrent network pressure
   const total = data.length;
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
     const batch = data.slice(i, i + BATCH_SIZE);
     
-    // Check for duplicates before processing
+    // Process batch in parallel
     const results = await Promise.all(
       batch.map(async (item, index) => {
-        const email = String(item[mappings.emailKey] || '').toLowerCase().trim();
+        // Skip empty items
+        if (!item || Object.keys(item).length === 0) return null;
+
+        const emailKey = mappings.emailKey;
+        const email = emailKey ? String(item[emailKey] || '').toLowerCase().trim() : '';
+        
         if (email && seenEmails.has(email)) {
           return { eliminated: { ...item, reason: 'System Protocol: Duplicate Entry Suppressed' } };
         }
@@ -532,6 +540,7 @@ export const processContacts = async (
     );
 
     for (const res of results) {
+      if (!res) continue;
       if (res.valid) valid.push(res.valid);
       if (res.eliminated) eliminated.push(res.eliminated);
     }
@@ -540,10 +549,8 @@ export const processContacts = async (
       onProgress(Math.min(100, Math.round(((i + batch.length) / total) * 100)));
     }
 
-    // Yield control to main thread to prevent UI freezing
-    if (i % 500 === 0) {
-      await new Promise(resolve => setTimeout(resolve, 0));
-    }
+    // Frequent yielding to keep UI buttery smooth
+    await new Promise(resolve => setTimeout(resolve, 0));
   }
 
   return { valid, eliminated };

@@ -75,12 +75,12 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
             {contact.confidenceScore}% Confidence
           </span>
           {contact.subStatus && (
-            <span className="text-[8px] font-black uppercase tracking-widest bg-white/5 text-slate-400 px-2 py-0.5 rounded-md border border-white/10 uppercase">
+            <span className="text-[8px] font-black uppercase tracking-widest bg-app-bg text-app-text/50 px-2 py-0.5 rounded-md border border-app-border uppercase transition-colors duration-500">
               {contact.subStatus}
             </span>
           )}
         </div>
-        <p className="text-[10px] text-slate-300 font-black uppercase tracking-widest italic truncate">
+        <p className="text-[10px] text-app-text/60 font-black uppercase tracking-widest italic truncate transition-colors duration-500">
           {contact.verificationReason || contact.reason || 'Verified Identity Profile'}
         </p>
       </div>
@@ -218,7 +218,7 @@ export function ResultsDashboard({
               }}
               className={cn(
                 "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95",
-                activeTab === 'valid' ? "gradient-text" : "text-slate-700 hover:text-slate-500"
+                activeTab === 'valid' ? "gradient-text" : "text-app-text/40 hover:text-app-text/60"
               )}
             >
               <span className="relative z-10 transition-colors uppercase italic tracking-widest">Deliverable List</span>
@@ -241,7 +241,7 @@ export function ResultsDashboard({
               }}
               className={cn(
                 "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95",
-                activeTab === 'eliminated' ? "text-brand-pink" : "text-slate-700 hover:text-slate-500"
+                activeTab === 'eliminated' ? "text-brand-pink" : "text-app-text/40 hover:text-app-text/60"
               )}
             >
               <span className="relative z-10">Filtered Contacts</span>
@@ -315,7 +315,7 @@ export function ResultsDashboard({
                 <div className="absolute inset-0 border border-brand-blue/20 rounded-[40px] animate-pulse" />
                 <div className="absolute -inset-4 border border-white/[0.02] rounded-[48px] animate-ping opacity-20" />
               </div>
-              <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4 relative z-10">Data Integrity Result Exception</h4>
+              <h4 className="text-3xl font-black text-app-text uppercase italic tracking-tighter mb-4 relative z-10 transition-colors duration-500">Data Integrity Result Exception</h4>
               <p className="text-slate-600 text-xs font-black uppercase tracking-[0.3em] max-w-lg mx-auto leading-loose italic relative z-10">
                 The current ingestion parameters have filtered all objects from the view. <br/>
                 Adjust security protocols or check identity source mapping to reveal results.

@@ -113,11 +113,17 @@ export default function App() {
         cellHTML: false
       });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json<ContactData>(worksheet);
+      const json = XLSX.utils.sheet_to_json<ContactData>(worksheet, { defval: "" });
 
-      if (json.length > 0) {
-        setFileData(json);
-        const fileHeaders = Object.keys(json[0]);
+      // Filter out rows that are completely empty or missing an email/name key
+      const filteredJson = json.filter(row => {
+        const values = Object.values(row).filter(v => v !== null && v !== undefined && String(v).trim() !== "");
+        return values.length > 0;
+      });
+
+      if (filteredJson.length > 0) {
+        setFileData(filteredJson);
+        const fileHeaders = Object.keys(filteredJson[0]);
         setHeaders(fileHeaders);
         
         setMappings({

@@ -106,7 +106,7 @@ export function SingleValidation() {
               </button>
             </form>
 
-            <div className="mt-8 p-6 bg-white/[0.02] rounded-2xl border border-white/5">
+            <div className="mt-8 p-6 bg-app-bg/10 rounded-2xl border border-app-border">
               <div className="flex items-start gap-4">
                 <Info className="w-4 h-4 text-slate-600 mt-1 flex-shrink-0" />
                 <p className="text-[9px] text-slate-600 font-black uppercase tracking-widest italic leading-relaxed">
@@ -124,10 +124,10 @@ export function SingleValidation() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="h-full min-h-[300px] flex items-center justify-center border-2 border-dashed border-white/5 rounded-[40px]"
+                className="h-full min-h-[300px] flex items-center justify-center border-2 border-dashed border-app-border rounded-[40px]"
               >
                 <div className="text-center">
-                  <div className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center border border-white/10 mx-auto mb-6">
+                  <div className="w-16 h-16 rounded-3xl bg-app-bg/10 flex items-center justify-center border border-app-border mx-auto mb-6">
                     <Search className="w-8 h-8 text-slate-800" />
                   </div>
                   <p className="text-[10px] text-slate-700 font-extrabold uppercase tracking-[0.4em] italic">Awaiting Target Input</p>
@@ -178,7 +178,7 @@ export function SingleValidation() {
                   </GlossyCard>
                 </div>
 
-                <GlossyCard glow="gradient" className="p-8 flex items-center justify-between border-white/5 hover:border-brand-blue/30 transition-all">
+                <GlossyCard glow="gradient" className="p-8 flex items-center justify-between border-app-border hover:border-brand-blue/30 transition-all">
                   <div className="flex items-center gap-6">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border ${getStatusBg(result.verificationStatus)}`}>
                       {result.verificationStatus === 'verified' ? <ShieldCheck className="w-7 h-7 text-brand-blue" /> : <ShieldAlert className="w-7 h-7 text-amber-400" />}
@@ -191,7 +191,7 @@ export function SingleValidation() {
                 </GlossyCard>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="p-6 bg-white/[0.02] rounded-3xl border border-white/5 relative overflow-hidden group">
+                  <div className="p-6 bg-app-bg/10 rounded-3xl border border-app-border relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                       <Globe className="w-12 h-12" />
                     </div>
@@ -200,7 +200,7 @@ export function SingleValidation() {
                       <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Infrastucture</span>
                     </div>
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center group/item hover:bg-white/[0.02] -mx-2 px-2 py-1 rounded-lg transition-colors">
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
                         <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">MX Host</span>
                         <div className="text-right">
                           <p className={`text-[10px] font-black ${result.mxRecordFound ? 'text-brand-blue shadow-[0_0_10px_rgba(90,92,255,0.4)]' : 'text-brand-pink'}`}>
@@ -209,14 +209,14 @@ export function SingleValidation() {
                           {result.mxRecordFound && <p className="text-[8px] text-slate-500 font-mono mt-0.5">{result.mxRecord}</p>}
                         </div>
                       </div>
-                      <div className="flex justify-between items-center group/item hover:bg-white/[0.02] -mx-2 px-2 py-1 rounded-lg transition-colors">
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
                         <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Provider</span>
                         <div className="text-right">
                           <p className="text-[10px] font-black text-app-text uppercase">{result.provider || 'Independent'}</p>
                           <p className="text-[8px] text-slate-500 font-mono mt-0.5">{result.isFreeEmail ? 'Consumer Mailbox' : 'Commercial Node'}</p>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center group/item hover:bg-white/[0.02] -mx-2 px-2 py-1 rounded-lg transition-colors">
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
                         <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Legacy</span>
                         <div className="text-right">
                           <p className="text-[10px] font-black text-brand-blue uppercase">{result.domainAge}</p>
@@ -226,7 +226,7 @@ export function SingleValidation() {
                     </div>
                   </div>
 
-                  <div className="p-6 bg-white/[0.02] rounded-3xl border border-white/5 relative overflow-hidden group">
+                  <div className="p-6 bg-app-bg/10 rounded-3xl border border-app-border relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                       <ShieldCheck className="w-12 h-12" />
                     </div>
@@ -235,7 +235,7 @@ export function SingleValidation() {
                       <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Validation Analysis</span>
                     </div>
                     <div className="space-y-4">
-                      <div className="flex justify-between items-center group/item hover:bg-white/[0.02] -mx-2 px-2 py-1 rounded-lg transition-colors">
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
                         <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Sub-Status</span>
                         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
                           result.verificationStatus === 'verified' ? 'bg-brand-blue/10 border-brand-blue/20 text-brand-blue' : 
@@ -245,7 +245,7 @@ export function SingleValidation() {
                           {result.subStatus || 'Unknown'}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center group/item hover:bg-white/[0.02] -mx-2 px-2 py-1 rounded-lg transition-colors">
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
                         <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Bounce Risk</span>
                         <span className={`text-[10px] font-black uppercase ${
                           result.bounceRisk === 'Safe' ? 'text-brand-blue' : 
@@ -254,11 +254,11 @@ export function SingleValidation() {
                           {result.bounceRisk}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center group/item hover:bg-white/[0.02] -mx-2 px-2 py-1 rounded-lg transition-colors">
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
                         <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Security</span>
                         <div className="flex gap-2">
-                          <div className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${result.spfExists ? 'bg-brand-blue/20 text-brand-blue' : 'bg-white/5 text-slate-700'}`}>SPF</div>
-                          <div className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${result.dkimExists ? 'bg-brand-blue/20 text-brand-blue' : 'bg-white/5 text-slate-700'}`}>DKIM</div>
+                          <div className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${result.spfExists ? 'bg-brand-blue/20 text-brand-blue' : 'bg-app-bg/10 text-slate-700 border border-app-border'}`}>SPF</div>
+                          <div className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${result.dkimExists ? 'bg-brand-blue/20 text-brand-blue' : 'bg-app-bg/10 text-slate-700 border border-app-border'}`}>DKIM</div>
                         </div>
                       </div>
                     </div>

@@ -57,7 +57,7 @@ export function MappingSection({
               <select 
                 value={mappings[key]}
                 onChange={(e) => setMappings({ ...mappings, [key]: e.target.value })}
-                className="w-full h-12 px-5 rounded-2xl border border-app-border bg-app-bg/40 backdrop-blur-md text-slate-300 text-xs font-bold focus:border-brand-blue/40 focus:ring-1 focus:ring-brand-blue/30 focus:bg-app-bg/60 outline-none transition-all appearance-none uppercase tracking-widest cursor-pointer hover:border-white/20"
+                className="w-full h-12 px-5 rounded-2xl border border-app-border bg-app-bg/40 backdrop-blur-md text-app-text text-xs font-bold focus:border-brand-blue/40 focus:ring-1 focus:ring-brand-blue/30 focus:bg-app-bg/60 outline-none transition-all appearance-none uppercase tracking-widest cursor-pointer hover:border-white/20"
               >
                 <option value="">[ NOT MAPPED ]</option>
                 {headers.map(h => <option key={h} value={h}>{h}</option>)}
