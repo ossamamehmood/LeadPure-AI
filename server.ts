@@ -17,7 +17,7 @@ export async function createServer() {
     res.json({ status: "ok" });
   });
 
-  // Professional DNS MX Check Proxy
+  // Professional DNS MX Check Proxy using Google DNS-over-HTTPS for maximum reliability
   app.get("/api/check-mx", async (req, res) => {
     const domain = req.query.domain as string;
     if (!domain) {
@@ -25,26 +25,38 @@ export async function createServer() {
     }
 
     try {
-      // Add a 3s timeout for DNS lookups to prevent hanging
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('DNS Timeout')), 3000)
-      );
+      // Use Google DNS-over-HTTPS for more reliable lookups in serverless environments
+      // and to bypass potential local DNS restrictions/slowness
+      const response = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`);
       
-      const records = await Promise.race([
-        resolveMx(domain),
-        timeoutPromise
-      ]) as dns.MxRecord[];
-
+      if (!response.ok) {
+        throw new Error(`Google DNS API returned ${response.status}`);
+      }
+      
+      const data = await response.json() as any;
+      
+      // Google DNS Status 0 means NOERROR
+      const hasMx = data.Status === 0 && data.Answer && data.Answer.length > 0;
+      
       res.json({ 
-        hasMx: records && records.length > 0,
-        records: records 
+        hasMx: hasMx,
+        records: data.Answer || []
       });
     } catch (error) {
-      // Common codes: ENOTFOUND, ENODATA, or Timeout
-      res.json({ 
-        hasMx: false, 
-        error: error instanceof Error ? error.message : String(error) 
-      });
+      console.error(`MX check failed for ${domain}:`, error);
+      // Fallback to local DNS if DoH fails
+      try {
+        const records = await resolveMx(domain);
+        res.json({ 
+          hasMx: records && records.length > 0,
+          records: records || []
+        });
+      } catch (localError) {
+        res.json({ 
+          hasMx: false, 
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
     }
   });
 
