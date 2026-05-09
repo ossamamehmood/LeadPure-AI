@@ -50,8 +50,14 @@
 
 /* Base Body Style */
 body {
-  @apply selection:bg-brand-blue/30 selection:text-white transition-colors duration-300 bg-app-bg text-app-text;
+  @apply selection:bg-brand-blue/30 selection:text-white transition-all duration-500 ease-in-out bg-app-bg text-app-text;
   overflow-y: overlay;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Custom Gradient Scrollbar */
@@ -98,7 +104,7 @@ body {
     radial-gradient(circle at 90% 80%, rgba(157, 0, 255, 0.08) 0%, transparent 40%),
     radial-gradient(circle at 50% 50%, rgba(245, 2, 253, 0.05) 0%, transparent 50%);
   z-index: -1;
-  transition: background 0.6s ease-in-out;
+  transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-theme='light'] .mesh-background {
@@ -123,14 +129,14 @@ a.brand-link {
 }
 
 .glossy-card {
-  @apply relative border border-app-border backdrop-blur-3xl bg-app-card overflow-hidden transition-colors duration-300;
+  @apply relative border border-app-border backdrop-blur-3xl bg-app-card overflow-hidden;
   background-image: 
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.03), transparent 30%),
     radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.01), transparent 30%);
   box-shadow: 
     0 8px 32px 0 rgba(0, 0, 0, 0.4),
     inset 0 0 0 1px rgba(255, 255, 255, 0.03);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease-in-out;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.5s ease-in-out, border-color 0.5s ease-in-out;
 }
 
 .glossy-card:hover {

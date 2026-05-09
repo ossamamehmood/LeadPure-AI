@@ -14,9 +14,15 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-6 pb-6 pt-2 bg-gradient-to-t from-app-bg via-app-bg/90 to-transparent transition-colors duration-500">
       <nav className="flex items-center justify-around h-16 bg-app-card/80 backdrop-blur-2xl border border-app-border rounded-3xl px-2 shadow-2xl transition-colors duration-500">
         <button 
-          onClick={() => setTab('upload')}
+          onClick={() => {
+            if ((document as any).startViewTransition) {
+              (document as any).startViewTransition(() => setTab('upload'));
+            } else {
+              setTab('upload');
+            }
+          }}
           className={cn(
-            "flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all gap-1",
+            "flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all gap-1 active:scale-90",
             isUploadActive ? "text-brand-blue" : "text-slate-500"
           )}
         >
@@ -26,9 +32,15 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
         </button>
 
         <button 
-          onClick={() => setTab('rules')}
+          onClick={() => {
+            if ((document as any).startViewTransition) {
+              (document as any).startViewTransition(() => setTab('rules'));
+            } else {
+              setTab('rules');
+            }
+          }}
           className={cn(
-            "flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all gap-1",
+            "flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all gap-1 active:scale-90",
             currentTab === 'rules' ? "text-brand-blue" : "text-slate-500"
           )}
         >
@@ -38,9 +50,15 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
         </button>
 
         <button 
-          onClick={() => setTab('history')}
+          onClick={() => {
+            if ((document as any).startViewTransition) {
+              (document as any).startViewTransition(() => setTab('history'));
+            } else {
+              setTab('history');
+            }
+          }}
           className={cn(
-            "flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all gap-1",
+            "flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all gap-1 active:scale-90",
             currentTab === 'history' ? "text-brand-blue" : "text-slate-500"
           )}
         >

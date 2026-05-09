@@ -13,7 +13,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
   const isUploadActive = ['upload', 'mapping', 'processing', 'results'].includes(currentTab);
 
   return (
-    <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/40 backdrop-blur-3xl hidden lg:flex shrink-0 z-50 transition-colors duration-300">
+    <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/40 backdrop-blur-3xl hidden lg:flex shrink-0 z-50 transition-all duration-500">
       <div className="p-8 flex items-center gap-4 group cursor-pointer">
         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white font-black text-xs shadow-[0_0_20px_rgba(90,92,255,0.4)] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
           <Zap className="w-5 h-5 fill-white" />
@@ -33,9 +33,15 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
 
       <nav className="flex-1 px-4 space-y-3 mt-4">
         <button 
-          onClick={() => setTab('upload')}
+          onClick={() => {
+            if ((document as any).startViewTransition) {
+              (document as any).startViewTransition(() => setTab('upload'));
+            } else {
+              setTab('upload');
+            }
+          }}
           className={cn(
-            "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group",
+            "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95",
             isUploadActive 
               ? "bg-brand-blue text-white shadow-2xl shadow-brand-blue/30" 
               : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
@@ -46,9 +52,15 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
           Ingestion Node
         </button>
         <button 
-          onClick={() => setTab('rules')}
+          onClick={() => {
+            if ((document as any).startViewTransition) {
+              (document as any).startViewTransition(() => setTab('rules'));
+            } else {
+              setTab('rules');
+            }
+          }}
           className={cn(
-            "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group",
+            "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95",
             currentTab === 'rules' 
               ? "bg-brand-blue text-white shadow-2xl shadow-brand-blue/30" 
               : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
@@ -59,9 +71,15 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
           Validation Engine
         </button>
         <button 
-          onClick={() => setTab('history')}
+          onClick={() => {
+            if ((document as any).startViewTransition) {
+              (document as any).startViewTransition(() => setTab('history'));
+            } else {
+              setTab('history');
+            }
+          }}
           className={cn(
-            "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group",
+            "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95",
             currentTab === 'history' 
               ? "bg-brand-blue text-white shadow-2xl shadow-brand-blue/30" 
               : "text-slate-500 hover:text-slate-200 hover:bg-white/5"

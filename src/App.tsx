@@ -29,7 +29,18 @@ export default function App() {
   const [appState, setAppState] = useState<AppState>('upload');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   
-  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    
+    if (!(document as any).startViewTransition) {
+      setTheme(nextTheme);
+      return;
+    }
+    
+    (document as any).startViewTransition(() => {
+      setTheme(nextTheme);
+    });
+  };
 
   React.useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -210,7 +221,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white transition-colors duration-300" data-theme={theme}>
+    <div className="flex h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white transition-all duration-500 ease-in-out" data-theme={theme}>
       {/* Premium Background Layering */}
       <div className="mesh-background" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(90,92,255,0.05),transparent_50%)] pointer-events-none" />
@@ -235,13 +246,13 @@ export default function App() {
           <div className="max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">
               {appState === 'upload' && (
-                <div key="upload-state" className="space-y-20 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
+                <div key="upload-state" className="space-y-20 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
                   <SingleValidation />
                   <LeadUpload onDrop={onDrop} />
                 </div>
               )}
               {appState === 'mapping' && (
-                <div key="mapping-state" className="animate-in fade-in scale-in-95 duration-500">
+                <div key="mapping-state" className="animate-in fade-in scale-in-95 duration-300">
                   <MappingSection 
                     fileName={fileName} totalLeads={fileData.length} headers={headers} 
                     mappings={mappings} setMappings={setMappings} 
@@ -251,7 +262,7 @@ export default function App() {
                 </div>
               )}
               {appState === 'rules' && (
-                <div key="rules-state" className="animate-in fade-in slide-in-from-left-4 duration-500">
+                <div key="rules-state" className="animate-in fade-in slide-in-from-left-4 duration-300">
                   <RulesSection 
                     rules={validationRules} 
                     onToggle={(key) => setValidationRules(p => ({ ...p, [key]: !p[key]}))} 
@@ -267,7 +278,7 @@ export default function App() {
                 </div>
               )}
               {appState === 'results' && (
-                <div key="results-state" className="animate-in fade-in slide-in-from-top-4 duration-700">
+                <div key="results-state" className="animate-in fade-in slide-in-from-top-4 duration-500">
                   <ResultsDashboard 
                     processedData={processor.processedData} 
                     eliminatedData={processor.eliminatedData} 

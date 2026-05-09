@@ -12,6 +12,24 @@ interface DataPreviewModalProps {
   title: string;
 }
 
+const MemoizedPreviewRow = React.memo(({ row, headers }: { row: any, headers: string[] }) => {
+  if (!row) return null;
+
+  return (
+    <div className="flex border-b border-white/5 hover:bg-white/[0.02] transition-colors group h-[50px] will-change-transform contain-layout contain-paint">
+      {headers.map((header) => (
+        <div 
+          key={header} 
+          className="px-6 py-4 text-[11px] font-bold text-slate-400 font-mono tracking-tight border-r border-white/5 last:border-none group-hover:text-white transition-colors overflow-hidden truncate flex items-center"
+          style={{ width: `${100 / headers.length}%`, flexShrink: 0 }}
+        >
+          {String(row[header] || '-')}
+        </div>
+      ))}
+    </div>
+  );
+});
+
 export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewModalProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const deferredSearchTerm = React.useDeferredValue(searchTerm);
@@ -30,24 +48,9 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
     );
   }, [data, deferredSearchTerm]);
 
-  const Row = (index: number) => {
-    const row = filteredData[index];
-    if (!row) return null;
-
-    return (
-      <div className="flex border-b border-white/5 hover:bg-white/[0.02] transition-colors group h-[50px]">
-        {headers.map((header, hIdx) => (
-          <div 
-            key={header} 
-            className="px-6 py-4 text-[11px] font-bold text-slate-400 font-mono tracking-tight border-r border-white/5 last:border-none group-hover:text-white transition-colors overflow-hidden truncate flex items-center"
-            style={{ width: `${100 / headers.length}%`, flexShrink: 0 }}
-          >
-            {String(row[header] || '-')}
-          </div>
-        ))}
-      </div>
-    );
-  };
+  const itemContent = React.useCallback((index: number) => {
+    return <MemoizedPreviewRow row={filteredData[index]} headers={headers} />;
+  }, [filteredData, headers]);
 
   return (
     <AnimatePresence>
@@ -119,7 +122,8 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
                       <Virtuoso
                         style={{ height: '500px' }}
                         totalCount={filteredData.length}
-                        itemContent={Row}
+                        itemContent={itemContent}
+                        increaseViewportBy={200}
                       />
                    ) : (
                       <div className="py-40 text-center">

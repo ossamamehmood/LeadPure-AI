@@ -15,6 +15,79 @@ interface ResultsDashboardProps {
   onDownloadEliminated: () => void;
 }
 
+const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings: any }) => {
+  if (!contact) return null;
+
+  return (
+    <div className="border-b border-app-border hover:bg-white/[0.02] transition-colors duration-300 group flex items-center h-24 will-change-transform contain-layout contain-paint">
+      <div className="px-12 py-4 w-[35%] flex items-center gap-5 overflow-hidden">
+        <div className="w-10 h-10 shrink-0 rounded-2xl bg-app-bg border border-app-border flex items-center justify-center text-xs font-black text-app-text italic group-hover:border-brand-blue/30 transition-all group-hover:scale-105 duration-500">
+          {String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || 'U')[0].toUpperCase()}
+        </div>
+        <div className="overflow-hidden">
+          <div className="text-base font-black text-app-text italic tracking-tighter mb-1 uppercase truncate transition-colors duration-500">
+            {String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || 'Identity Unknown')} {String(contact[mappings.lastNameKey] || '')}
+          </div>
+          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.1em] font-mono truncate">{String(contact[mappings.emailKey] || 'N/A')}</div>
+        </div>
+      </div>
+      <div className="px-12 py-4 w-[20%] flex flex-col gap-2">
+        <span className={cn(
+          "text-[11px] font-black font-mono tracking-tighter",
+          (contact.confidenceScore || 0) >= 92 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent" : 
+          (contact.confidenceScore || 0) > 80 ? "text-brand-blue" : "text-brand-pink"
+        )}>
+          {contact.confidenceScore || 0}% Accuracy
+        </span>
+        <div className="w-full h-1 bg-white/[0.03] rounded-full overflow-hidden border border-white/5">
+          <div 
+            style={{ width: `${contact.confidenceScore || 0}%` }}
+            className={cn(
+              "h-full rounded-full transition-all duration-1000",
+              (contact.confidenceScore || 0) > 90 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_10px_rgba(90,92,255,0.4)]" : 
+              (contact.confidenceScore || 0) > 75 ? "bg-brand-blue" : "bg-brand-pink"
+            )}
+          />
+        </div>
+      </div>
+      <div className="px-12 py-4 w-[15%]">
+        <div className={cn(
+          "inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border",
+          (contact.bounceRisk === 'Safe' || contact.bounceRisk === 'Low') ? "text-brand-blue bg-brand-blue/5 border-brand-blue/20" :
+          contact.bounceRisk === 'Medium' ? "text-amber-400 bg-amber-400/5 border-amber-400/20" :
+          "text-brand-pink bg-brand-pink/5 border-brand-pink/20"
+        )}>
+          <div className={cn(
+            "w-1.5 h-1.5 rounded-full",
+            (contact.bounceRisk === 'Safe' || contact.bounceRisk === 'Low') ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_5px_rgba(90,92,255,0.6)]" :
+            contact.bounceRisk === 'Medium' ? "bg-brand-blue" :
+            "bg-brand-pink"
+          )} />
+          {contact.bounceRisk || 'SAFE'}
+        </div>
+      </div>
+      <div className="px-12 py-4 w-[30%] overflow-hidden">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
+            (contact.confidenceScore || 0) >= 92 ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/20' : 
+            (contact.confidenceScore || 0) > 80 ? 'bg-amber-400/10 text-amber-400' : 'bg-brand-pink/10 text-brand-pink'
+          }`}>
+            {contact.confidenceScore}% Confidence
+          </span>
+          {contact.subStatus && (
+            <span className="text-[8px] font-black uppercase tracking-widest bg-white/5 text-slate-400 px-2 py-0.5 rounded-md border border-white/10 uppercase">
+              {contact.subStatus}
+            </span>
+          )}
+        </div>
+        <p className="text-[10px] text-slate-300 font-black uppercase tracking-widest italic truncate">
+          {contact.verificationReason || contact.reason || 'Verified Identity Profile'}
+        </p>
+      </div>
+    </div>
+  );
+});
+
 export function ResultsDashboard({ 
   processedData, 
   eliminatedData, 
@@ -48,79 +121,9 @@ export function ResultsDashboard({
   const disposableCount = (eliminatedData || []).filter(item => item.isDisposable).length;
   const roleBasedCount = (eliminatedData || []).filter(item => item.isRoleBased).length;
 
-  const Row = (index: number) => {
-    const contact = filteredData[index];
-    if (!contact) return null;
-
-    return (
-      <div className="border-b border-app-border hover:bg-white/[0.02] transition-colors duration-300 group flex items-center h-24">
-        <div className="px-12 py-4 w-[35%] flex items-center gap-5 overflow-hidden">
-          <div className="w-10 h-10 shrink-0 rounded-2xl bg-app-bg border border-app-border flex items-center justify-center text-xs font-black text-app-text italic group-hover:border-brand-blue/30 transition-all group-hover:scale-105 duration-500">
-            {String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || 'U')[0].toUpperCase()}
-          </div>
-          <div className="overflow-hidden">
-            <div className="text-base font-black text-app-text italic tracking-tighter mb-1 uppercase truncate transition-colors duration-500">
-              {String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || 'Identity Unknown')} {String(contact[mappings.lastNameKey] || '')}
-            </div>
-            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.1em] font-mono truncate">{String(contact[mappings.emailKey] || 'N/A')}</div>
-          </div>
-        </div>
-        <div className="px-12 py-4 w-[20%] flex flex-col gap-2">
-          <span className={cn(
-            "text-[11px] font-black font-mono tracking-tighter",
-            (contact.confidenceScore || 0) >= 92 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent" : 
-            (contact.confidenceScore || 0) > 80 ? "text-brand-blue" : "text-brand-pink"
-          )}>
-            {contact.confidenceScore || 0}% Accuracy
-          </span>
-          <div className="w-full h-1 bg-white/[0.03] rounded-full overflow-hidden border border-white/5">
-            <div 
-              style={{ width: `${contact.confidenceScore || 0}%` }}
-              className={cn(
-                "h-full rounded-full transition-all duration-1000",
-                (contact.confidenceScore || 0) > 90 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_10px_rgba(90,92,255,0.4)]" : 
-                (contact.confidenceScore || 0) > 75 ? "bg-brand-blue" : "bg-brand-pink"
-              )}
-            />
-          </div>
-        </div>
-        <div className="px-12 py-4 w-[15%]">
-          <div className={cn(
-            "inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border",
-            (contact.bounceRisk === 'Safe' || contact.bounceRisk === 'Low') ? "text-brand-blue bg-brand-blue/5 border-brand-blue/20" :
-            contact.bounceRisk === 'Medium' ? "text-amber-400 bg-amber-400/5 border-amber-400/20" :
-            "text-brand-pink bg-brand-pink/5 border-brand-pink/20"
-          )}>
-            <div className={cn(
-              "w-1.5 h-1.5 rounded-full",
-              (contact.bounceRisk === 'Safe' || contact.bounceRisk === 'Low') ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_5px_rgba(90,92,255,0.6)]" :
-              contact.bounceRisk === 'Medium' ? "bg-brand-blue" :
-              "bg-brand-pink"
-            )} />
-            {contact.bounceRisk || 'SAFE'}
-          </div>
-        </div>
-        <div className="px-12 py-4 w-[30%] overflow-hidden">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
-              (contact.confidenceScore || 0) >= 92 ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/20' : 
-              (contact.confidenceScore || 0) > 80 ? 'bg-amber-400/10 text-amber-400' : 'bg-brand-pink/10 text-brand-pink'
-            }`}>
-              {contact.confidenceScore}% Confidence
-            </span>
-            {contact.subStatus && (
-              <span className="text-[8px] font-black uppercase tracking-widest bg-white/5 text-slate-400 px-2 py-0.5 rounded-md border border-white/10 uppercase">
-                {contact.subStatus}
-              </span>
-            )}
-          </div>
-          <p className="text-[10px] text-slate-300 font-black uppercase tracking-widest italic truncate">
-            {contact.verificationReason || contact.reason || 'Verified Identity Profile'}
-          </p>
-        </div>
-      </div>
-    );
-  };
+  const itemContent = React.useCallback((index: number) => {
+    return <MemoizedRow contact={filteredData[index]} mappings={mappings} />;
+  }, [filteredData, mappings]);
 
   return (
     <div className="max-w-6xl mx-auto w-full space-y-12 pb-20">
@@ -205,9 +208,16 @@ export function ResultsDashboard({
         <div className="px-10 py-12 flex flex-col md:flex-row justify-between items-center bg-transparent backdrop-blur-xl gap-8">
           <div className="flex gap-12 w-full md:w-auto">
             <button 
-              onClick={() => { setActiveTab('valid'); setSearchTerm(''); }}
+              onClick={() => { 
+                if ((document as any).startViewTransition) {
+                  (document as any).startViewTransition(() => setActiveTab('valid'));
+                } else {
+                  setActiveTab('valid');
+                }
+                setSearchTerm(''); 
+              }}
               className={cn(
-                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group",
+                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95",
                 activeTab === 'valid' ? "gradient-text" : "text-slate-700 hover:text-slate-500"
               )}
             >
@@ -221,9 +231,16 @@ export function ResultsDashboard({
               )}
             </button>
             <button 
-              onClick={() => { setActiveTab('eliminated'); setSearchTerm(''); }}
+              onClick={() => { 
+                if ((document as any).startViewTransition) {
+                  (document as any).startViewTransition(() => setActiveTab('eliminated'));
+                } else {
+                  setActiveTab('eliminated');
+                }
+                setSearchTerm(''); 
+              }}
               className={cn(
-                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group",
+                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95",
                 activeTab === 'eliminated' ? "text-brand-pink" : "text-slate-700 hover:text-slate-500"
               )}
             >
@@ -285,8 +302,9 @@ export function ResultsDashboard({
               <Virtuoso
                 style={{ height: '600px' }}
                 totalCount={filteredData.length}
-                itemContent={Row}
+                itemContent={itemContent}
                 className="scrollbar-hide"
+                increaseViewportBy={200}
               />
             </div>
           ) : (

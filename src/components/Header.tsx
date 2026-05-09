@@ -13,7 +13,7 @@ interface HeaderProps {
 
 export function Header({ appState, isProcessing, onDownload, onReset, theme, onToggleTheme }: HeaderProps) {
   return (
-    <header className="h-24 border-b border-app-border flex items-center justify-between px-10 bg-app-bg/40 backdrop-blur-3xl shrink-0 sticky top-0 z-50 transition-colors duration-300">
+    <header className="h-24 border-b border-app-border flex items-center justify-between px-10 bg-app-bg/40 backdrop-blur-3xl shrink-0 sticky top-0 z-50 transition-all duration-500">
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-3 group cursor-pointer">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white shadow-[0_0_15px_rgba(90,92,255,0.3)] transition-transform group-hover:rotate-12">
