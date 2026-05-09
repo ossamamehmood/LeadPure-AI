@@ -290,9 +290,9 @@ export function ResultsDashboard({
         </div>
         
         {/* Verification Engine Table */}
-        <div className="min-h-[500px]">
+        <div className="min-h-[500px] overflow-x-auto scrollbar-hide">
           {filteredData.length > 0 ? (
-            <div className="w-full">
+            <div className="min-w-[1000px]">
               <div className="flex text-slate-600 text-[10px] uppercase tracking-[0.5em] font-black bg-white/[0.01] border-b border-app-border">
                 <div className="px-12 py-10 w-[35%]">Identity Signature</div>
                 <div className="px-12 py-10 w-[20%]">List Health Score</div>
@@ -331,7 +331,7 @@ export function ResultsDashboard({
         </div>
         
         {/* Infrastructure Footer */}
-        <div className="px-12 py-10 bg-black/60 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="px-12 py-10 bg-app-bg/60 border-t border-app-border flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-8">
             <div className="flex items-center gap-4">
               <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_12px_rgba(90,92,255,0.5)] animate-pulse" />
@@ -339,8 +339,8 @@ export function ResultsDashboard({
                 Protocol: Active Node
               </p>
             </div>
-            <div className="h-6 w-px bg-white/5 hidden md:block" />
-            <div className="px-4 py-2 bg-white/[0.03] rounded-xl border border-white/5">
+            <div className="h-6 w-px bg-app-border hidden md:block" />
+            <div className="px-4 py-2 bg-app-bg/40 rounded-xl border border-app-border">
               <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] font-mono leading-none">
                 {filteredData.length} Identified Objects Indexed
               </p>

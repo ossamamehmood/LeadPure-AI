@@ -212,7 +212,7 @@ export function SingleValidation() {
                       <div className="flex justify-between items-center group/item hover:bg-white/[0.02] -mx-2 px-2 py-1 rounded-lg transition-colors">
                         <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Provider</span>
                         <div className="text-right">
-                          <p className="text-[10px] font-black text-white uppercase">{result.provider || 'Independent'}</p>
+                          <p className="text-[10px] font-black text-app-text uppercase">{result.provider || 'Independent'}</p>
                           <p className="text-[8px] text-slate-500 font-mono mt-0.5">{result.isFreeEmail ? 'Consumer Mailbox' : 'Commercial Node'}</p>
                         </div>
                       </div>
@@ -266,19 +266,19 @@ export function SingleValidation() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 px-6 py-4 bg-black/40 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3 px-6 py-4 bg-app-bg/40 rounded-2xl border border-app-border">
                     <div className={`w-2 h-2 rounded-full ${result.isDisposable ? 'bg-brand-pink shadow-[0_0_10px_rgba(255,51,102,0.4)]' : 'bg-slate-800'}`} />
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Disposable</span>
                   </div>
-                  <div className="flex items-center gap-3 px-6 py-4 bg-black/40 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3 px-6 py-4 bg-app-bg/40 rounded-2xl border border-app-border">
                     <div className={`w-2 h-2 rounded-full ${result.isCatchAll ? 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.4)]' : 'bg-slate-800'}`} />
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Catch-All</span>
                   </div>
-                  <div className="flex items-center gap-3 px-6 py-4 bg-black/40 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3 px-6 py-4 bg-app-bg/40 rounded-2xl border border-app-border">
                     <div className={`w-2 h-2 rounded-full ${result.isRoleBased ? 'bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.4)]' : 'bg-slate-800'}`} />
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Role-Based</span>
                   </div>
-                  <div className="flex items-center gap-3 px-6 py-4 bg-black/40 rounded-2xl border border-white/5">
+                  <div className="flex items-center gap-3 px-6 py-4 bg-app-bg/40 rounded-2xl border border-app-border">
                     <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_10px_rgba(90,92,255,0.4)]" />
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">MX Active</span>
                   </div>

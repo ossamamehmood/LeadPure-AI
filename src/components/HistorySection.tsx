@@ -48,7 +48,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                   <p className="font-black text-app-text text-xl uppercase italic tracking-tighter transition-colors duration-500">{item.fileName}</p>
                   <div className="flex items-center gap-3 text-[9px] text-slate-600 font-black uppercase tracking-widest mt-1">
                     <span>{new Date(item.date).toLocaleDateString()}</span>
-                    <span className="text-white/10">•</span>
+                    <span className="text-app-border">•</span>
                     <span>{new Date(item.date).toLocaleTimeString()}</span>
                   </div>
                 </div>
@@ -68,12 +68,12 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                       e.stopPropagation();
                       downloadItem(item);
                     }}
-                    className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-xl flex items-center justify-center text-slate-500 hover:text-white transition-all border border-white/5"
+                    className="w-10 h-10 bg-app-bg/10 hover:bg-app-bg/20 rounded-xl flex items-center justify-center text-slate-500 hover:text-brand-blue transition-all border border-app-border"
                     title="Export File"
                   >
                     <Download className="w-5 h-5" />
                   </button>
-                  <ChevronRight className="w-5 h-5 text-white/10 group-hover:gradient-text transition-colors" />
+                  <ChevronRight className="w-5 h-5 text-app-border group-hover:gradient-text transition-colors" />
                 </div>
               </div>
             </GlossyCard>

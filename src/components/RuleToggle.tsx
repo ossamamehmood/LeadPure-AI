@@ -35,7 +35,7 @@ export function RuleToggle({ domain, title, description, active, onToggle }: Rul
             "text-[8px] font-black uppercase tracking-[0.3em] px-2 py-0.5 rounded-full border transition-all duration-500",
             active 
               ? "bg-brand-blue/20 text-brand-blue border-brand-blue/20" 
-              : "bg-white/5 text-slate-600 border-white/5"
+              : "bg-app-bg/10 text-slate-600 border-app-border"
           )}>
             {domain}
           </span>
@@ -63,7 +63,7 @@ export function RuleToggle({ domain, title, description, active, onToggle }: Rul
       <div className="shrink-0 relative z-10 pr-2">
         <div className={cn(
           "w-12 h-6 rounded-full border transition-all duration-500 relative bg-app-bg",
-          active ? "border-white/20" : "border-app-border"
+          active ? "border-brand-blue/40" : "border-app-border"
         )}>
           <div className={cn(
             "absolute top-1 w-4 h-4 rounded-full transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1)",

@@ -99,11 +99,11 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
               <Database className="w-4 h-4 text-brand-blue" />
             </div>
             <div>
-              <span className="text-[10px] uppercase font-black text-slate-100 block">Cloud Core</span>
+              <span className="text-[10px] uppercase font-black text-app-text block">Cloud Core</span>
               <span className="text-[8px] uppercase font-bold text-brand-blue tracking-widest">Optimized</span>
             </div>
           </div>
-          <div className="w-full bg-slate-900/50 h-1.5 rounded-full mt-4 overflow-hidden">
+          <div className="w-full bg-app-bg h-1.5 rounded-full mt-4 overflow-hidden border border-app-border">
             <div className="gradient-bg h-full w-[100%] shadow-[0_0_15px_rgba(90,92,255,0.5)] animate-pulse"></div>
           </div>
         </GlossyCard>

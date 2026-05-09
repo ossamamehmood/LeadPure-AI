@@ -74,7 +74,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
             )}>
               <Upload className={cn(
                 "w-10 h-10 transition-all duration-700",
-                isDragActive ? "text-brand-blue scale-125" : "text-slate-600 group-hover/drop:text-slate-100"
+                isDragActive ? "text-brand-blue scale-125" : "text-slate-600 group-hover/drop:text-app-text"
               )} />
               {/* Dynamic Particles effect could go here in future */}
             </div>

@@ -32,18 +32,18 @@ export function MappingSection({
               <LayoutGrid className="w-6 h-6 text-[#5A5CFF]" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-white italic tracking-tighter uppercase">Data Mapping</h3>
+              <h3 className="text-xl font-black text-app-text italic tracking-tighter uppercase transition-colors duration-500">Data Mapping</h3>
               <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Source: {fileName}</p>
             </div>
           </div>
           <div className="text-center md:text-right flex flex-col items-center md:items-end gap-2">
             <button 
               onClick={onPreview}
-              className="px-4 py-1.5 bg-white/5 hover:bg-white/10 text-[8px] rounded-full uppercase font-black tracking-widest border border-white/10 transition-all text-slate-500 hover:text-brand-blue shadow-[0_0_10px_rgba(90,92,255,0.1)] hover:shadow-[0_0_15px_rgba(90,92,255,0.3)]"
+              className="px-4 py-1.5 bg-app-bg/10 hover:bg-app-bg/20 text-[8px] rounded-full uppercase font-black tracking-widest border border-app-border transition-all text-slate-500 hover:text-brand-blue shadow-[0_0_10px_rgba(90,92,255,0.1)] hover:shadow-[0_0_15px_rgba(90,92,255,0.3)]"
             >
               Preview Leads
             </button>
-            <div className="text-4xl font-black text-white font-mono tracking-tighter leading-none">{totalLeads}</div>
+            <div className="text-4xl font-black text-app-text font-mono tracking-tighter leading-none transition-colors duration-500">{totalLeads}</div>
             <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Leads for Inspection</p>
           </div>
         </div>
