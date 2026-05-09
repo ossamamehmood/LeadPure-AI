@@ -515,21 +515,25 @@ export const processContacts = async (
   // Deduplication Registry (Deterministic Case-Insensitive)
   const seenEmails = new Set<string>();
 
-  const BATCH_SIZE = 50; // Smaller batch size for better responsiveness and lower concurrent network pressure
+  const BATCH_SIZE = 40; // Optimal for parallel network requests
   const total = data.length;
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
-    const batch = data.slice(i, i + BATCH_SIZE);
+    const end = Math.min(i + BATCH_SIZE, total);
+    const batch = data.slice(i, end);
     
     // Process batch in parallel
     const results = await Promise.all(
       batch.map(async (item, index) => {
-        // Skip empty items
-        if (!item || Object.keys(item).length === 0) return null;
+        // Skip empty or invalid items
+        if (!item || typeof item !== 'object' || Object.keys(item).length === 0) return null;
 
         const emailKey = mappings.emailKey;
         const email = emailKey ? String(item[emailKey] || '').toLowerCase().trim() : '';
         
+        // Row is functionally empty for our purposes if it doesn't have an email or name
+        if (!email && !mappings.firstNameKey && !mappings.lastNameKey) return null;
+
         if (email && seenEmails.has(email)) {
           return { eliminated: { ...item, reason: 'System Protocol: Duplicate Entry Suppressed' } };
         }
@@ -546,11 +550,11 @@ export const processContacts = async (
     }
 
     if (onProgress) {
-      onProgress(Math.min(100, Math.round(((i + batch.length) / total) * 100)));
+      onProgress(Math.min(100, Math.round((end / total) * 100)));
     }
 
-    // Frequent yielding to keep UI buttery smooth
-    await new Promise(resolve => setTimeout(resolve, 0));
+    // Frequent yielding to keep UI buttery smooth and avoid browser lockup
+    await new Promise(resolve => setTimeout(resolve, 10));
   }
 
   return { valid, eliminated };

@@ -113,11 +113,16 @@ export default function App() {
         cellHTML: false
       });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json<ContactData>(worksheet, { defval: "" });
+      const json = XLSX.utils.sheet_to_json<ContactData>(worksheet, { 
+        defval: "",
+        blankrows: false,
+        raw: false
+      });
 
-      // Filter out rows that are completely empty or missing an email/name key
+      // Aggressive filtering: Only keep rows that have at least one non-empty value
+      // and specifically prioritize rows that aren't just empty strings from defval
       const filteredJson = json.filter(row => {
-        const values = Object.values(row).filter(v => v !== null && v !== undefined && String(v).trim() !== "");
+        const values = Object.values(row).map(v => String(v || '').trim()).filter(v => v !== "");
         return values.length > 0;
       });
 
