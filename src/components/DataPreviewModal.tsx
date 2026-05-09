@@ -1,9 +1,7 @@
 import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Table as TableIcon, Search } from 'lucide-react';
-import * as ReactWindow from 'react-window';
-
-const FixedSizeList = (ReactWindow as any).FixedSizeList || (ReactWindow as any).default?.FixedSizeList;
+import { Virtuoso } from 'react-virtuoso';
 import { GlossyCard } from './ui/GlossyCard';
 import { ContactData } from '../types';
 
@@ -32,12 +30,12 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
     );
   }, [data, deferredSearchTerm]);
 
-  const Row = ({ index, style }: { index: number, style: React.CSSProperties }) => {
+  const Row = (index: number) => {
     const row = filteredData[index];
     if (!row) return null;
 
     return (
-      <div style={style} className="flex border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
+      <div className="flex border-b border-white/5 hover:bg-white/[0.02] transition-colors group h-[50px]">
         {headers.map((header, hIdx) => (
           <div 
             key={header} 
@@ -116,16 +114,13 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
                   ))}
                 </div>
                 
-                <div className="flex-1 min-h-0">
+                <div className="flex-1 min-h-[500px]">
                    {filteredData.length > 0 ? (
-                      <FixedSizeList
-                        height={500} // This will be handled by container size if we use AutoSizer, but fixed is safer for now or we height: 100%
-                        itemCount={filteredData.length}
-                        itemSize={50}
-                        width="100%"
-                      >
-                        {Row}
-                      </FixedSizeList>
+                      <Virtuoso
+                        style={{ height: '500px' }}
+                        totalCount={filteredData.length}
+                        itemContent={Row}
+                      />
                    ) : (
                       <div className="py-40 text-center">
                         <p className="text-slate-600 font-black uppercase tracking-[0.4em] italic text-xs">No matching records found in preview.</p>

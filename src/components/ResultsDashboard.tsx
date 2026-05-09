@@ -1,9 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShieldCheck, Search, Database, Fingerprint, Activity, Zap, Cpu } from 'lucide-react';
-import * as ReactWindow from 'react-window';
-
-const FixedSizeList = (ReactWindow as any).FixedSizeList || (ReactWindow as any).default?.FixedSizeList;
+import { Virtuoso } from 'react-virtuoso';
 import { cn } from '../lib/utils';
 import { GlossyCard } from './ui/GlossyCard';
 import { ProcessedContact } from '../types';
@@ -50,12 +48,12 @@ export function ResultsDashboard({
   const disposableCount = (eliminatedData || []).filter(item => item.isDisposable).length;
   const roleBasedCount = (eliminatedData || []).filter(item => item.isRoleBased).length;
 
-  const Row = ({ index, style }: { index: number, style: React.CSSProperties }) => {
+  const Row = (index: number) => {
     const contact = filteredData[index];
     if (!contact) return null;
 
     return (
-      <div style={style} className="border-b border-app-border hover:bg-white/[0.02] transition-colors duration-300 group flex items-center">
+      <div className="border-b border-app-border hover:bg-white/[0.02] transition-colors duration-300 group flex items-center h-24">
         <div className="px-12 py-4 w-[35%] flex items-center gap-5 overflow-hidden">
           <div className="w-10 h-10 shrink-0 rounded-2xl bg-app-bg border border-app-border flex items-center justify-center text-xs font-black text-app-text italic group-hover:border-brand-blue/30 transition-all group-hover:scale-105 duration-500">
             {String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || 'U')[0].toUpperCase()}
@@ -284,15 +282,12 @@ export function ResultsDashboard({
                 <div className="px-12 py-10 w-[15%]">Status</div>
                 <div className="px-12 py-10 text-left w-[30%]">Engine Intelligence</div>
               </div>
-              <FixedSizeList
-                height={600}
-                itemCount={filteredData.length}
-                itemSize={100}
-                width="100%"
+              <Virtuoso
+                style={{ height: '600px' }}
+                totalCount={filteredData.length}
+                itemContent={Row}
                 className="scrollbar-hide"
-              >
-                {Row}
-              </FixedSizeList>
+              />
             </div>
           ) : (
             <div className="py-52 px-12 flex flex-col items-center justify-center text-center relative overflow-hidden">
