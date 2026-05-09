@@ -17,7 +17,8 @@ export async function createServer() {
     res.json({ status: "ok" });
   });
 
-  // Professional DNS MX Check Proxy using Google DNS-over-HTTPS for maximum reliability
+  // Professional DNS MX Check Proxy using Google and Cloudflare DNS-over-HTTPS (DoH)
+  // This helps maintain consistency across different hosting providers (Vercel, AWS, GCP, etc.)
   app.get("/api/check-mx", async (req, res) => {
     const domain = req.query.domain as string;
     if (!domain) {
@@ -25,35 +26,48 @@ export async function createServer() {
     }
 
     try {
-      // Use both Google and Cloudflare DoH in parallel for maximum reliability and consistency across environments
-      const domain_clean = domain.toLowerCase().trim();
+      const domain_clean = domain.toLowerCase().trim().replace(/\.$/, '');
       
+      // Parallel fetch from primary DoH providers
+      // We use a AbortController to ensure we don't hang if one provider is slow
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
       const [googleRes, cloudflareRes] = await Promise.allSettled([
-        fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`),
+        fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`, { signal: controller.signal }),
         fetch(`https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`, {
-          headers: { 'accept': 'application/dns-json' }
+          headers: { 'accept': 'application/dns-json' },
+          signal: controller.signal
         })
       ]);
       
+      clearTimeout(timeoutId);
+
       let hasMx = false;
       let records: any[] = [];
 
-      // If Google confirms MX, we're good
+      // Primary check: Google DNS
       if (googleRes.status === 'fulfilled' && googleRes.value.ok) {
-        const data = await googleRes.value.json() as any;
-        if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
-          hasMx = true;
-          records = data.Answer;
-        }
+        try {
+          const data = await googleRes.value.json() as any;
+          if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
+            hasMx = true;
+            records = data.Answer;
+          } else if (data.Status === 3) { // NXDOMAIN
+            hasMx = false;
+          }
+        } catch (e) { /* silent fail */ }
       }
 
-      // If Cloudflare confirms MX (and Google didn't or was slow), use that
+      // Secondary check: Cloudflare DNS (if Google was inconclusive)
       if (!hasMx && cloudflareRes.status === 'fulfilled' && cloudflareRes.value.ok) {
-        const data = await cloudflareRes.value.json() as any;
-        if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
-          hasMx = true;
-          records = data.Answer;
-        }
+        try {
+          const data = await cloudflareRes.value.json() as any;
+          if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
+            hasMx = true;
+            records = data.Answer;
+          }
+        } catch (e) { /* silent fail */ }
       }
       
       res.json({ 
@@ -61,8 +75,8 @@ export async function createServer() {
         records: records 
       });
     } catch (error) {
-      console.error(`DNS check failed for ${domain}:`, error);
-      // Final fallback to native DNS resolution
+      console.error(`Root DNS check failed for ${domain}:`, error);
+      // Final desperation fallback: Native Node DNS (if available in the runtime)
       try {
         const dnsRecords = await resolveMx(domain);
         res.json({ 
@@ -71,8 +85,8 @@ export async function createServer() {
         });
       } catch (localError) {
         res.json({ 
-          hasMx: false, 
-          error: error instanceof Error ? error.message : String(error) 
+          hasMx: true, // Risky fallback to avoid false negatives on network errors
+          error: "DNS_NETWORK_FAILURE"
         });
       }
     }

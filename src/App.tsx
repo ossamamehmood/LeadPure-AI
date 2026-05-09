@@ -191,7 +191,7 @@ export default function App() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Filtered Leads');
     
     XLSX.writeFile(workbook, `${baseName}_Filtered${extension}`);
-    toast('EXPORT COMPLETE: FILTERED NODES ARCHIVED', 'warning');
+    toast('EXPORT COMPLETE: FILTERED NODES ARCHIVED', 'info');
   };
 
   const handleDownload = () => {
