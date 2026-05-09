@@ -313,10 +313,12 @@ export default function App() {
                 </div>
               )}
             </AnimatePresence>
+            
+            <div className="mt-20">
+              <Footer />
+            </div>
           </div>
         </section>
-
-        <Footer />
       </main>
 
       <MobileNav currentTab={appState} setTab={setAppState} />

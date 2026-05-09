@@ -2,18 +2,19 @@ import React from 'react';
 
 export function Footer() {
   return (
-    <footer className="h-10 border-t border-app-border flex items-center justify-between px-8 bg-app-bg text-[8px] font-black text-slate-600 uppercase tracking-[0.2em] shrink-0 transition-colors duration-500">
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2">
+    <footer className="py-12 border-t border-app-border/30 flex flex-col md:flex-row items-center justify-between gap-8 px-2 text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">
+      <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
+        <div className="flex items-center gap-3">
           <div className="w-1.5 h-1.5 rounded-full gradient-bg shadow-[0_0_8px_rgba(90,92,255,0.5)] animate-pulse"></div>
           <span className="gradient-text">System Integrity: Optimal</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div className="w-1.5 h-1.5 rounded-full bg-brand-pink shadow-[0_0_8px_#F502FD]"></div>
           <span className="text-brand-pink">Deliverability Guard: Active</span>
         </div>
       </div>
-      <div className="flex items-center gap-4">
+      
+      <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10">
         <div className="group relative">
           <a 
             href="https://patreon.com/ossamamehmood?utm_medium=unknown&utm_source=join_link&utm_campaign=creatorshare_creator&utm_content=copyLink" 
@@ -33,7 +34,7 @@ export function Footer() {
             <div className="absolute -bottom-2 left-4 w-4 h-4 bg-app-card border-r border-b border-app-border rotate-45" />
           </div>
         </div>
-        <span className="text-white/10">|</span>
+        <span className="text-white/10 hidden md:block">|</span>
         <a 
           href="https://ossamamehmood.com" 
           target="_blank" 
