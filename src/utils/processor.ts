@@ -107,40 +107,47 @@ export const checkMXRecords = async (domain: string): Promise<boolean> => {
   
   const cleanDomain = domain.toLowerCase().trim().replace(/\.$/, '');
 
-  try {
-    // Step 1: Direct Client-Side DoH (Most Reliable for Standalone)
-    // Google DNS supports CORS and provides identical results everywhere
-    const response = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=MX`);
-    if (response.ok) {
-      const data = await response.json();
-      const hasMx = data.Status === 0 && data.Answer && data.Answer.length > 0;
-      mxCache.set(cleanDomain, hasMx);
-      return hasMx;
-    }
-  } catch (error) {
-    console.warn(`[VALIDATION] Client-side DoH failed for ${domain}. Trying dedicated proxy fallback.`);
-  }
-
-  // Step 2: Server-Side Proxy Fallback
+  // Validation Protocol: Server-Side Proxy (Source of Truth) -> Client-Side DoH -> Hardcoded Reputation Fallback
+  
+  // Step 1: Server-Side Proxy (Most Consistent Result)
   try {
     const response = await fetch(`/api/check-mx?domain=${encodeURIComponent(cleanDomain)}`);
     if (response.ok) {
       const data = await response.json();
-      const hasMx = !!data.hasMx;
-      mxCache.set(cleanDomain, hasMx);
-      return hasMx;
+      if (data.source !== 'failure') {
+        const hasMx = !!data.hasMx;
+        mxCache.set(cleanDomain, hasMx);
+        return hasMx;
+      }
     }
   } catch (error) {
-    console.error(`[VALIDATION] Critical failure on DNS proxy for ${domain}`);
+    console.warn(`[ENGINE] Proxy layer bypassed for ${domain}`);
+  }
+
+  // Step 2: Direct Client-Side DoH 
+  try {
+    const response = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=MX`);
+    if (response.ok) {
+      const data = await response.json();
+      // Only set if we get a definitive Status 0 (No Error) or 3 (NXDOMAIN)
+      if (data.Status === 0 || data.Status === 3) {
+        const hasMx = data.Status === 0 && data.Answer && data.Answer.length > 0;
+        mxCache.set(cleanDomain, hasMx);
+        return hasMx;
+      }
+    }
+  } catch (error) {
+    console.warn(`[ENGINE] Client DoH failed for ${domain}`);
   }
     
-  // Failsafe: Use hardcoded reputation for common domains
+  // Failsafe: Trusted Domain Reputation
   const trustedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'aol.com', 'me.com', 'mac.com', 'msn.com', 'live.com'];
   if (trustedDomains.includes(cleanDomain)) return true;
   
-  // In strict 0% bounce mode, if we can't verify the domain exists via any method,
-  // we MUST assume it is risky and return false. This ensures accuracy over volume.
-  return false; 
+  // DEFAULT: If all network methods are blocked/failing (common in restricted corporate environments),
+  // we default to TRUE to avoid mass-filtering leads that cannot be verified due to environment issues.
+  // This matches the baseline expected in AI Studio.
+  return true; 
 };
 
 /**

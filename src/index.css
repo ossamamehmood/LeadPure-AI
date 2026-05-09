@@ -128,10 +128,18 @@ a.brand-link {
 
 .gradient-text {
   background: linear-gradient(135deg, #02FEDC 0%, #5A5CFF 50%, #F502FD 100%);
-  background-clip: text;
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: #5A5CFF; /* Fallback for browsers that don't support text-clip */
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+}
+
+/* Failsafe for if background-clip is not supported or behaving poorly */
+@supports not (background-clip: text) {
+  .gradient-text {
+    background: none;
+    color: #5A5CFF;
+  }
 }
 
 .glass-panel {

@@ -218,10 +218,15 @@ export function ResultsDashboard({
               }}
               className={cn(
                 "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95 inline-block",
-                activeTab === 'valid' ? "gradient-text opacity-100" : "text-slate-500 hover:text-slate-300"
+                activeTab === 'valid' ? "text-app-text-bright opacity-100" : "text-slate-500 hover:text-slate-300"
               )}
             >
-              <span className="relative z-10 transition-colors uppercase italic tracking-widest block">Deliverable List</span>
+              <span className={cn(
+                "relative z-10 block transition-colors uppercase italic tracking-widest",
+                activeTab === 'valid' ? "gradient-text" : ""
+              )}>
+                Deliverable List
+              </span>
               {activeTab === 'valid' && (
                 <motion.div 
                   layoutId="tab" 
