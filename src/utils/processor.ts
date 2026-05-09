@@ -131,14 +131,16 @@ export const checkMXRecords = async (domain: string): Promise<boolean> => {
       return hasMx;
     }
   } catch (error) {
-    // If all network methods fail, engage deterministic failsafe
+    console.error(`[VALIDATION] Critical failure on DNS proxy for ${domain}`);
   }
     
   // Failsafe: Use hardcoded reputation for common domains
-  const trustedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'aol.com', 'me.com', 'mac.com'];
+  const trustedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'aol.com', 'me.com', 'mac.com', 'msn.com', 'live.com'];
   if (trustedDomains.includes(cleanDomain)) return true;
   
-  return true; 
+  // In strict 0% bounce mode, if we can't verify the domain exists via any method,
+  // we MUST assume it is risky and return false. This ensures accuracy over volume.
+  return false; 
 };
 
 /**

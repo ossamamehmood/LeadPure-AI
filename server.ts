@@ -31,20 +31,27 @@ export async function createServer() {
       // Parallel fetch from primary DoH providers
       // We use a AbortController to ensure we don't hang if one provider is slow
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+      // Cloudflare and Google DoH both support JSON responses
+      const fetchOptions = { 
+        signal: controller.signal,
+        headers: { 
+          'accept': 'application/dns-json',
+          'user-agent': 'LeadPure-Validation-Engine/2.5.0'
+        }
+      };
 
       const [googleRes, cloudflareRes] = await Promise.allSettled([
-        fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`, { signal: controller.signal }),
-        fetch(`https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`, {
-          headers: { 'accept': 'application/dns-json' },
-          signal: controller.signal
-        })
+        fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions),
+        fetch(`https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions)
       ]);
       
       clearTimeout(timeoutId);
 
       let hasMx = false;
       let records: any[] = [];
+      let source = 'unknown';
 
       // Primary check: Google DNS
       if (googleRes.status === 'fulfilled' && googleRes.value.ok) {
@@ -53,8 +60,10 @@ export async function createServer() {
           if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
             hasMx = true;
             records = data.Answer;
+            source = 'google';
           } else if (data.Status === 3) { // NXDOMAIN
             hasMx = false;
+            source = 'google-nx';
           }
         } catch (e) { /* silent fail */ }
       }
@@ -66,27 +75,31 @@ export async function createServer() {
           if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
             hasMx = true;
             records = data.Answer;
+            source = 'cloudflare';
           }
         } catch (e) { /* silent fail */ }
       }
       
       res.json({ 
         hasMx: hasMx,
-        records: records 
+        records: records,
+        source: source
       });
     } catch (error) {
       console.error(`Root DNS check failed for ${domain}:`, error);
-      // Final desperation fallback: Native Node DNS (if available in the runtime)
+      // Final desperation fallback: Native Node DNS resolution
       try {
         const dnsRecords = await resolveMx(domain);
         res.json({ 
           hasMx: dnsRecords && dnsRecords.length > 0,
-          records: dnsRecords || []
+          records: dnsRecords || [],
+          source: 'local_node'
         });
       } catch (localError) {
         res.json({ 
-          hasMx: true, // Risky fallback to avoid false negatives on network errors
-          error: "DNS_NETWORK_FAILURE"
+          hasMx: false, // In strict mode, if we can't verify, we should block to avoid bounce
+          error: "DNS_FINAL_FAILURE",
+          source: 'failure'
         });
       }
     }

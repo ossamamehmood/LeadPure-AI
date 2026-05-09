@@ -217,15 +217,15 @@ export function ResultsDashboard({
                 setSearchTerm(''); 
               }}
               className={cn(
-                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95",
-                activeTab === 'valid' ? "gradient-text" : "text-app-text/40 hover:text-app-text/60"
+                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95 inline-block",
+                activeTab === 'valid' ? "gradient-text opacity-100" : "text-slate-500 hover:text-slate-300"
               )}
             >
-              <span className="relative z-10 transition-colors uppercase italic tracking-widest">Deliverable List</span>
+              <span className="relative z-10 transition-colors uppercase italic tracking-widest block">Deliverable List</span>
               {activeTab === 'valid' && (
                 <motion.div 
                   layoutId="tab" 
-                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-[0_0_20px_rgba(90,92,255,0.4)]" 
+                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-[0_0_20px_rgba(90,92,255,0.6)]" 
                   initial={false}
                 />
               )}
@@ -240,15 +240,15 @@ export function ResultsDashboard({
                 setSearchTerm(''); 
               }}
               className={cn(
-                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95",
-                activeTab === 'eliminated' ? "text-brand-pink" : "text-app-text/40 hover:text-app-text/60"
+                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95 inline-block",
+                activeTab === 'eliminated' ? "text-brand-pink opacity-100" : "text-slate-500 hover:text-slate-300"
               )}
             >
-              <span className="relative z-10">Filtered Contacts</span>
+              <span className="relative z-10 block">Filtered Contacts</span>
               {activeTab === 'eliminated' && (
                 <motion.div 
                   layoutId="tab" 
-                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-brand-pink shadow-[0_0_20px_#F502FD]" 
+                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-pink shadow-[0_0_20px_#F502FD]" 
                   initial={false}
                 />
               )}
