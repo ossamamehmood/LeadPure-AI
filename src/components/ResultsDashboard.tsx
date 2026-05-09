@@ -203,7 +203,7 @@ export function ResultsDashboard({
         </GlossyCard>
       </div>
 
-      <div className="bg-app-card rounded-[48px] border border-app-border shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden transition-colors duration-500">
+      <div className="bg-app-card rounded-[48px] border border-app-border shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden">
         {/* Table Controls */}
         <div className="px-10 py-12 flex flex-col md:flex-row justify-between items-center bg-transparent backdrop-blur-xl gap-8">
           <div className="flex gap-12 w-full md:w-auto">

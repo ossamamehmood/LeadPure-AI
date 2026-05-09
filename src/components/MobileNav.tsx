@@ -11,8 +11,8 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
   const isUploadActive = ['upload', 'mapping', 'processing', 'results'].includes(currentTab);
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-6 pb-6 pt-2 bg-gradient-to-t from-app-bg via-app-bg/90 to-transparent transition-colors duration-500">
-      <nav className="flex items-center justify-around h-16 bg-app-card/80 backdrop-blur-2xl border border-app-border rounded-3xl px-2 shadow-2xl transition-colors duration-500">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-6 pb-6 pt-2 bg-gradient-to-t from-app-bg via-app-bg/90 to-transparent">
+      <nav className="flex items-center justify-around h-16 bg-app-card/80 backdrop-blur-2xl border border-app-border rounded-3xl px-2 shadow-2xl">
         <button 
           onClick={() => {
             if ((document as any).startViewTransition) {

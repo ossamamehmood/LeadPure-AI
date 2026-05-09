@@ -8,12 +8,12 @@ interface HeaderProps {
   onDownload: () => void;
   onReset: () => void;
   theme: 'dark' | 'light';
-  onToggleTheme: () => void;
+  onToggleTheme: (e: React.MouseEvent) => void;
 }
 
 export function Header({ appState, isProcessing, onDownload, onReset, theme, onToggleTheme }: HeaderProps) {
   return (
-    <header className="h-24 border-b border-app-border flex items-center justify-between px-10 bg-app-bg/40 backdrop-blur-3xl shrink-0 sticky top-0 z-50 transition-all duration-500">
+    <header className="h-24 border-b border-app-border flex items-center justify-between px-10 bg-app-bg/40 backdrop-blur-3xl shrink-0 sticky top-0 z-50">
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-3 group cursor-pointer">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white shadow-[0_0_15px_rgba(90,92,255,0.3)] transition-transform group-hover:rotate-12">
@@ -45,7 +45,7 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
         
         <div className="flex gap-2">
           <button 
-            onClick={onToggleTheme}
+            onClick={(e) => onToggleTheme(e)}
             className="p-3.5 bg-white/[0.03] hover:bg-white/[0.08] rounded-2xl text-slate-500 hover:text-brand-blue transition-all border border-white/5 hover:border-white/10 active:scale-90 flex items-center justify-center overflow-hidden"
             title={theme === 'dark' ? "Switch to Light Node" : "Switch to Dark Node"}
           >

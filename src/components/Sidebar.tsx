@@ -13,7 +13,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
   const isUploadActive = ['upload', 'mapping', 'processing', 'results'].includes(currentTab);
 
   return (
-    <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/40 backdrop-blur-3xl hidden lg:flex shrink-0 z-50 transition-all duration-500">
+    <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/40 backdrop-blur-3xl hidden lg:flex shrink-0 z-50">
       <div className="p-8 flex items-center gap-4 group cursor-pointer">
         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white font-black text-xs shadow-[0_0_20px_rgba(90,92,255,0.4)] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
           <Zap className="w-5 h-5 fill-white" />
