@@ -97,82 +97,55 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
  * DNS Cache to prevent redundant MX checks for the same domain in the same session
  */
 const mxCache = new Map<string, boolean>();
-const pendingMXChecks = new Map<string, Promise<boolean>>();
 
 /**
  * Perform a reliable DNS MX check via direct DNS-over-HTTPS (DoH) for maximum consistency across environments.
  * Falls back to server-side proxy if direct client access fails.
  */
 export const checkMXRecords = async (domain: string): Promise<boolean> => {
+  if (mxCache.has(domain)) return mxCache.get(domain)!;
+  
   const cleanDomain = domain.toLowerCase().trim().replace(/\.$/, '');
-  if (mxCache.has(cleanDomain)) return mxCache.get(cleanDomain)!;
-  if (pendingMXChecks.has(cleanDomain)) return pendingMXChecks.get(cleanDomain)!;
 
-  const checkPromise = (async () => {
-    // Step 1: Server-Side Proxy (Multi-provider implementation)
-    try {
-      const response = await fetch(`/api/check-mx?domain=${encodeURIComponent(cleanDomain)}`);
-      if (response.ok) {
-        const data = await response.json();
-        // If the server definitively verified the domain (success)
-        if (data.verified) {
-          const hasMx = !!data.hasMx;
-          mxCache.set(cleanDomain, hasMx);
-          return hasMx;
-        }
-      }
-    } catch (error) {
-      console.warn(`[ENGINE] Proxy layer bypassed for ${cleanDomain}`);
-    }
-
-    // Step 2: Direct Client-Side DoH (Google) - Parallel Fallback
-    try {
-      const providers = [
-        `https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=MX`,
-        `https://cloudflare-dns.com/query?name=${encodeURIComponent(cleanDomain)}&type=MX`,
-        `https://dns.quad9.net/dns-query?name=${encodeURIComponent(cleanDomain)}&type=MX`
-      ];
-
-      for (const url of providers) {
-        try {
-          const response = await fetch(url, { headers: { 'accept': 'application/dns-json' } });
-          if (response.ok) {
-            const data = await response.json();
-            if (data.Status === 0 || data.Status === 3) {
-              const hasMx = data.Status === 0 && data.Answer && data.Answer.length > 0;
-              mxCache.set(cleanDomain, hasMx);
-              return hasMx;
-            }
-          }
-        } catch (e) {
-          continue;
-        }
-      }
-    } catch (error) {
-      console.warn(`[ENGINE] Client DoH sequence failed for ${cleanDomain}`);
-    }
-      
-    // Failsafe: Trusted Domain Reputation
-    const trustedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'aol.com', 'me.com', 'mac.com', 'msn.com', 'live.com', 'google.com', 'facebook.com', 'linkedin.com', 'twitter.com', 'x.com'];
-    if (trustedDomains.includes(cleanDomain)) {
-      mxCache.set(cleanDomain, true);
-      return true;
-    }
-    
-    // DEFAULT: If all network methods are blocked/failing (common in restricted corporate environments),
-    // we return TRUE to avoid mass-filtering leads that cannot be verified due to environment issues.
-    // To minimize the 26-lead difference, we should only reach here in extreme network failure.
-    return true; 
-  })();
-
-  pendingMXChecks.set(cleanDomain, checkPromise);
+  // Validation Protocol: Server-Side Proxy (Source of Truth) -> Client-Side DoH -> Hardcoded Reputation Fallback
+  
+  // Step 1: Server-Side Proxy (Most Consistent Result)
   try {
-    const result = await checkPromise;
-    mxCache.set(cleanDomain, result);
-    return result;
-  } finally {
-    pendingMXChecks.delete(cleanDomain);
+    const response = await fetch(`/api/check-mx?domain=${encodeURIComponent(cleanDomain)}`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.source !== 'failure') {
+        const hasMx = !!data.hasMx;
+        mxCache.set(cleanDomain, hasMx);
+        return hasMx;
+      }
+    }
+  } catch (error) {
+    console.warn(`[ENGINE] Proxy layer bypassed for ${domain}`);
   }
+
+  // Step 2: Direct Client-Side DoH 
+  try {
+    const response = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=MX`);
+    if (response.ok) {
+      const data = await response.json();
+      // Only set if we get a definitive Status 0 (No Error) or 3 (NXDOMAIN)
+      if (data.Status === 0 || data.Status === 3) {
+        const hasMx = data.Status === 0 && data.Answer && data.Answer.length > 0;
+        mxCache.set(cleanDomain, hasMx);
+        return hasMx;
+      }
+    }
+  } catch (error) {
+    console.warn(`[ENGINE] Client DoH failed for ${domain}`);
+  }
+    
+  // Failsafe: Trusted Domain Reputation
+  const trustedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'aol.com', 'me.com', 'mac.com', 'msn.com', 'live.com'];
+  if (trustedDomains.includes(cleanDomain)) return true;
+  
+  // DEFAULT: If all network methods are blocked/failing, we MUST assume risky for 0% bounce policy.
+  return false; 
 };
 
 /**
