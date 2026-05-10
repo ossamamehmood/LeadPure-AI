@@ -217,20 +217,20 @@ export function ResultsDashboard({
                 setSearchTerm(''); 
               }}
               className={cn(
-                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95 inline-block",
-                activeTab === 'valid' ? "text-app-text-bright opacity-100" : "text-slate-500 hover:text-slate-300"
+                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95 inline-block z-10",
+                activeTab === 'valid' ? "text-white opacity-100" : "text-slate-500 hover:text-slate-300"
               )}
             >
               <span className={cn(
-                "relative z-10 block transition-colors uppercase italic tracking-widest",
-                activeTab === 'valid' ? "gradient-text" : ""
+                "relative z-20 block transition-colors uppercase italic tracking-widest",
+                activeTab === 'valid' ? "text-[#02FEDC]" : ""
               )}>
                 Deliverable List
               </span>
               {activeTab === 'valid' && (
                 <motion.div 
                   layoutId="tab" 
-                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-[0_0_20px_rgba(90,92,255,0.6)]" 
+                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-[0_0_20px_rgba(90,92,255,0.8)] z-0" 
                   initial={false}
                 />
               )}
