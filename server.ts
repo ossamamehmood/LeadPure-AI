@@ -6,6 +6,10 @@ import { promisify } from "util";
 
 const resolveMx = promisify(dns.resolveMx);
 
+// Server-side cache for DNS results (In-memory, lasts as long as lambda is warm)
+const serverMxCache = new Map<string, { hasMx: boolean, source: string, timestamp: number }>();
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
 const app = express();
 const PORT = 3000;
 
@@ -18,7 +22,8 @@ export async function createServer() {
       status: "ok", 
       node: process.version,
       env: process.env.NODE_ENV,
-      platform: process.platform
+      platform: process.platform,
+      cacheSize: serverMxCache.size
     });
   });
 
@@ -32,19 +37,27 @@ export async function createServer() {
 
     try {
       const domain_clean = domain.toLowerCase().trim().replace(/\.$/, '');
+      
+      // Check Server Cache First
+      const cached = serverMxCache.get(domain_clean);
+      if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+        return res.json({
+          hasMx: cached.hasMx,
+          records: [],
+          source: `server_cache:${cached.source}`
+        });
+      }
+
       console.log(`[DNS_API] PROXY_REQUEST: ${domain_clean} (Node: ${process.version})`);
       
-      // Parallel fetch from primary DoH providers
-      // We use a AbortController to ensure we don't hang if one provider is slow
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 6000); // Increased for stability
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // Higher timeout for Vercel
 
-      // Cloudflare and Google DoH both support JSON responses
       const fetchOptions = { 
         signal: controller.signal,
         headers: { 
           'accept': 'application/dns-json',
-          'user-agent': 'LeadPure-Validation-Engine/2.5.0'
+          'user-agent': 'LeadPure-Validation-Engine/2.7.5'
         }
       };
 
@@ -89,6 +102,13 @@ export async function createServer() {
           console.error(`[DNS_API] Cloudflare Parse Error:`, e);
         }
       }
+
+      // Cache result server-side
+      serverMxCache.set(domain_clean, { 
+        hasMx, 
+        source, 
+        timestamp: Date.now() 
+      });
 
       res.json({ 
         hasMx: hasMx,

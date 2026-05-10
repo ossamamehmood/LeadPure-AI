@@ -588,8 +588,9 @@ export const processContacts = async (
   });
 
   console.log(`[PROCESSOR] STAGE_1_COMPLETE: ${preProcessedData.length} unique identities remaining. (${stats.duplicates} duplicates, ${stats.emptyRows} empty filtered)`);
+  console.log(`[NETWORK] Scaling validation throughput for target environment...`);
 
-  const BATCH_SIZE = 40; // Balanced for safety across browsers
+  const BATCH_SIZE = 12; // Highly stable batching for Vercel/Serverless concurrency limits
   const total = preProcessedData.length;
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
