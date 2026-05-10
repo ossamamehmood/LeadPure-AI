@@ -434,9 +434,10 @@ export const verifyEmail = async (
   // Final Assessment logic: Absolute Strictness
   let finalStatus: 'verified' | 'risky' | 'rejected' = 'verified';
   
-  // 0% Bounce Policy: Any score below 94 is considered risky/rejected to ensure safety
-  if (score < 80) finalStatus = 'rejected';
-  else if (score < 94) finalStatus = 'risky';
+  // 0% Bounce Policy: Absolute Strictness. 
+  // Any score below 96 is considered risky/rejected to ensure total safety across all providers.
+  if (score < 85) finalStatus = 'rejected';
+  else if (score < 96) finalStatus = 'risky';
 
   return { 
     verificationStatus: finalStatus, 
@@ -571,7 +572,7 @@ export const processContacts = async (
     const emailKey = mappings.emailKey;
     const email = emailKey ? String(item[emailKey] || '').toLowerCase().trim() : '';
     
-    if (!email && !mappings.firstNameKey && !mappings.lastNameKey) {
+    if (!email) {
       stats.emptyRows++;
       return false;
     }

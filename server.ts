@@ -50,63 +50,80 @@ export async function createServer() {
 
       console.log(`[DNS_API] PROXY_REQUEST: ${domain_clean} (Node: ${process.version})`);
       
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000); // Higher timeout for Vercel
-
-      const fetchOptions = { 
-        signal: controller.signal,
-        headers: { 
-          'accept': 'application/dns-json',
-          'user-agent': 'LeadPure-Validation-Engine/2.7.5'
-        }
-      };
-
-      const [googleRes, cloudflareRes] = await Promise.allSettled([
-        fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions),
-        fetch(`https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions)
-      ]);
-      
-      clearTimeout(timeoutId);
-
       let hasMx = false;
       let records: any[] = [];
       let source = 'unknown';
 
-      // Primary check: Google DNS (MX)
-      if (googleRes.status === 'fulfilled' && googleRes.value.ok) {
-        try {
-          const data = await googleRes.value.json() as any;
-          if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
-            hasMx = true;
-            records = data.Answer;
-            source = 'google';
-          } else if (data.Status === 3) { // NXDOMAIN
-            hasMx = false;
-            source = 'google-nx';
+      // Advanced Two-Tier Network Retry Logic
+      const performLookup = async (attempt: number = 1): Promise<boolean> => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000 + (attempt * 2000));
+
+        const fetchOptions = { 
+          signal: controller.signal,
+          headers: { 
+            'accept': 'application/dns-json',
+            'user-agent': `LeadPure-Validation-Engine/2.9.0-Attempt-${attempt}`
           }
-        } catch (e) { 
-          console.error(`[DNS_API] Google Parse Error:`, e);
+        };
+
+        try {
+          const [googleRes, cloudflareRes] = await Promise.allSettled([
+            fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions),
+            fetch(`https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions)
+          ]);
+          
+          clearTimeout(timeoutId);
+
+          // Tier 1: Check Google
+          if (googleRes.status === 'fulfilled' && googleRes.value.ok) {
+            const data = await googleRes.value.json() as any;
+            if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
+              hasMx = true;
+              records = data.Answer;
+              source = 'google';
+              return true;
+            } else if (data.Status === 3) { // NXDOMAIN is definitive
+              hasMx = false;
+              source = 'google-nx';
+              return true;
+            }
+          }
+
+          // Tier 2: Check Cloudflare (if Google fails or is inconclusive)
+          if (cloudflareRes.status === 'fulfilled' && cloudflareRes.value.ok) {
+            const data = await cloudflareRes.value.json() as any;
+            if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
+              hasMx = true;
+              records = data.Answer;
+              source = 'cloudflare';
+              return true;
+            }
+          }
+          
+          return false;
+        } catch (e) {
+          clearTimeout(timeoutId);
+          return false;
         }
+      };
+
+      // Execute with one retry if necessary
+      let success = await performLookup(1);
+      if (!success) {
+        console.log(`[DNS_API] RE-ATTEMPTING: ${domain_clean}`);
+        await new Promise(r => setTimeout(r, 1000)); // Cool-down
+        success = await performLookup(2);
       }
 
-      // Secondary check: Cloudflare DNS (if Google was inconclusive)
-      if (!hasMx && source !== 'google-nx' && cloudflareRes.status === 'fulfilled' && cloudflareRes.value.ok) {
-        try {
-          const data = await cloudflareRes.value.json() as any;
-          if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
-            hasMx = true;
-            records = data.Answer;
-            source = 'cloudflare';
-          }
-        } catch (e) { 
-          console.error(`[DNS_API] Cloudflare Parse Error:`, e);
-        }
+      if (!success) {
+        console.error(`[DNS_API] FINAL_FAILURE: ${domain_clean} after 2 attempts. Marking as False to ensure 0% bounce.`);
       }
 
       // Cache result server-side
       serverMxCache.set(domain_clean, { 
         hasMx, 
-        source, 
+        source: success ? source : 'final_failure', 
         timestamp: Date.now() 
       });
 
