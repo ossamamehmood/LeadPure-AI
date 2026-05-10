@@ -127,18 +127,16 @@ a.brand-link {
 }
 
 .gradient-text {
+  color: #5A5CFF; /* Strong fallback color */
   background: linear-gradient(135deg, #02FEDC 0%, #5A5CFF 50%, #F502FD 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
   display: inline-block;
 }
 
-/* Failsafe for if background-clip is not supported or behaving poorly */
-@supports not (background-clip: text) {
+@supports (background-clip: text) or (-webkit-background-clip: text) {
   .gradient-text {
-    background: none;
-    color: #5A5CFF;
+    color: transparent !important;
   }
 }
 

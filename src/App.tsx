@@ -108,7 +108,7 @@ export default function App() {
       const workbook = XLSX.read(data, { 
         type: 'array',
         cellDates: true,
-        cellText: false,
+        cellText: true,
         cellFormula: false,
         cellHTML: false
       });
@@ -119,12 +119,16 @@ export default function App() {
         raw: false
       });
 
+      console.log(`[INGESTION] RAW_INPUT_DETECTED: ${json.length} rows.`);
+
       // Aggressive filtering: Only keep rows that have at least one non-empty value
       // and specifically prioritize rows that aren't just empty strings from defval
-      const filteredJson = json.filter(row => {
+      const filteredJson = json.filter((row, idx) => {
         const values = Object.values(row).map(v => String(v || '').trim()).filter(v => v !== "");
         return values.length > 0;
       });
+
+      console.log(`[INGESTION] CLEAN_IMPORT_READY: ${filteredJson.length} valid rows extracted. (${json.length - filteredJson.length} empty/invalid removed)`);
 
       if (filteredJson.length > 0) {
         setFileData(filteredJson);
@@ -150,6 +154,7 @@ export default function App() {
 
   const handleStartProcessing = async () => {
     setAppState('processing');
+    console.log(`[ENGINE] STARTING_SESSION: Roles[${validationRules.excludeRoleBased}] Disposable[${validationRules.excludeDisposable}] CatchAll[${validationRules.excludeCatchAll}]`);
     try {
       const { valid, eliminated } = await processor.runProcessor(fileData, mappings, validationRules);
       

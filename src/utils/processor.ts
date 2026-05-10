@@ -544,34 +544,81 @@ export const processContacts = async (
   const valid: any[] = [];
   const eliminated: any[] = [];
   
-  // Deduplication Registry (Deterministic Case-Insensitive)
-  const seenEmails = new Set<string>();
+  // Statistical Tracking for Debugging & Reliability
+  const stats = {
+    totalInput: data.length,
+    emptyRows: 0,
+    duplicates: 0,
+    invalidSyntax: 0,
+    deadDomain: 0,
+    disposable: 0,
+    roleBased: 0,
+    catchAll: 0,
+    toxic: 0,
+    lowConfidence: 0,
+    highBounceRisk: 0,
+    verified: 0
+  };
 
-  const BATCH_SIZE = 50; // Increased for better parallel throughput with faster DoH API
-  const total = data.length;
+  console.log(`[PROCESSOR_V2.6.5] INGESTION_START: ${data.length} identities received.`);
+
+  // Stage 1: Deterministic Deduplication & Empty Filtering (Synchronous)
+  const seenEmails = new Set<string>();
+  const preProcessedData = data.filter((item, idx) => {
+    if (!item || typeof item !== 'object' || Object.keys(item).length === 0) {
+      stats.emptyRows++;
+      return false;
+    }
+
+    const emailKey = mappings.emailKey;
+    const email = emailKey ? String(item[emailKey] || '').toLowerCase().trim() : '';
+    
+    if (!email && !mappings.firstNameKey && !mappings.lastNameKey) {
+      stats.emptyRows++;
+      return false;
+    }
+
+    if (email) {
+      if (seenEmails.has(email)) {
+        stats.duplicates++;
+        eliminated.push({ ...item, reason: 'System Protocol: Duplicate Entry Suppressed' });
+        return false;
+      }
+      seenEmails.add(email);
+    }
+    return true;
+  });
+
+  console.log(`[PROCESSOR] STAGE_1_COMPLETE: ${preProcessedData.length} unique identities remaining. (${stats.duplicates} duplicates, ${stats.emptyRows} empty filtered)`);
+
+  const BATCH_SIZE = 40; // Balanced for safety across browsers
+  const total = preProcessedData.length;
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
     const end = Math.min(i + BATCH_SIZE, total);
-    const batch = data.slice(i, end);
+    const batch = preProcessedData.slice(i, end);
     
     // Process batch in parallel
     const results = await Promise.all(
       batch.map(async (item, index) => {
-        // Skip empty or invalid items
-        if (!item || typeof item !== 'object' || Object.keys(item).length === 0) return null;
-
-        const emailKey = mappings.emailKey;
-        const email = emailKey ? String(item[emailKey] || '').toLowerCase().trim() : '';
+        const res = await processSingleContact(item, mappings, rules, i + index);
         
-        // Row is functionally empty for our purposes if it doesn't have an email or name
-        if (!email && !mappings.firstNameKey && !mappings.lastNameKey) return null;
-
-        if (email && seenEmails.has(email)) {
-          return { eliminated: { ...item, reason: 'System Protocol: Duplicate Entry Suppressed' } };
+        // Track stats from resolution
+        if (res.eliminated) {
+          const reason = res.eliminated.reason?.toLowerCase() || '';
+          if (reason.includes('syntax')) stats.invalidSyntax++;
+          else if (reason.includes('dead') || reason.includes('mx')) stats.deadDomain++;
+          else if (reason.includes('disposable')) stats.disposable++;
+          else if (reason.includes('role')) stats.roleBased++;
+          else if (reason.includes('catch-all')) stats.catchAll++;
+          else if (reason.includes('toxic') || reason.includes('synthetic')) stats.toxic++;
+          else if (res.eliminated.bounceRisk === 'High' || res.eliminated.bounceRisk === 'Dangerous') stats.highBounceRisk++;
+          else stats.lowConfidence++;
+        } else {
+          stats.verified++;
         }
-        if (email) seenEmails.add(email);
-        
-        return processSingleContact(item, mappings, rules, i + index);
+
+        return res;
       })
     );
 
@@ -586,8 +633,11 @@ export const processContacts = async (
     }
 
     // Yield control back to browser to allow UI updates and prevent freezer-lock
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise(resolve => setTimeout(resolve, 10));
   }
+
+  console.log(`[PROCESSOR] FINAL_REPORT:`, JSON.stringify(stats, null, 2));
+  console.log(`[PROCESSOR] DISPATCH: ${valid.length} Deliverable, ${eliminated.length} Filtered.`);
 
   return { valid, eliminated };
 }; 

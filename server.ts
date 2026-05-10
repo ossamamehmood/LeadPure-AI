@@ -14,7 +14,12 @@ export async function createServer() {
 
   // API Routes
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
+    res.json({ 
+      status: "ok", 
+      node: process.version,
+      env: process.env.NODE_ENV,
+      platform: process.platform
+    });
   });
 
   // Professional DNS MX Check Proxy using Google and Cloudflare DNS-over-HTTPS (DoH)
@@ -27,11 +32,12 @@ export async function createServer() {
 
     try {
       const domain_clean = domain.toLowerCase().trim().replace(/\.$/, '');
+      console.log(`[DNS_API] PROXY_REQUEST: ${domain_clean} (Node: ${process.version})`);
       
       // Parallel fetch from primary DoH providers
       // We use a AbortController to ensure we don't hang if one provider is slow
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const timeoutId = setTimeout(() => controller.abort(), 6000); // Increased for stability
 
       // Cloudflare and Google DoH both support JSON responses
       const fetchOptions = { 
@@ -65,7 +71,9 @@ export async function createServer() {
             hasMx = false;
             source = 'google-nx';
           }
-        } catch (e) { /* silent fail */ }
+        } catch (e) { 
+          console.error(`[DNS_API] Google Parse Error:`, e);
+        }
       }
 
       // Secondary check: Cloudflare DNS (if Google was inconclusive)
@@ -77,7 +85,9 @@ export async function createServer() {
             records = data.Answer;
             source = 'cloudflare';
           }
-        } catch (e) { /* silent fail */ }
+        } catch (e) { 
+          console.error(`[DNS_API] Cloudflare Parse Error:`, e);
+        }
       }
       
       res.json({ 
@@ -85,23 +95,15 @@ export async function createServer() {
         records: records,
         source: source
       });
+      console.log(`[DNS_API] PROXY_RESPONSE: ${domain_clean} -> ${hasMx} (Source: ${source})`);
     } catch (error) {
-      console.error(`Root DNS check failed for ${domain}:`, error);
-      // Final desperation fallback: Native Node DNS resolution
-      try {
-        const dnsRecords = await resolveMx(domain);
-        res.json({ 
-          hasMx: dnsRecords && dnsRecords.length > 0,
-          records: dnsRecords || [],
-          source: 'local_node'
-        });
-      } catch (localError) {
-        res.json({ 
-          hasMx: false, // In strict mode, if we can't verify, we should block to avoid bounce
-          error: "DNS_FINAL_FAILURE",
-          source: 'failure'
-        });
-      }
+      console.error(`[DNS_API] Root DNS check failed for ${domain}:`, error);
+      // Desperation fallback for restricted environments (Vercel/CloudRun)
+      res.json({ 
+        hasMx: true, // We default to TRUE on engine failure to prevent mass-blocking during connectivity issues
+        records: [],
+        source: 'engine_failure_fallback'
+      });
     }
   });
 
