@@ -341,7 +341,7 @@ export default function App() {
 
       <AnimatePresence>
         {isParsing && (
-          <LoadingOverlay progress={10} estimatedSeconds={1} customText="PARSING DATA FILE..." />
+          <LoadingOverlay progress={10} estimatedSeconds={1} customText="PARSING DATA FILE..." customDescription="Extracting and normalizing identities off-thread..." />
         )}
         {appState === 'processing' && (
           <LoadingOverlay progress={processor.progress} estimatedSeconds={processor.estimatedSeconds} onCancel={processor.cancelProcessing} />

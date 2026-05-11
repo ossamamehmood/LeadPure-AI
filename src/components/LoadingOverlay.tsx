@@ -7,9 +7,10 @@ interface LoadingOverlayProps {
   estimatedSeconds: number | null;
   onCancel?: () => void;
   customText?: string;
+  customDescription?: string;
 }
 
-export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customText }: LoadingOverlayProps) {
+export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customText, customDescription }: LoadingOverlayProps) {
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -28,7 +29,9 @@ export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customTex
       </div>
       
       <h2 className="text-4xl font-black text-app-text mb-3 uppercase italic tracking-tighter">{customText || "Optimization Engine Active"}</h2>
-      <p className="text-slate-500 max-w-md text-sm font-medium uppercase tracking-widest leading-loose">Running 10-point validation check: formatting names, verifying phone E.164 status, and scrubbing high-bounce emails.</p>
+      <p className="text-slate-500 max-w-md text-sm font-medium uppercase tracking-widest leading-loose">
+        {customDescription || "Running 10-point validation check: formatting names, verifying phone E.164 status, and scrubbing high-bounce emails."}
+      </p>
       
       {onCancel && (
         <button 

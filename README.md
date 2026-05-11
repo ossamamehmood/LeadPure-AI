@@ -1,4 +1,4 @@
-# 📘 LeadPure AI: v8.0 Production Release — Enterprise Email Validation & Bounce Prevention
+# 📘 LeadPure AI: v9.0 Enterprise Release — Enterprise Email Validation & Bounce Prevention
 
 ---
 

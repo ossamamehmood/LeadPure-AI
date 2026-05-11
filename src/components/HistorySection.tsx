@@ -54,14 +54,14 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <GlossyCard className="group hover:border-brand-blue/30 transition-all cursor-pointer">
+                <GlossyCard glow="blue" className="group hover:border-brand-blue/30 transition-all cursor-pointer p-6 rounded-[32px]">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-start gap-5">
-                      <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-brand-blue/10 transition-all border border-white/5">
                         <FileText className="w-6 h-6 text-brand-blue" />
                       </div>
-                      <div>
-                        <h4 className="text-white font-black text-sm uppercase tracking-wider line-clamp-1">
+                      <div className="mt-1">
+                        <h4 className="text-white font-black text-sm uppercase tracking-widest line-clamp-1 group-hover:text-brand-blue transition-colors">
                           {item.fileName}
                         </h4>
                         <div className="flex items-center gap-4 mt-2">
@@ -69,8 +69,9 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                             <Clock className="w-3 h-3" />
                             {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
-                          <span className="w-1 h-1 rounded-full bg-slate-800" />
-                          <span className="text-[10px] text-brand-blue font-black uppercase tracking-widest">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-800" />
+                          <span className="text-[10px] text-brand-blue font-black uppercase tracking-widest flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-blue animate-pulse shadow-[0_0_5px_#5A5CFF]" />
                             {item.validRows} / {item.totalRows} SECURED
                           </span>
                         </div>
@@ -79,18 +80,19 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
 
                     <div className="flex items-center gap-3">
                       <button 
-                        onClick={() => downloadItem(item)}
-                        className="p-3 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+                        onClick={(e) => { e.stopPropagation(); downloadItem(item); }}
+                        className="flex items-center gap-2 px-5 py-3 rounded-full bg-brand-blue/10 text-brand-blue hover:text-white hover:bg-brand-blue transition-all border border-brand-blue/20 hover:border-brand-blue group/btn"
                         title="Download Results"
                       >
-                        <Download className="w-4 h-4" />
+                        <Download className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Download</span>
                       </button>
                       <button 
-                        onClick={() => loadItem(item)}
-                        className="flex items-center gap-2 px-5 py-3 rounded-xl bg-brand-blue/10 text-brand-blue text-[10px] font-black uppercase tracking-widest group-hover:bg-brand-blue group-hover:text-white transition-all shadow-xl shadow-brand-blue/5"
+                        onClick={(e) => { e.stopPropagation(); loadItem(item); }}
+                        className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-cyan/80 to-brand-blue/80 text-white text-[10px] font-black uppercase tracking-widest hover:from-brand-cyan hover:to-brand-blue transition-all shadow-xl shadow-brand-blue/20"
                       >
-                        Details
-                        <ChevronRight className="w-3.5 h-3.5" />
+                        Review
+                        <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
