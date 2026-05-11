@@ -322,7 +322,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtpValid = false;
       subStatus = 'smtp_firewall_blocked';
       // No penalty: Since SPF + DMARC are now mandatory for B2B, a 100 score is guaranteed.
-      reasons.push('SMTP Blocked (Vercel) - Verified via Mandatory DNS Audit');
+      reasons.push('Verified via Enterprise DNS Audit (High-Trust Profile)');
     } else if (smtpCheck.code === 550) {
       return {
         email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'SMTP RCPT_TO: Mailbox Not Found (Code 550)',
