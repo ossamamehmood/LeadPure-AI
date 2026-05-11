@@ -247,8 +247,11 @@ export const processContacts = async (
   for (let i = 0; i < batches.length; i += CONCURRENT_BATCHES) {
     const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
     await Promise.all(concurrentChunk.map(b => processBatch(b)));
-    // Deterministic Wait: Ensure event loop yield for UI stability between heavy chunks
-    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    // Deterministic Adaptive Jitter: Prevent Vercel Rate Limits (429) & CPU starvation
+    // Base wait of 100ms + random jitter up to 150ms ensures staggered connections
+    const jitter = Math.floor(Math.random() * 150) + 100;
+    await new Promise(resolve => setTimeout(resolve, jitter));
   }
 
   const finalReport = {

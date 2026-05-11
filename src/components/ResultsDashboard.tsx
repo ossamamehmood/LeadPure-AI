@@ -115,7 +115,7 @@ export function ResultsDashboard({
       const name = String(item[mappings.nameKey] || '').toLowerCase();
       return email.includes(searchStr) || first.includes(searchStr) || last.includes(searchStr) || name.includes(searchStr);
     });
-  }, [activeTab, processedData, eliminatedData, searchTerm, mappings]);
+  }, [activeTab, processedData, eliminatedData, deferredSearchTerm, mappings]);
 
   const avgConfidence = Math.round((processedData || []).reduce((acc, curr) => acc + (curr.confidenceScore || 0), 0) / ((processedData || []).length || 1));
   const dangerousCount = (eliminatedData || []).filter(item => item.bounceRisk === 'Dangerous' || item.reputationImpact === 'Critical').length;

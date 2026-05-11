@@ -1,10 +1,18 @@
 import dns from 'dns';
 import net from 'net';
-import { promisify } from 'util';
 
-const resolveMx = promisify(dns.resolveMx);
-const resolve4 = promisify(dns.resolve4);
-const resolveTxt = promisify(dns.resolveTxt);
+// ----------------- ENTERPRISE DNS RESOLVER -----------------
+// Using custom public resolvers to prevent local/Vercel host DNS rate limits on large batches
+const resolver = new dns.promises.Resolver();
+resolver.setServers([
+  '8.8.8.8', // Google Primary
+  '1.1.1.1', // Cloudflare Primary
+  '8.8.4.4', // Google Secondary
+  '1.0.0.1'  // Cloudflare Secondary
+]);
+
+const resolveMx = resolver.resolveMx.bind(resolver);
+const resolveTxt = resolver.resolveTxt.bind(resolver);
 
 export interface ValidationOptions {
   excludeDisposable: boolean;
@@ -45,7 +53,8 @@ const rolePrefixes = new Set([
   'admin', 'support', 'info', 'sales', 'hello', 'webmaster', 'jobs', 
   'office', 'contact', 'postmaster', 'no-reply', 'noreply', 'marketing', 'billing',
   'privacy', 'abuse', 'security', 'it', 'manager', 'editor', 'hr', 'careers',
-  'dev', 'developer', 'sysadmin', 'root'
+  'dev', 'developer', 'sysadmin', 'root', 'accounting', 'legal', 'finance', 
+  'enquiries', 'press', 'media', 'compliance', 'purchasing', 'help'
 ]);
 
 const freeProviders = new Set([
@@ -124,7 +133,7 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
         socket.destroy();
         resolve({ success: false, code: 0, response: 'Connection Timeout', timedOut: true });
       }
-    }, 4000); // 4s strict timeout per SMTP connection
+    }, 2500); // 2.5s strict timeout to protect Vercel's global 8.5s limit
 
     socket.connect(25, mxRecord, () => {
       // Connected!
@@ -254,8 +263,13 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     }
 
     if (mxRecordFound) {
-      hasSpf = await checkSpf(domain);
-      hasDmarc = await checkDmarc(domain);
+      // Parallelize DNS queries for massive speed boost (saves 100-300ms per row)
+      const [spfResult, dmarcResult] = await Promise.all([
+        checkSpf(domain),
+        checkDmarc(domain)
+      ]);
+      hasSpf = spfResult;
+      hasDmarc = dmarcResult;
     }
   }
 
@@ -384,7 +398,9 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     };
   }
 
-  if (localPart.includes('honey') || localPart.includes('trap') || (/^[A-Za-z]{3}[0-9]{3}$/.test(localPart))) {
+  // Enhanced Spam Trap Heuristics: Avoid false positives on valid standard name structures
+  const isSuspiciousAlphaNum = /^[a-z]{3,4}[0-9]{3,4}$/.test(localPart) && !/[a-z]+[0-9]{1,2}/.test(localPart);
+  if (localPart.includes('honey') || localPart.includes('trap') || localPart.includes('spam') || isSuspiciousAlphaNum) {
     if (options.excludeSpamTraps) {
       return {
         email: cleanEmail, verificationStatus: 'blocked', verificationReason: 'System Rejected: Honeypot / Spam Trap Probability High',

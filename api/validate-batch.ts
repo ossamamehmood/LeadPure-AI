@@ -1,7 +1,7 @@
-import { validateEmailFull } from '../src/lib/validator.js'; // Ensure extension for ESM/Vercel
+import { validateEmailFull, ValidationOptions, ValidationResult } from '../src/lib/validator.js';
 
 // Vercel Native Serverless Handler
-export default async function handler(req: any, res: any) {
+export default async function handler(req: Request | any, res: Response | any) {
   // Only allow POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
@@ -10,21 +10,21 @@ export default async function handler(req: any, res: any) {
   try {
     // Safely parse body
     const body = req.body || {};
-    const emails = body.emails;
-    const options = body.options;
+    const emails: string[] = body.emails;
+    const options: Partial<ValidationOptions> = body.options;
     
     if (!Array.isArray(emails)) {
       return res.status(400).json({ error: "emails array required" });
     }
 
-    const defaultOptions = {
+    const defaultOptions: ValidationOptions = {
       excludeDisposable: true,
       excludeRoleBased: true,
       excludeCatchAll: true,
       excludeSpamTraps: true
     };
     
-    const mergedOptions = { ...defaultOptions, ...(options || {}) };
+    const mergedOptions: ValidationOptions = { ...defaultOptions, ...(options || {}) };
 
     // Vercel Serverless Function Limit: 10s. We enforce an 8.5s hard timeout.
     const startTime = Date.now();
@@ -34,14 +34,14 @@ export default async function handler(req: any, res: any) {
       emails.map(async (email: string) => {
         try {
           const validationPromise = validateEmailFull(email, mergedOptions);
-          const timeoutPromise = new Promise<any>((resolve) => {
+          const timeoutPromise = new Promise<ValidationResult>((resolve) => {
             const timeElapsed = Date.now() - startTime;
             const remainingTime = Math.max(100, TIMEOUT_MS - timeElapsed);
             setTimeout(() => {
               resolve({
                 email,
                 verificationStatus: 'unknown',
-                verificationReason: 'Engine Timeout: Vercel Execution Limit Reached',
+                verificationReason: 'Engine Timeout: API Execution Limit Safely Caught',
                 subStatus: 'timeout',
                 confidenceScore: 50,
                 bounceRisk: 'Unknown',
@@ -63,7 +63,7 @@ export default async function handler(req: any, res: any) {
           return {
             email,
             verificationStatus: 'unknown',
-            verificationReason: `Internal Validation Error: ${internalErr.message}`,
+            verificationReason: `Internal Engine Error: ${internalErr.message}`,
             subStatus: 'engine_error',
             confidenceScore: 50,
             bounceRisk: 'Medium',
@@ -76,7 +76,7 @@ export default async function handler(req: any, res: any) {
             provider: 'Unknown',
             smtpValid: false,
             syntaxValid: false
-          };
+          } as ValidationResult;
         }
       })
     );
