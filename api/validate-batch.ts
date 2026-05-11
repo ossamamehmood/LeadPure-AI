@@ -40,12 +40,12 @@ export default async function handler(req: any, res: any) {
             setTimeout(() => {
               resolve({
                 email,
-                verificationStatus: 'risky',
+                verificationStatus: 'unknown',
                 verificationReason: 'Engine Timeout: Vercel Execution Limit Reached',
                 subStatus: 'timeout',
                 confidenceScore: 50,
-                bounceRisk: 'Medium',
-                reputationImpact: 'Neutral',
+                bounceRisk: 'Unknown',
+                reputationImpact: 'Unknown',
                 mxRecordFound: false,
                 isCatchAll: false,
                 isDisposable: false,
@@ -62,7 +62,7 @@ export default async function handler(req: any, res: any) {
         } catch (internalErr: any) {
           return {
             email,
-            verificationStatus: 'risky',
+            verificationStatus: 'unknown',
             verificationReason: `Internal Validation Error: ${internalErr.message}`,
             subStatus: 'engine_error',
             confidenceScore: 50,
