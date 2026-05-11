@@ -57,7 +57,7 @@ export async function createServer() {
       // Advanced Two-Tier Network Retry Logic with Deterministic Feedback
       const performLookup = async (attempt: number = 1): Promise<{ success: boolean, hasMx: boolean, source: string, records: any[] }> => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), attempt === 1 ? 4000 : 8000);
+        const timeoutId = setTimeout(() => controller.abort(), attempt === 1 ? 6000 : 12000);
 
         const fetchOptions = { 
           signal: controller.signal,
@@ -113,7 +113,7 @@ export async function createServer() {
       const result = await performLookup(1);
       if (!result.success) {
         console.log(`[DNS_API] RETRY_PROTOCOL_TRIGGERED: ${domain_clean}`);
-        await new Promise(r => setTimeout(r, 500)); 
+        await new Promise(r => setTimeout(r, 1000)); 
         const retryResult = await performLookup(2);
         if (retryResult.success) {
            result.success = true;
