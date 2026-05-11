@@ -87,6 +87,7 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
       const response = data.toString();
       responseData += response;
       const lines = response.split('\n').filter(l => l.trim().length > 0);
+      if (lines.length === 0) return; // Prevent empty line crash
       const lastLine = lines[lines.length - 1];
       const code = parseInt(lastLine.substring(0, 3), 10);
 
