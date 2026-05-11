@@ -7,6 +7,17 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%235A5CFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M13 7l-6 7h5l-1 4 6-7h-5l1-4z' fill='%235A5CFF'/%3E%3C/svg%3E" />
   </head>
   <body>
+    <script>
+      // Suppress Vite HMR WebSocket errors which are benign in AI Studio
+      window.addEventListener('unhandledrejection', (event) => {
+        if (event.reason && (
+          String(event.reason).includes('WebSocket') || 
+          (event.reason.message && String(event.reason.message).includes('WebSocket'))
+        )) {
+          event.preventDefault();
+        }
+      });
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

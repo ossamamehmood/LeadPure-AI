@@ -113,18 +113,32 @@ export default function App() {
         cellHTML: false
       });
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json<ContactData>(worksheet, { 
+      const rawJson = XLSX.utils.sheet_to_json<any>(worksheet, { 
         defval: "",
         blankrows: false,
         raw: false
       });
 
-      console.log(`[INGESTION] RAW_INPUT_DETECTED: ${json.length} rows.`);
+      console.log(`[INGESTION] RAW_STREAM_DETECTED: ${rawJson.length} entries.`);
+
+      // Deep Normalization: Sanitize headers and values for 100% deterministic mapping
+      const json = rawJson.map(row => {
+        const normalizedRow: any = {};
+        for (const [key, value] of Object.entries(row)) {
+          // Normalize header key
+          const cleanKey = key.trim().replace(/\s+/g, ' ');
+          // Normalize value
+          let cleanValue = String(value || '').trim();
+          // Remove non-printable/hidden characters
+          cleanValue = cleanValue.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, "");
+          normalizedRow[cleanKey] = cleanValue;
+        }
+        return normalizedRow;
+      });
 
       // Aggressive filtering: Only keep rows that have at least one non-empty value
-      // and specifically prioritize rows that aren't just empty strings from defval
-      const filteredJson = json.filter((row, idx) => {
-        const values = Object.values(row).map(v => String(v || '').trim()).filter(v => v !== "");
+      const filteredJson = json.filter((row) => {
+        const values = Object.values(row).filter(v => v !== "");
         return values.length > 0;
       });
 

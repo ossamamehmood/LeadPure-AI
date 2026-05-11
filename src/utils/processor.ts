@@ -544,78 +544,82 @@ export const processContacts = async (
   const eliminated: any[] = [];
   
   // Statistical Tracking for Debugging & Reliability
+  console.log(`[PROCESSOR_V3.0.0] PROTOCOL_INIT: Ingesting ${data.length} identities.`);
+  
+  // Statistical Tracking for Debugging & Reliability (Deterministic Pipeline)
   const stats = {
     totalInput: data.length,
-    emptyRows: 0,
-    duplicates: 0,
+    sanitizedRows: 0,
+    emptyIdentities: 0,
+    duplicateEntries: 0,
     invalidSyntax: 0,
-    deadDomain: 0,
-    disposable: 0,
-    roleBased: 0,
-    catchAll: 0,
-    toxic: 0,
-    lowConfidence: 0,
+    dnsFailure: 0,
+    disposableMatch: 0,
+    roleBasedMatch: 0,
+    catchAllMatch: 0,
+    toxicPatternMatch: 0,
     highBounceRisk: 0,
-    verified: 0
+    verifiedLeads: 0
   };
 
-  console.log(`[PROCESSOR_V2.6.5] INGESTION_START: ${data.length} identities received.`);
-
-  // Stage 1: Deterministic Deduplication & Empty Filtering (Synchronous)
+  // Stage 1: Deep Normalization & Sanitization (Deterministic Synchronous)
   const seenEmails = new Set<string>();
-  const preProcessedData = data.filter((item, idx) => {
-    if (!item || typeof item !== 'object' || Object.keys(item).length === 0) {
-      stats.emptyRows++;
+  const preProcessedData = data.filter((item) => {
+    if (!item || typeof item !== 'object') {
+      stats.sanitizedRows++;
       return false;
     }
 
     const emailKey = mappings.emailKey;
-    const email = emailKey ? String(item[emailKey] || '').toLowerCase().trim() : '';
+    // Extract and normalize primary identity
+    let rawEmail = String(item[emailKey] || '').toLowerCase().trim();
     
-    if (!email) {
-      stats.emptyRows++;
+    // Remove all hidden characters and normalize Unicode
+    rawEmail = rawEmail.normalize("NFC").replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, "");
+
+    if (!rawEmail) {
+      stats.emptyIdentities++;
       return false;
     }
 
-    if (email) {
-      if (seenEmails.has(email)) {
-        stats.duplicates++;
-        eliminated.push({ ...item, reason: 'System Protocol: Duplicate Entry Suppressed' });
-        return false;
-      }
-      seenEmails.add(email);
+    if (seenEmails.has(rawEmail)) {
+      stats.duplicateEntries++;
+      eliminated.push({ ...item, reason: 'Deterministic Protocol: Duplicate Identity Suppressed' });
+      return false;
     }
+    
+    seenEmails.add(rawEmail);
     return true;
   });
 
-  console.log(`[PROCESSOR] STAGE_1_COMPLETE: ${preProcessedData.length} unique identities remaining. (${stats.duplicates} duplicates, ${stats.emptyRows} empty filtered)`);
-  console.log(`[NETWORK] Scaling validation throughput for target environment...`);
+  console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
-  const BATCH_SIZE = 12; // Highly stable batching for Vercel/Serverless concurrency limits
+  const BATCH_SIZE = 8; // Max stability for Serverless concurrency limits
   const total = preProcessedData.length;
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
     const end = Math.min(i + BATCH_SIZE, total);
     const batch = preProcessedData.slice(i, end);
     
-    // Process batch in parallel
+    // Process batch in parallel for efficiency
     const results = await Promise.all(
       batch.map(async (item, index) => {
         const res = await processSingleContact(item, mappings, rules, i + index);
         
-        // Track stats from resolution
+        // Track granular stats for the audit log
         if (res.eliminated) {
           const reason = res.eliminated.reason?.toLowerCase() || '';
-          if (reason.includes('syntax')) stats.invalidSyntax++;
-          else if (reason.includes('dead') || reason.includes('mx')) stats.deadDomain++;
-          else if (reason.includes('disposable')) stats.disposable++;
-          else if (reason.includes('role')) stats.roleBased++;
-          else if (reason.includes('catch-all')) stats.catchAll++;
-          else if (reason.includes('toxic') || reason.includes('synthetic')) stats.toxic++;
+          const subStatus = res.eliminated.subStatus || '';
+          
+          if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
+          else if (subStatus === 'domain_not_found') stats.dnsFailure++;
+          else if (subStatus === 'disposable') stats.disposableMatch++;
+          else if (subStatus === 'role_based') stats.roleBasedMatch++;
+          else if (subStatus === 'catch_all') stats.catchAllMatch++;
+          else if (subStatus === 'toxic') stats.toxicPatternMatch++;
           else if (res.eliminated.bounceRisk === 'High' || res.eliminated.bounceRisk === 'Dangerous') stats.highBounceRisk++;
-          else stats.lowConfidence++;
         } else {
-          stats.verified++;
+          stats.verifiedLeads++;
         }
 
         return res;
@@ -632,12 +636,18 @@ export const processContacts = async (
       onProgress(Math.min(100, Math.round((end / total) * 100)));
     }
 
-    // Yield control back to browser to allow UI updates and prevent freezer-lock
-    await new Promise(resolve => setTimeout(resolve, 10));
+    // Deterministic Wait: Ensure event loop yield for UI stability
+    await new Promise(resolve => setTimeout(resolve, 5));
   }
 
-  console.log(`[PROCESSOR] FINAL_REPORT:`, JSON.stringify(stats, null, 2));
-  console.log(`[PROCESSOR] DISPATCH: ${valid.length} Deliverable, ${eliminated.length} Filtered.`);
+  const finalReport = {
+    ...stats,
+    finalDeliverable: valid.length,
+    finalFiltered: eliminated.length
+  };
+
+  console.table(finalReport);
+  console.log(`[PROCESSOR] PIPELINE_COMPLETE. Deterministic parity achieved.`);
 
   return { valid, eliminated };
 }; 

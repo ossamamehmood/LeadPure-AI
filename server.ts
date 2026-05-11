@@ -54,8 +54,8 @@ export async function createServer() {
       let records: any[] = [];
       let source = 'unknown';
 
-      // Advanced Two-Tier Network Retry Logic
-      const performLookup = async (attempt: number = 1): Promise<boolean> => {
+      // Advanced Two-Tier Network Retry Logic with Deterministic Feedback
+      const performLookup = async (attempt: number = 1): Promise<{ success: boolean, hasMx: boolean, source: string, records: any[] }> => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 6000 + (attempt * 2000));
 
@@ -63,7 +63,7 @@ export async function createServer() {
           signal: controller.signal,
           headers: { 
             'accept': 'application/dns-json',
-            'user-agent': `LeadPure-Validation-Engine/2.9.0-Attempt-${attempt}`
+            'user-agent': `LeadPure-Validation-Engine/3.0.0-Attempt-${attempt}`
           }
         };
 
@@ -75,64 +75,59 @@ export async function createServer() {
           
           clearTimeout(timeoutId);
 
-          // Tier 1: Check Google
+          // Tier 1: Check Google (Primary Source of Truth)
           if (googleRes.status === 'fulfilled' && googleRes.value.ok) {
             const data = await googleRes.value.json() as any;
             if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
-              hasMx = true;
-              records = data.Answer;
-              source = 'google';
-              return true;
-            } else if (data.Status === 3) { // NXDOMAIN is definitive
-              hasMx = false;
-              source = 'google-nx';
-              return true;
+              return { success: true, hasMx: true, source: 'google', records: data.Answer };
+            } else if (data.Status === 3) { // NXDOMAIN
+              return { success: true, hasMx: false, source: 'google-nx', records: [] };
             }
           }
 
-          // Tier 2: Check Cloudflare (if Google fails or is inconclusive)
+          // Tier 2: Check Cloudflare (Independent Verification)
           if (cloudflareRes.status === 'fulfilled' && cloudflareRes.value.ok) {
             const data = await cloudflareRes.value.json() as any;
             if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
-              hasMx = true;
-              records = data.Answer;
-              source = 'cloudflare';
-              return true;
+              return { success: true, hasMx: true, source: 'cloudflare', records: data.Answer };
+            } else if (data.Status === 3) {
+              return { success: true, hasMx: false, source: 'cloudflare-nx', records: [] };
             }
           }
           
-          return false;
+          return { success: false, hasMx: false, source: 'unknown', records: [] };
         } catch (e) {
           clearTimeout(timeoutId);
-          return false;
+          return { success: false, hasMx: false, source: 'error', records: [] };
         }
       };
 
-      // Execute with one retry if necessary
-      let success = await performLookup(1);
-      if (!success) {
-        console.log(`[DNS_API] RE-ATTEMPTING: ${domain_clean}`);
-        await new Promise(r => setTimeout(r, 1000)); // Cool-down
-        success = await performLookup(2);
+      // Execute with intelligent retry protocol
+      let result = await performLookup(1);
+      if (!result.success) {
+        console.log(`[DNS_API] RETRY_PROTOCOL: ${domain_clean}`);
+        await new Promise(r => setTimeout(r, 1500)); 
+        result = await performLookup(2);
       }
 
-      if (!success) {
-        console.error(`[DNS_API] FINAL_FAILURE: ${domain_clean} after 2 attempts. Marking as False to ensure 0% bounce.`);
+      if (!result.success) {
+        console.error(`[DNS_API] CRITICAL_FAILURE: ${domain_clean}. Enforcing Security Protocol (False).`);
+        result.source = 'deterministic_failure';
       }
 
-      // Cache result server-side
+      // Cache result for cross-session consistency within same lambda lifecycle
       serverMxCache.set(domain_clean, { 
-        hasMx, 
-        source: success ? source : 'final_failure', 
+        hasMx: result.hasMx, 
+        source: result.source, 
         timestamp: Date.now() 
       });
 
       res.json({ 
-        hasMx: hasMx,
-        records: records,
-        source: source
+        hasMx: result.hasMx,
+        records: result.records,
+        source: result.source
       });
-      console.log(`[DNS_API] PROXY_RESPONSE: ${domain_clean} -> ${hasMx} (Source: ${source})`);
+      console.log(`[DNS_API] RESOLUTION: ${domain_clean} -> ${result.hasMx} [${result.source}]`);
     } catch (error) {
       console.error(`[DNS_API] Root DNS check failed for ${domain}:`, error);
       // Desperation fallback for restricted environments (Vercel/CloudRun)
