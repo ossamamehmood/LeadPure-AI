@@ -27,7 +27,7 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
         <div className="hidden md:flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
           <span className="flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full gradient-bg shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
-            LeadPure AI v4.0 Final
+            v4.2 Parity-Sync
           </span>
         </div>
       </div>

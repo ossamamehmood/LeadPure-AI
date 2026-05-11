@@ -54,17 +54,17 @@ export async function createServer() {
       let records: any[] = [];
       let source = 'unknown';
 
-      // CONSENSUS ENGINE: Cross-verifies between global clusters for absolute consistency
+      // CONSENSUS ENGINE v4.2: Synchronized multi-cluster verification for environment parity
       const performLookup = async (attempt: number = 1): Promise<{ success: boolean, hasMx: boolean, source: string, records: any[] }> => {
         const controller = new AbortController();
-        const timeoutMs = attempt === 1 ? 15000 : 35000;
+        const timeoutMs = attempt === 1 ? 15000 : 45000;
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
         const fetchOptions = { 
           signal: controller.signal,
           headers: { 
             'accept': 'application/dns-json',
-            'user-agent': `LeadPure-Engine/v3.5`
+            'user-agent': `LeadPure-Engine/v4.2-ParitySync`
           }
         };
 
@@ -86,7 +86,12 @@ export async function createServer() {
 
           clearTimeout(timeoutId);
           const successful = results.filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled').map(r => r.value);
+          
           if (successful.length === 0) throw new Error('QUORUM_FAIL');
+
+          // If ANY reliable provider says NXDOMAIN (Status 3), we treat it as deterministic invalid
+          const isNx = successful.some(s => s.status === 3);
+          if (isNx) return { success: true, hasMx: false, source: 'consensus:nx', records: [] };
 
           const anyHasMx = successful.some(s => s.hasMx);
           return { success: true, hasMx: anyHasMx, source: `consensus:${successful.length}n`, records: successful.find(s => s.hasMx)?.records || [] };
@@ -98,12 +103,7 @@ export async function createServer() {
           } catch (nativeErr: any) {
             const errCode = nativeErr.code || '';
             if (errCode === 'ENOTFOUND' || errCode === 'ENODATA') return { success: true, hasMx: false, source: 'native-nx', records: [] };
-            try {
-              const resolveA = promisify(dns.resolve);
-              const aRecords = await resolveA(domain_clean);
-              if (aRecords && aRecords.length > 0) return { success: true, hasMx: true, source: 'proxy-a', records: [] };
-            } catch (aErr) {}
-            return { success: false, hasMx: false, source: 'error', records: [] };
+            return { success: false, hasMx: false, source: 'error_technical', records: [] };
           }
         }
       };
@@ -111,15 +111,14 @@ export async function createServer() {
       // High-stability execution with multi-stage retry
       let result = await performLookup(1);
       if (!result.success) {
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 2500));
         result = await performLookup(2);
       }
       
-      // If we STILL fail to get a deterministic answer, we apply a safety fallback.
-      // We default to TRUE to avoid lead loss on transient technical errors,
-      // but we mark the source clearly for transparency.
+      // Strict Fallback: We default to FALSE on persistent technical errors to prevent 
+      // "false positives" and ensure consistent "Perfect" results across environments.
       if (!result.success) {
-        result = { success: true, hasMx: true, source: 'safety_fallback', records: [] };
+        result = { success: true, hasMx: false, source: 'strict_parity_fallback', records: [] };
       }
 
       // Cache result for SESSION consistency
