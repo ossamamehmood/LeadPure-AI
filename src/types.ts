@@ -35,6 +35,15 @@ export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
   __originalData?: any;
 }
 
+export interface ValidationRules {
+  strictTitleCase: boolean;
+  forcePlusSign: boolean;
+  excludeDisposable: boolean;
+  excludeRoleBased: boolean;
+  excludeCatchAll: boolean;
+  excludeSpamTraps: boolean;
+}
+
 export interface HistoryItem {
   id: string;
   date: string;
@@ -49,15 +58,6 @@ export interface HistoryItem {
     phoneFormatted: number;
     avgConfidence: number;
   };
-}
-
-export interface ValidationRules {
-  strictTitleCase: boolean;
-  forcePlusSign: boolean;
-  excludeDisposable: boolean;
-  excludeRoleBased: boolean;
-  excludeCatchAll: boolean;
-  excludeSpamTraps: boolean;
 }
 
 export interface CleaningStats {

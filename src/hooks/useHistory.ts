@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { HistoryItem } from '../types';
 
-export function useHistory() {
+export const useHistory = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
-    const savedHistory = localStorage.getItem('cleanflow_history');
-    if (savedHistory) {
+    const saved = localStorage.getItem('lead_pure_history');
+    if (saved) {
       try {
-        setHistory(JSON.parse(savedHistory));
+        setHistory(JSON.parse(saved));
       } catch (e) {
         console.error('Failed to parse history', e);
       }
@@ -16,17 +16,15 @@ export function useHistory() {
   }, []);
 
   const saveToHistory = (item: HistoryItem) => {
-    setHistory(prev => {
-      const updated = [item, ...prev].slice(0, 50);
-      localStorage.setItem('cleanflow_history', JSON.stringify(updated));
-      return updated;
-    });
+    const newHistory = [item, ...history].slice(0, 50); // Keep last 50
+    setHistory(newHistory);
+    localStorage.setItem('lead_pure_history', JSON.stringify(newHistory));
   };
 
   const clearHistory = () => {
-    localStorage.removeItem('cleanflow_history');
     setHistory([]);
+    localStorage.removeItem('lead_pure_history');
   };
 
   return { history, saveToHistory, clearHistory };
-} 
+}; 
