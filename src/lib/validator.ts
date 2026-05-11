@@ -215,20 +215,19 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     // Disposable Check
     isDisposable = disposableDomains.has(domain);
 
-    // DNS MX Check (Strict with Retry)
+    // DNS MX Check (STRICT NO-FALLBACK FOR ZERO BOUNCE)
     let mxRecords: dns.MxRecord[] = [];
     try {
       mxRecords = await resolveMxWithRetry(domain);
-      mxRecords.sort((a, b) => a.priority - b.priority);
-      primaryMx = mxRecords.length > 0 ? mxRecords[0].exchange : domain;
-    } catch (err: any) {
-      try {
-        const aRecords = await resolve4(domain);
-        if (!aRecords || aRecords.length === 0) throw new Error('No A');
-        primaryMx = domain;
-      } catch (aErr) {
-        mxRecordFound = false;
+      if (!mxRecords || mxRecords.length === 0) {
+        throw new Error('No MX Records');
       }
+      mxRecords.sort((a, b) => a.priority - b.priority);
+      primaryMx = mxRecords[0].exchange;
+    } catch (err: any) {
+      // STRICT ZERO-BOUNCE RULE: If there is no explicit MX record, we assume the domain cannot receive mail.
+      // We no longer fall back to A-records because parked/dead domains often have A-records but bounce all mail.
+      mxRecordFound = false;
     }
   }
 
