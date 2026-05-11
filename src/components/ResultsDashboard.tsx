@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShieldCheck, Search, Database, Fingerprint, Activity, Zap, Cpu, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Search, Database, Fingerprint, Activity, Zap, Cpu } from 'lucide-react';
 import { Virtuoso } from 'react-virtuoso';
 import { cn } from '../lib/utils';
+import { GlossyCard } from './ui/GlossyCard';
 import { ProcessedContact } from '../types';
 
 interface ResultsDashboardProps {
@@ -18,67 +19,69 @@ interface ResultsDashboardProps {
 const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings: any }) => {
   if (!contact) return null;
 
-  const score = contact.confidenceScore || 0;
-  const isSafe = contact.bounceRisk === 'Safe' || contact.bounceRisk === 'Low';
-  const isMedium = contact.bounceRisk === 'Medium';
-
   return (
-    <div className="border-b border-border-color hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-200 group flex items-center h-20 will-change-transform">
-      <div className="px-6 py-3 w-[35%] flex items-center gap-4 overflow-hidden">
-        <div className="w-9 h-9 shrink-0 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center text-sm font-semibold text-indigo-600 dark:text-indigo-400 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-colors">
+    <div className="border-b border-app-border hover:bg-white/[0.02] transition-colors duration-300 group flex items-center h-24 will-change-transform contain-layout contain-paint">
+      <div className="px-12 py-4 w-[35%] flex items-center gap-5 overflow-hidden">
+        <div className="w-10 h-10 shrink-0 rounded-2xl bg-app-bg border border-app-border flex items-center justify-center text-xs font-black text-app-text italic group-hover:border-brand-blue/30 transition-all group-hover:scale-105 duration-500">
           {String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || 'U')[0].toUpperCase()}
         </div>
         <div className="overflow-hidden">
-          <div className="text-sm font-semibold text-slate-900 dark:text-white mb-0.5 truncate">
-            {String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || 'Unknown')} {String(contact[mappings.lastNameKey] || '')}
+          <div className="text-base font-black text-app-text italic tracking-tighter mb-1 uppercase truncate transition-colors duration-500">
+            {String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || 'Identity Unknown')} {String(contact[mappings.lastNameKey] || '')}
           </div>
-          <div className="text-xs text-slate-500 truncate">{String(contact[mappings.emailKey] || 'N/A')}</div>
+          <div className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.1em] font-mono truncate">{String(contact[mappings.emailKey] || 'N/A')}</div>
         </div>
       </div>
-      <div className="px-6 py-3 w-[20%] flex flex-col justify-center gap-1.5">
-        <div className="flex justify-between items-center text-xs">
-          <span className="font-medium text-slate-500">Quality Score</span>
-          <span className={cn(
-            "font-semibold",
-            score >= 90 ? "text-emerald-600 dark:text-emerald-500" : 
-            score >= 75 ? "text-amber-600 dark:text-amber-500" : "text-red-600 dark:text-red-500"
-          )}>
-            {score}%
-          </span>
-        </div>
-        <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+      <div className="px-12 py-4 w-[20%] flex flex-col gap-2">
+        <span className={cn(
+          "text-[11px] font-black font-mono tracking-tighter",
+          (contact.confidenceScore || 0) >= 99 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent" : 
+          (contact.confidenceScore || 0) > 95 ? "text-brand-blue" : "text-brand-pink"
+        )}>
+          {contact.confidenceScore || 0}% Accuracy
+        </span>
+        <div className="w-full h-1 bg-white/[0.03] rounded-full overflow-hidden border border-white/5">
           <div 
-            style={{ width: `${score}%` }}
+            style={{ width: `${contact.confidenceScore || 0}%` }}
             className={cn(
-              "h-full rounded-full transition-all duration-500",
-              score >= 90 ? "bg-emerald-500" : 
-              score >= 75 ? "bg-amber-500" : "bg-red-500"
+              "h-full rounded-full transition-all duration-1000",
+              (contact.confidenceScore || 0) > 90 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_10px_rgba(90,92,255,0.4)]" : 
+              (contact.confidenceScore || 0) > 75 ? "bg-brand-blue" : "bg-brand-pink"
             )}
           />
         </div>
       </div>
-      <div className="px-6 py-3 w-[15%]">
+      <div className="px-12 py-4 w-[15%]">
         <div className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border",
-          isSafe ? "text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" :
-          isMedium ? "text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20" :
-          "text-red-700 bg-red-50 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
+          "inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border",
+          (contact.bounceRisk === 'Safe' || contact.bounceRisk === 'Low') ? "text-brand-blue bg-brand-blue/5 border-brand-blue/20" :
+          contact.bounceRisk === 'Medium' ? "text-amber-400 bg-amber-400/5 border-amber-400/20" :
+          "text-brand-pink bg-brand-pink/5 border-brand-pink/20"
         )}>
-          {isSafe && <CheckCircle2 className="w-3.5 h-3.5" />}
-          {isMedium && <AlertTriangle className="w-3.5 h-3.5" />}
-          {!isSafe && !isMedium && <ShieldAlert className="w-3.5 h-3.5" />}
-          {contact.bounceRisk || 'Safe'}
+          <div className={cn(
+            "w-1.5 h-1.5 rounded-full",
+            (contact.bounceRisk === 'Safe' || contact.bounceRisk === 'Low') ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_5px_rgba(90,92,255,0.6)]" :
+            contact.bounceRisk === 'Medium' ? "bg-brand-blue" :
+            "bg-brand-pink"
+          )} />
+          {contact.bounceRisk || 'SAFE'}
         </div>
       </div>
-      <div className="px-6 py-3 w-[30%] overflow-hidden">
+      <div className="px-12 py-4 w-[30%] overflow-hidden">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
+            (contact.confidenceScore || 0) >= 99 ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/20' : 
+            (contact.confidenceScore || 0) > 95 ? 'bg-amber-400/10 text-amber-400' : 'bg-brand-pink/10 text-brand-pink'
+          }`}>
+            {contact.confidenceScore}% Confidence
+          </span>
           {contact.subStatus && (
-            <span className="text-[10px] font-medium uppercase tracking-wider bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-              {contact.subStatus.replace(/_/g, ' ')}
+            <span className="text-[8px] font-black uppercase tracking-widest bg-app-bg text-app-text/50 px-2 py-0.5 rounded-md border border-app-border uppercase transition-colors duration-500">
+              {contact.subStatus}
             </span>
           )}
         </div>
-        <p className="text-xs text-slate-500 truncate">
+        <p className="text-[10px] text-app-text/60 font-black uppercase tracking-widest italic truncate transition-colors duration-500">
           {contact.verificationReason || contact.reason || 'Verified Identity Profile'}
         </p>
       </div>
@@ -118,161 +121,247 @@ export function ResultsDashboard({
   const dangerousCount = (eliminatedData || []).filter(item => item.bounceRisk === 'Dangerous' || item.reputationImpact === 'Critical').length;
   const catchAllCount = (eliminatedData || []).filter(item => item.isCatchAll).length;
   const disposableCount = (eliminatedData || []).filter(item => item.isDisposable).length;
+  const roleBasedCount = (eliminatedData || []).filter(item => item.isRoleBased).length;
 
   const itemContent = React.useCallback((index: number) => {
     return <MemoizedRow contact={filteredData[index]} mappings={mappings} />;
   }, [filteredData, mappings]);
 
   return (
-    <div className="max-w-7xl mx-auto w-full space-y-8 pb-20 px-4 sm:px-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
-        <div>
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">Verification Results</h2>
-          <p className="text-sm text-slate-500 mt-1">Review and export your verified list.</p>
-        </div>
-      </div>
-
+    <div className="max-w-6xl mx-auto w-full space-y-12 pb-20">
       {/* Infrastructure Status Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-sm font-medium text-slate-500">Deliverable Leads</p>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center border border-emerald-100 dark:border-emerald-500/20">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 px-2">
+        <GlossyCard glow="gradient" className="p-7 rounded-[32px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-brand-blue/30 transition-all">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-blue/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="flex justify-between items-start mb-5">
+            <p className="gradient-text text-[10px] font-black uppercase tracking-[0.2em] italic">Validated Safe</p>
+            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
+              <Activity className="w-4 h-4 text-brand-blue" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold text-slate-900 dark:text-white">{(processedData || []).length}</p>
+            <p className="text-5xl font-black text-app-text font-mono tracking-tighter transition-colors duration-500">{(processedData || []).length}</p>
+            <span className="text-slate-600 font-bold text-xs uppercase tracking-widest">Leads</span>
           </div>
-          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-2">Ready to export</p>
-        </div>
+          <div className="flex items-center gap-2 mt-4 bg-white/[0.03] w-fit px-3 py-1.5 rounded-full border border-white/5">
+             <div className="w-1.5 h-1.5 rounded-full gradient-bg animate-pulse shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
+             <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest italic leading-none">Deliverability Locked</p>
+          </div>
+        </GlossyCard>
 
-        <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-sm font-medium text-slate-500">Risks Blocked</p>
-            <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-500/10 flex items-center justify-center border border-red-100 dark:border-red-500/20">
-              <ShieldAlert className="w-4 h-4 text-red-600 dark:text-red-400" />
+        <GlossyCard glow="pink" className="p-7 rounded-[32px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-brand-pink/30 transition-all">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-pink/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="flex justify-between items-start mb-5">
+            <p className="text-brand-pink text-[10px] font-black uppercase tracking-[0.2em] italic">Risks Neutralized</p>
+            <div className="w-8 h-8 rounded-xl bg-brand-pink/10 flex items-center justify-center border border-brand-pink/20">
+              <Zap className="w-4 h-4 text-brand-pink" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold text-slate-900 dark:text-white">{(eliminatedData || []).length}</p>
+            <p className="text-5xl font-black text-app-text font-mono tracking-tighter transition-colors duration-500">{(eliminatedData || []).length}</p>
+            <span className="text-slate-600 font-bold text-xs uppercase tracking-widest">Blocks</span>
           </div>
-          <div className="text-xs text-slate-500 mt-2 space-y-0.5">
-            <p>{dangerousCount} bounces prevented</p>
+          <div className="space-y-1 mt-4">
+            <p className="text-[9px] text-slate-600 uppercase font-black tracking-widest italic leading-none border-l border-brand-pink/30 pl-2">
+              Filtered {catchAllCount} Catch-All & {disposableCount} Disposable Addresses
+            </p>
+            <p className="text-[9px] text-brand-pink/80 uppercase font-black tracking-widest italic leading-none border-l border-brand-pink/30 pl-2">
+              Prevented {dangerousCount} Critical Bounces
+            </p>
           </div>
-        </div>
+        </GlossyCard>
 
-        <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-sm font-medium text-slate-500">Average Quality</p>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20">
-              <Activity className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+        <GlossyCard className="p-7 rounded-[32px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-brand-blue/30 transition-all">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-blue/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="flex justify-between items-start mb-5">
+            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic">Quality Matrix</p>
+            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
+              <Fingerprint className="w-4 h-4 text-brand-blue" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold text-slate-900 dark:text-white">{avgConfidence}%</p>
+            <p className="text-5xl font-black text-app-text font-mono tracking-tighter italic transition-colors duration-500">{avgConfidence}<span className="text-2xl">%</span></p>
           </div>
-          <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mt-3 overflow-hidden">
-            <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${avgConfidence}%` }} />
+          <div className="text-[10px] text-slate-600 mt-6 uppercase font-black tracking-[0.2em] italic leading-none flex items-center gap-2">
+            <div className="w-1 h-1 rounded-full bg-slate-800" />
+            Global Accuracy Grade
           </div>
-        </div>
+        </GlossyCard>
 
-        <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between">
-          <div className="flex justify-between items-start mb-2">
-            <p className="text-sm font-medium text-slate-500">Engine Details</p>
-            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center border border-slate-200 dark:border-slate-700">
+        <GlossyCard className="p-7 rounded-[32px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-white/10 transition-all">
+          <div className="flex justify-between items-start mb-5">
+            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic">Engine Status</p>
+            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
               <Cpu className="w-4 h-4 text-slate-500" />
             </div>
           </div>
-          <p className="text-lg font-semibold text-slate-900 dark:text-white mb-2">SMTP + DNS</p>
-          <div className="flex items-center justify-between text-xs text-slate-500">
-            <span>Validation Mode</span>
-            <span className="font-medium text-indigo-600 dark:text-indigo-400">Deep Scan</span>
+          <div className="flex items-center gap-3 mt-1">
+            <p className="text-4xl font-black text-app-text tracking-tighter uppercase italic transition-colors duration-500">Protected</p>
           </div>
-        </div>
+          <div className="mt-6 flex items-center justify-between">
+            <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">SMTP Mode</p>
+            <div className="px-2 py-0.5 bg-brand-blue/20 text-brand-blue text-[8px] font-black rounded uppercase tracking-widest border border-brand-blue/20">v6.0 Absolute-Zero</div>
+          </div>
+        </GlossyCard>
       </div>
 
-      <div className="glass-panel rounded-2xl overflow-hidden">
+      <div className="bg-app-card rounded-[48px] border border-app-border shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden">
         {/* Table Controls */}
-        <div className="px-6 py-4 flex flex-col md:flex-row justify-between items-center border-b border-border-color bg-slate-50/50 dark:bg-slate-800/20 gap-4">
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+        <div className="px-10 py-12 flex flex-col md:flex-row justify-between items-center bg-transparent backdrop-blur-xl gap-8">
+          <div className="flex gap-12 w-full md:w-auto">
             <button 
-              onClick={() => { setActiveTab('valid'); setSearchTerm(''); }}
+              onClick={() => { 
+                if ((document as any).startViewTransition) {
+                  (document as any).startViewTransition(() => setActiveTab('valid'));
+                } else {
+                  setActiveTab('valid');
+                }
+                setSearchTerm(''); 
+              }}
               className={cn(
-                "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
-                activeTab === 'valid' ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95 inline-block",
+                activeTab === 'valid' ? "text-app-text-bright opacity-100" : "text-slate-500 hover:text-slate-300"
               )}
             >
-              Deliverable ({processedData.length})
+              <span className={cn(
+                "relative z-10 block transition-colors uppercase italic tracking-widest",
+                activeTab === 'valid' ? "gradient-text" : ""
+              )}>
+                Deliverable List
+              </span>
+              {activeTab === 'valid' && (
+                <motion.div 
+                  layoutId="tab" 
+                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-[0_0_20px_rgba(90,92,255,0.6)]" 
+                  initial={false}
+                />
+              )}
             </button>
             <button 
-              onClick={() => { setActiveTab('eliminated'); setSearchTerm(''); }}
+              onClick={() => { 
+                if ((document as any).startViewTransition) {
+                  (document as any).startViewTransition(() => setActiveTab('eliminated'));
+                } else {
+                  setActiveTab('eliminated');
+                }
+                setSearchTerm(''); 
+              }}
               className={cn(
-                "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
-                activeTab === 'eliminated' ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95 inline-block",
+                activeTab === 'eliminated' ? "text-brand-pink opacity-100" : "text-slate-500 hover:text-slate-300"
               )}
             >
-              Filtered ({eliminatedData.length})
+              <span className="relative z-10 block">Filtered Contacts</span>
+              {activeTab === 'eliminated' && (
+                <motion.div 
+                  layoutId="tab" 
+                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-pink shadow-[0_0_20px_#F502FD]" 
+                  initial={false}
+                />
+              )}
             </button>
           </div>
 
-          <div className="flex gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <div className="relative w-full md:w-96 group flex gap-4">
+            <div className="relative flex-1 group">
+              <div className="absolute inset-0 bg-gradient-to-r from-brand-cyan/5 to-brand-pink/5 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700 group-focus-within:text-brand-blue transition-colors z-10" />
               <input 
                 type="text"
-                placeholder="Search records..."
+                placeholder="SEARCH CONTACT DATABASE..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-border-color rounded-lg h-10 pl-9 pr-4 text-sm text-slate-900 dark:text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none"
+                className="w-full bg-app-bg/40 border border-app-border rounded-2xl h-14 pl-14 pr-6 text-[11px] font-black text-app-text placeholder:text-slate-500 outline-none focus:border-brand-blue/30 transition-all uppercase tracking-[0.2em] italic relative z-0"
               />
             </div>
             <button 
+              onClick={() => onPreview(currentData, activeTab === 'valid' ? 'Deliverable Preview' : 'Filtered Preview')}
+              className="px-6 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-blue transition-all flex items-center gap-2 h-14"
+            >
+              <Database className="w-4 h-4" />
+              Preview
+            </button>
+            <button 
               onClick={activeTab === 'valid' ? onDownloadValid : onDownloadEliminated}
-              className="px-4 h-10 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-all shadow-sm flex items-center gap-2 active:scale-[0.98]"
+              className={cn(
+                "px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-14 border",
+                activeTab === 'valid' 
+                  ? "bg-brand-blue/10 border-brand-blue/20 text-brand-blue hover:bg-brand-blue/20" 
+                  : "bg-brand-pink/10 border-brand-pink/20 text-brand-pink hover:bg-brand-pink/20"
+              )}
             >
               <Zap className="w-4 h-4" />
-              Export {activeTab === 'valid' ? 'Deliverable' : 'Filtered'}
+              Export
             </button>
           </div>
         </div>
         
         {/* Verification Engine Table */}
-        <div className="min-h-[400px]">
+        <div className="min-h-[500px] overflow-x-auto scrollbar-hide">
           {filteredData.length > 0 ? (
-            <div className="min-w-[800px]">
-              <div className="flex text-xs font-semibold text-slate-500 bg-slate-50 dark:bg-slate-800/50 border-b border-border-color">
-                <div className="px-6 py-3 w-[35%]">Contact Details</div>
-                <div className="px-6 py-3 w-[20%]">List Health Score</div>
-                <div className="px-6 py-3 w-[15%]">Status</div>
-                <div className="px-6 py-3 text-left w-[30%]">Reason</div>
+            <div className="min-w-[1000px]">
+              <div className="flex text-slate-600 text-[10px] uppercase tracking-[0.5em] font-black bg-white/[0.01] border-b border-app-border">
+                <div className="px-12 py-10 w-[35%]">Identity Signature</div>
+                <div className="px-12 py-10 w-[20%]">List Health Score</div>
+                <div className="px-12 py-10 w-[15%]">Status</div>
+                <div className="px-12 py-10 text-left w-[30%]">Engine Intelligence</div>
               </div>
               <Virtuoso
-                style={{ height: '500px' }}
+                style={{ height: '600px' }}
                 totalCount={filteredData.length}
                 itemContent={itemContent}
+                className="scrollbar-hide"
                 increaseViewportBy={200}
               />
             </div>
           ) : (
-            <div className="py-24 px-6 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                <Database className="w-8 h-8 text-slate-400" />
+            <div className="py-52 px-12 flex flex-col items-center justify-center text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-blue/[0.02] to-transparent pointer-events-none" />
+              <div className="w-32 h-32 bg-white/[0.03] rounded-[40px] flex items-center justify-center mb-10 border border-white/5 relative z-10 shadow-2xl">
+                <Database className="w-12 h-12 text-zinc-800" />
+                <div className="absolute inset-0 border border-brand-blue/20 rounded-[40px] animate-pulse" />
+                <div className="absolute -inset-4 border border-white/[0.02] rounded-[48px] animate-ping opacity-20" />
               </div>
-              <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No records found</h4>
-              <p className="text-sm text-slate-500 max-w-sm">
-                Try adjusting your search criteria or switch tabs to view other records.
+              <h4 className="text-3xl font-black text-app-text uppercase italic tracking-tighter mb-4 relative z-10 transition-colors duration-500">Data Integrity Result Exception</h4>
+              <p className="text-slate-600 text-xs font-black uppercase tracking-[0.3em] max-w-lg mx-auto leading-loose italic relative z-10">
+                The current ingestion parameters have filtered all objects from the view. <br/>
+                Adjust security protocols or check identity source mapping to reveal results.
               </p>
-              {searchTerm && (
-                <button 
-                  onClick={() => setSearchTerm('')}
-                  className="mt-4 text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                >
-                  Clear search
-                </button>
-              )}
+              <button 
+                onClick={() => setSearchTerm('')}
+                className="mt-12 px-8 py-3 bg-white/5 hover:bg-white/10 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] rounded-full border border-white/5 transition-all relative z-10"
+              >
+                Clear Search Filter
+              </button>
             </div>
           )}
+        </div>
+        
+        {/* Infrastructure Footer */}
+        <div className="px-12 py-10 bg-app-bg/60 border-t border-app-border flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-8">
+            <div className="flex items-center gap-4">
+              <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_12px_rgba(90,92,255,0.5)] animate-pulse" />
+              <p className="text-[11px] text-slate-400 font-black uppercase tracking-[0.5em] italic leading-none">
+                Protocol: Active Node
+              </p>
+            </div>
+            <div className="h-6 w-px bg-app-border hidden md:block" />
+            <div className="px-4 py-2 bg-app-bg/40 rounded-xl border border-app-border">
+              <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] font-mono leading-none">
+                {filteredData.length} Identified Objects Indexed
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-8">
+             <div className="flex items-center gap-3 text-slate-600 group">
+                <Cpu className="w-4 h-4 group-hover:text-brand-blue transition-colors" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] italic">Edge Verification Engine</span>
+             </div>
+             <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-brand-blue/40 transition-colors cursor-help">
+               <ShieldCheck className="w-5 h-5 text-slate-700" />
+             </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, ShieldCheck, ShieldAlert, Zap, Globe, Info, Loader2, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import { Search, ShieldCheck, ShieldAlert, Zap, Activity, Globe, Info, CornerDownRight } from 'lucide-react';
+import { GlossyCard } from './ui/GlossyCard';
 import { verifyEmail } from '../utils/processor';
 import { ProcessedContact } from '../types';
 
@@ -17,6 +18,7 @@ export function SingleValidation() {
     setResult(null);
     
     try {
+      // Use default options for single verification
       const res = await verifyEmail(email, {
         excludeDisposable: false,
         excludeRoleBased: false,
@@ -33,62 +35,53 @@ export function SingleValidation() {
 
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
-      case 'verified': return 'text-emerald-500';
-      case 'risky': return 'text-amber-500';
+      case 'verified': return 'bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent shadow-[0_0_20px_rgba(90,92,255,0.4)]';
+      case 'risky': return 'text-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.4)]';
       case 'rejected':
-      case 'blocked': return 'text-red-500';
-      default: return 'text-slate-500';
+      case 'blocked': return 'text-brand-pink shadow-[0_0_20px_rgba(245,2,253,0.4)]';
+      default: return 'text-slate-400';
     }
   };
 
   const getStatusBg = (status: string | undefined) => {
     switch (status) {
-      case 'verified': return 'bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/20';
-      case 'risky': return 'bg-amber-50 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/20';
+      case 'verified': return 'bg-brand-blue/10 border-brand-blue/20';
+      case 'risky': return 'bg-amber-400/20 border-amber-400/30';
       case 'rejected':
-      case 'blocked': return 'bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/20';
-      default: return 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700';
-    }
-  };
-
-  const getStatusIcon = (status: string | undefined) => {
-    switch (status) {
-      case 'verified': return <CheckCircle2 className="w-6 h-6 text-emerald-500" />;
-      case 'risky': return <AlertTriangle className="w-6 h-6 text-amber-500" />;
-      case 'rejected':
-      case 'blocked': return <XCircle className="w-6 h-6 text-red-500" />;
-      default: return <Info className="w-6 h-6 text-slate-500" />;
+      case 'blocked': return 'bg-brand-pink/20 border-brand-pink/30';
+      default: return 'bg-white/5 border-white/10';
     }
   };
 
   return (
-    <section className="mb-20 max-w-5xl mx-auto px-4 sm:px-6">
-      <div className="flex items-center gap-4 mb-8">
-        <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20">
-          <Zap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+    <section className="mb-20">
+      <div className="flex items-center gap-6 mb-12">
+        <div className="w-16 h-16 rounded-[24px] bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20 shadow-[0_0_20px_rgba(90,92,255,0.1)] group transition-all duration-700 hover:border-brand-blue/40">
+          <Zap className="w-8 h-8 text-brand-blue transition-transform group-hover:scale-110 duration-500" />
         </div>
         <div>
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">Single Verification</h2>
-          <p className="text-sm text-slate-500 mt-1">
-            Test our verification engine in real-time.
+          <h2 className="text-3xl font-black text-app-text uppercase italic tracking-tighter leading-none transition-colors duration-500">Neural Identity Scan</h2>
+          <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-3 italic flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full gradient-bg animate-pulse shadow-[0_0_8px_#5A5CFF]" />
+            Direct Validation Protocol Active
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-5">
-          <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-6 rounded-2xl">
-            <form onSubmit={handleVerify} className="space-y-4">
+          <GlossyCard className="p-8">
+            <form onSubmit={handleVerify} className="space-y-6">
               <div>
-                <label className="text-sm font-medium text-slate-900 dark:text-white mb-2 block">Email Address</label>
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic mb-3 block">Target Identity</label>
                 <div className="relative group">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700 group-focus-within:text-brand-blue transition-colors" />
                   <input 
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@company.com"
-                    className="w-full bg-white dark:bg-slate-900 border border-border-color rounded-xl h-12 pl-11 pr-4 text-sm text-slate-900 dark:text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none"
+                    placeholder="ENTER EMAIL ADDRESS..."
+                    className="w-full bg-app-bg/40 border border-app-border rounded-2xl h-16 pl-14 pr-6 text-[13px] font-black text-app-text placeholder:text-slate-500 outline-none focus:border-brand-blue/30 transition-all uppercase tracking-[0.2em] italic"
                   />
                 </div>
               </div>
@@ -96,30 +89,32 @@ export function SingleValidation() {
               <button 
                 type="submit"
                 disabled={isVerifying || !email.includes('@')}
-                className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-xl transition-all shadow-sm disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-2 active:scale-[0.98]"
+                className="w-full h-16 bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] hover:brightness-110 text-black font-black uppercase italic tracking-widest text-xs rounded-2xl transition-all shadow-[0_10px_40px_rgba(90,92,255,0.3)] disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-3 active:scale-95"
               >
                 {isVerifying ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Verifying...
-                  </>
+                  <div className="flex gap-1.5 items-center">
+                    <span className="w-1.5 h-1.5 bg-black rounded-full animate-bounce" />
+                    <span className="w-1.5 h-1.5 bg-black rounded-full animate-bounce [animation-delay:0.2s]" />
+                    <span className="w-1.5 h-1.5 bg-black rounded-full animate-bounce [animation-delay:0.4s]" />
+                  </div>
                 ) : (
                   <>
-                    Verify Email
+                    <Activity className="w-4 h-4" />
+                    Inspect Identity
                   </>
                 )}
               </button>
             </form>
 
-            <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-border-color">
-              <div className="flex items-start gap-3">
-                <Info className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-slate-500 leading-relaxed">
+            <div className="mt-8 p-6 bg-app-bg/10 rounded-2xl border border-app-border">
+              <div className="flex items-start gap-4">
+                <Info className="w-4 h-4 text-slate-600 mt-1 flex-shrink-0" />
+                <p className="text-[9px] text-slate-600 font-black uppercase tracking-widest italic leading-relaxed">
                   Real-time SMTP handshake and heuristic intelligence will be applied to the target mailbox without sending an actual email.
                 </p>
               </div>
             </div>
-          </div>
+          </GlossyCard>
         </div>
 
         <div className="lg:col-span-7">
@@ -129,11 +124,13 @@ export function SingleValidation() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="h-full min-h-[300px] flex items-center justify-center border border-dashed border-border-color rounded-2xl bg-slate-50 dark:bg-slate-800/20"
+                className="h-full min-h-[300px] flex items-center justify-center border-2 border-dashed border-app-border rounded-[40px]"
               >
-                <div className="text-center text-slate-500">
-                  <Search className="w-8 h-8 mx-auto mb-3 opacity-50" />
-                  <p className="text-sm">Awaiting email input</p>
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-3xl bg-app-bg/10 flex items-center justify-center border border-app-border mx-auto mb-6">
+                    <Search className="w-8 h-8 text-slate-800" />
+                  </div>
+                  <p className="text-[10px] text-slate-700 font-extrabold uppercase tracking-[0.4em] italic">Awaiting Target Input</p>
                 </div>
               </motion.div>
             ) : isVerifying ? (
@@ -141,124 +138,149 @@ export function SingleValidation() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="h-full min-h-[300px] flex items-center justify-center border border-border-color rounded-2xl bg-white dark:bg-slate-900 shadow-sm"
+                className="h-full min-h-[300px] flex items-center justify-center"
               >
-                <div className="text-center text-indigo-500">
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-                  <p className="text-sm font-medium">Scanning Infrastructure...</p>
+                <div className="text-center relative">
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                    className="w-32 h-32 rounded-full border-t-2 border-brand-blue/50 shadow-[0_0_20px_rgba(90,92,255,0.2)]"
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <p className="text-[10px] text-brand-blue font-black uppercase tracking-[0.3em] animate-pulse">Scanning</p>
+                  </div>
                 </div>
               </motion.div>
             ) : result && (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-6"
               >
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-6 rounded-2xl relative overflow-hidden">
-                    <p className="text-xs text-slate-500 font-medium mb-1 relative z-10">Verification Status</p>
-                    <div className={`text-2xl font-bold capitalize relative z-10 ${getStatusColor(result.verificationStatus)}`}>
+                <div className="grid grid-cols-2 gap-6">
+                  <GlossyCard className="p-8 border-none overflow-hidden relative group">
+                    <div className={`absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 opacity-30 transition-all ${
+                      result.verificationStatus === 'verified' ? 'bg-brand-blue' : 
+                      result.verificationStatus === 'risky' ? 'bg-amber-400' : 'bg-brand-pink'
+                    }`} />
+                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest italic mb-2 relative z-10">Verification Status</p>
+                    <div className={`text-4xl font-black uppercase italic tracking-tighter relative z-10 leading-none ${getStatusColor(result.verificationStatus)}`}>
                       {result.verificationStatus}
                     </div>
-                  </div>
+                  </GlossyCard>
 
-                  <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-6 rounded-2xl">
-                    <p className="text-xs text-slate-500 font-medium mb-1">Confidence Score</p>
-                    <div className="flex items-baseline gap-1">
-                       <span className="text-2xl font-bold text-slate-900 dark:text-white">{result.confidenceScore}</span>
-                       <span className="text-sm text-slate-500">/100</span>
+                  <GlossyCard className="p-8 border-none">
+                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest italic mb-2">Confidence Score</p>
+                    <div className="flex items-baseline gap-2">
+                       <span className="text-4xl font-black text-app-text font-mono tracking-tighter leading-none transition-colors duration-500">{result.confidenceScore}</span>
+                       <span className="text-xs text-slate-700 font-black tracking-widest">/100</span>
                     </div>
-                  </div>
+                  </GlossyCard>
                 </div>
 
-                <div className={`p-5 rounded-2xl border flex items-center gap-4 ${getStatusBg(result.verificationStatus)}`}>
-                  <div className="shrink-0 bg-white dark:bg-slate-900 p-2 rounded-full shadow-sm">
-                    {getStatusIcon(result.verificationStatus)}
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium mb-0.5">Intelligence Assessment</p>
-                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{result.verificationReason}</h4>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-5 rounded-2xl">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Globe className="w-4 h-4 text-slate-400" />
-                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Infrastructure</span>
+                <GlossyCard glow="gradient" className="p-8 flex items-center justify-between border-app-border hover:border-brand-blue/30 transition-all">
+                  <div className="flex items-center gap-6">
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border ${getStatusBg(result.verificationStatus)}`}>
+                      {result.verificationStatus === 'verified' ? <ShieldCheck className="w-7 h-7 text-brand-blue" /> : <ShieldAlert className="w-7 h-7 text-amber-400" />}
                     </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500">MX Host</span>
-                        <span className={`font-medium ${result.mxRecordFound ? 'text-slate-900 dark:text-white' : 'text-red-500'}`}>
-                          {result.mxRecordFound ? 'Found' : 'Missing'}
+                    <div>
+                      <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest italic mb-1">Intelligence Assessment</p>
+                      <h4 className="text-sm font-black text-app-text uppercase tracking-wider transition-colors duration-500">{result.verificationReason}</h4>
+                    </div>
+                  </div>
+                </GlossyCard>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-6 bg-app-bg/10 rounded-3xl border border-app-border relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <Globe className="w-12 h-12" />
+                    </div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <Globe className="w-4 h-4 text-slate-500" />
+                      <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Infrastucture</span>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
+                        <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">MX Host</span>
+                        <div className="text-right">
+                          <p className={`text-[10px] font-black ${result.mxRecordFound ? 'text-brand-blue shadow-[0_0_10px_rgba(90,92,255,0.4)]' : 'text-brand-pink'}`}>
+                            {result.mxRecordFound ? 'DETECTED' : 'MISSING'}
+                          </p>
+                          {result.mxRecordFound && <p className="text-[8px] text-slate-500 font-mono mt-0.5">{result.mxRecord}</p>}
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
+                        <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Provider</span>
+                        <div className="text-right">
+                          <p className="text-[10px] font-black text-app-text uppercase">{result.provider || 'Independent'}</p>
+                          <p className="text-[8px] text-slate-500 font-mono mt-0.5">{result.isFreeEmail ? 'Consumer Mailbox' : 'Commercial Node'}</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
+                        <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Legacy</span>
+                        <div className="text-right">
+                          <p className="text-[10px] font-black text-brand-blue uppercase">{result.domainAge}</p>
+                          <p className="text-[8px] text-slate-500 font-mono mt-0.5">{result.domainAgeDays} Days Registered</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6 bg-app-bg/10 rounded-3xl border border-app-border relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <ShieldCheck className="w-12 h-12" />
+                    </div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <Activity className="w-4 h-4 text-slate-500" />
+                      <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Validation Analysis</span>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
+                        <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Sub-Status</span>
+                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                          result.verificationStatus === 'verified' ? 'bg-brand-blue/10 border-brand-blue/20 text-brand-blue' : 
+                          result.verificationStatus === 'risky' ? 'bg-amber-400/10 border-amber-400/20 text-amber-400' : 
+                          'bg-brand-pink/10 border-brand-pink/20 text-brand-pink'
+                        }`}>
+                          {result.subStatus || 'Unknown'}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500">Provider</span>
-                        <span className="font-medium text-slate-900 dark:text-white capitalize">{result.provider || 'Custom'}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500">Type</span>
-                        <span className="font-medium text-slate-900 dark:text-white">{result.isFreeEmail ? 'Consumer' : 'Business'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-5 rounded-2xl">
-                    <div className="flex items-center gap-2 mb-4">
-                      <ShieldCheck className="w-4 h-4 text-slate-400" />
-                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Analysis</span>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500">Bounce Risk</span>
-                        <span className={`font-medium ${
-                          result.bounceRisk === 'Safe' ? 'text-emerald-500' : 
-                          result.bounceRisk === 'Medium' ? 'text-amber-500' : 'text-red-500'
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
+                        <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Bounce Risk</span>
+                        <span className={`text-[10px] font-black uppercase ${
+                          result.bounceRisk === 'Safe' ? 'text-brand-blue' : 
+                          result.bounceRisk === 'Medium' ? 'text-amber-400' : 'text-brand-pink'
                         }`}>
                           {result.bounceRisk}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500">Sub-Status</span>
-                        <span className="font-medium text-slate-900 dark:text-white capitalize">{result.subStatus || 'N/A'}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-slate-500">Security</span>
-                        <div className="flex gap-1.5">
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${result.spfExists ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>SPF</span>
-                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${result.dkimExists ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>DKIM</span>
+                      <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
+                        <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Security</span>
+                        <div className="flex gap-2">
+                          <div className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${result.spfExists ? 'bg-brand-blue/20 text-brand-blue' : 'bg-app-bg/10 text-slate-700 border border-app-border'}`}>SPF</div>
+                          <div className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${result.dkimExists ? 'bg-brand-blue/20 text-brand-blue' : 'bg-app-bg/10 text-slate-700 border border-app-border'}`}>DKIM</div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="flex flex-col gap-1 px-4 py-3 bg-white dark:bg-slate-800 border border-border-color shadow-sm rounded-xl">
-                    <span className="text-[10px] font-medium text-slate-500 uppercase">Disposable</span>
-                    <span className={`text-sm font-semibold ${result.isDisposable ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
-                      {result.isDisposable ? 'Yes' : 'No'}
-                    </span>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 px-6 py-4 bg-app-bg/40 rounded-2xl border border-app-border">
+                    <div className={`w-2 h-2 rounded-full ${result.isDisposable ? 'bg-brand-pink shadow-[0_0_10px_rgba(255,51,102,0.4)]' : 'bg-slate-800'}`} />
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Disposable</span>
                   </div>
-                  <div className="flex flex-col gap-1 px-4 py-3 bg-white dark:bg-slate-800 border border-border-color shadow-sm rounded-xl">
-                    <span className="text-[10px] font-medium text-slate-500 uppercase">Catch-All</span>
-                    <span className={`text-sm font-semibold ${result.isCatchAll ? 'text-amber-500' : 'text-slate-900 dark:text-white'}`}>
-                      {result.isCatchAll ? 'Yes' : 'No'}
-                    </span>
+                  <div className="flex items-center gap-3 px-6 py-4 bg-app-bg/40 rounded-2xl border border-app-border">
+                    <div className={`w-2 h-2 rounded-full ${result.isCatchAll ? 'bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.4)]' : 'bg-slate-800'}`} />
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Catch-All</span>
                   </div>
-                  <div className="flex flex-col gap-1 px-4 py-3 bg-white dark:bg-slate-800 border border-border-color shadow-sm rounded-xl">
-                    <span className="text-[10px] font-medium text-slate-500 uppercase">Role-Based</span>
-                    <span className={`text-sm font-semibold ${result.isRoleBased ? 'text-indigo-500' : 'text-slate-900 dark:text-white'}`}>
-                      {result.isRoleBased ? 'Yes' : 'No'}
-                    </span>
+                  <div className="flex items-center gap-3 px-6 py-4 bg-app-bg/40 rounded-2xl border border-app-border">
+                    <div className={`w-2 h-2 rounded-full ${result.isRoleBased ? 'bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.4)]' : 'bg-slate-800'}`} />
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Role-Based</span>
                   </div>
-                  <div className="flex flex-col gap-1 px-4 py-3 bg-white dark:bg-slate-800 border border-border-color shadow-sm rounded-xl">
-                    <span className="text-[10px] font-medium text-slate-500 uppercase">SMTP Valid</span>
-                    <span className={`text-sm font-semibold ${result.smtpValid ? 'text-emerald-500' : (result.mxRecordFound ? 'text-amber-500' : 'text-red-500')}`}>
-                      {result.smtpValid ? 'Yes' : (result.mxRecordFound ? 'Unknown' : 'No')}
-                    </span>
+                  <div className="flex items-center gap-3 px-6 py-4 bg-app-bg/40 rounded-2xl border border-app-border">
+                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_10px_rgba(90,92,255,0.4)]" />
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">MX Active</span>
                   </div>
                 </div>
               </motion.div>

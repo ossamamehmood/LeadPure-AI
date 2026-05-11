@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Upload, Settings2, Clock, Database, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { GlossyCard } from './ui/GlossyCard';
 
 interface SidebarProps {
   currentTab: string;
@@ -12,27 +13,25 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
   const isUploadActive = ['upload', 'mapping', 'processing', 'results'].includes(currentTab);
 
   return (
-    <aside className="w-72 border-r border-border-color flex flex-col bg-slate-50 dark:bg-slate-900 hidden lg:flex shrink-0 z-50">
-      <div className="p-8 flex items-center gap-3 cursor-pointer">
-        <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-sm">
-          <Zap className="w-4 h-4 fill-white" />
+    <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/40 backdrop-blur-3xl hidden lg:flex shrink-0 z-50">
+      <div className="p-8 flex items-center gap-4 group cursor-pointer">
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white font-black text-xs shadow-[0_0_20px_rgba(90,92,255,0.4)] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
+          <Zap className="w-5 h-5 fill-white" />
         </div>
-        <span className="text-slate-900 dark:text-white font-bold text-xl tracking-tight select-none">
-          LeadPure
-        </span>
+        <span className="text-app-text font-black text-2xl tracking-tighter uppercase italic select-none">Lead<span className="gradient-text">Pure</span></span>
       </div>
 
       <div className="px-6 mb-8">
-        <div className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-border-color shadow-sm">
-          <div className="flex items-center justify-between mb-1.5">
-             <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">System Status</span>
-             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+        <div className="p-4 rounded-2xl bg-app-bg/10 border border-app-border">
+          <div className="flex items-center justify-between mb-2">
+             <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Security Nodes</span>
+             <span className="w-2 h-2 rounded-full gradient-bg animate-pulse shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
           </div>
-          <div className="text-xs font-medium text-slate-700 dark:text-slate-300">All systems operational</div>
+          <div className="text-[10px] font-bold text-slate-300">SYSTEM STABLE</div>
         </div>
       </div>
 
-      <nav className="flex-1 px-4 space-y-2 mt-2">
+      <nav className="flex-1 px-4 space-y-3 mt-4">
         <button 
           onClick={() => {
             if ((document as any).startViewTransition) {
@@ -42,15 +41,15 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
             }
           }}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm relative group",
+            "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95",
             isUploadActive 
-              ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-semibold" 
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-brand-blue text-white shadow-2xl shadow-brand-blue/30" 
+              : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
           )}
         >
-          {isUploadActive && <motion.div layoutId="nav-bg" className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-600 rounded-r-full" />}
-          <Upload className={cn("w-4 h-4 transition-transform group-hover:-translate-y-0.5", isUploadActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400")} />
-          Ingestion
+          {isUploadActive && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-[0_4px_12px_rgba(90,92,255,0.4)]" />}
+          <Upload className={cn("w-4 h-4 transition-transform group-hover:-translate-y-0.5", isUploadActive ? "text-white" : "text-slate-600")} />
+          Ingestion Node
         </button>
         <button 
           onClick={() => {
@@ -61,15 +60,15 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
             }
           }}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm relative group",
+            "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95",
             currentTab === 'rules' 
-              ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-semibold" 
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-brand-blue text-white shadow-2xl shadow-brand-blue/30" 
+              : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
           )}
         >
-          {currentTab === 'rules' && <motion.div layoutId="nav-bg" className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-600 rounded-r-full" />}
-          <Settings2 className={cn("w-4 h-4 transition-transform group-hover:rotate-45", currentTab === 'rules' ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400")} />
-          Validation Rules
+          {currentTab === 'rules' && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-[0_4px_12px_rgba(90,92,255,0.4)]" />}
+          <Settings2 className={cn("w-4 h-4 transition-transform group-hover:rotate-45", currentTab === 'rules' ? "text-white" : "text-slate-600")} />
+          Validation Engine
         </button>
         <button 
           onClick={() => {
@@ -80,34 +79,34 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
             }
           }}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm relative group",
+            "w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95",
             currentTab === 'history' 
-              ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 font-semibold" 
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-brand-blue text-white shadow-2xl shadow-brand-blue/30" 
+              : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
           )}
         >
-          {currentTab === 'history' && <motion.div layoutId="nav-bg" className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-600 rounded-r-full" />}
-          <Clock className={cn("w-4 h-4 transition-transform", currentTab === 'history' ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400")} />
-          History & Audit
+          {currentTab === 'history' && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-[0_4px_12px_rgba(90,92,255,0.4)]" />}
+          <Clock className={cn("w-4 h-4 transition-transform group-hover:scale-110", currentTab === 'history' ? "text-white" : "text-slate-600")} />
+          Audit Archives
         </button>
       </nav>
 
-      <div className="p-6 border-t border-border-color mt-auto">
-        <div className="p-4 rounded-xl border border-border-color bg-white dark:bg-slate-800 shadow-sm">
-          <p className="text-[10px] text-slate-500 uppercase font-semibold mb-3 tracking-wider">Infrastructure</p>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center border border-indigo-100 dark:border-indigo-500/20">
-              <Database className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+      <div className="p-8 border-t border-white/[0.05]">
+        <GlossyCard glow="gradient" className="p-5 rounded-3xl border border-white/5 bg-white/[0.01]">
+          <p className="text-[9px] text-zinc-600 uppercase font-black mb-3 tracking-[0.3em]">Neural Network</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center">
+              <Database className="w-4 h-4 text-brand-blue" />
             </div>
             <div>
-              <span className="text-sm font-semibold text-slate-900 dark:text-white block">Enterprise API</span>
-              <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">Connected</span>
+              <span className="text-[10px] uppercase font-black text-app-text block">Cloud Core</span>
+              <span className="text-[8px] uppercase font-bold text-brand-blue tracking-widest">Optimized</span>
             </div>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
-            <div className="bg-emerald-500 h-full w-[100%] rounded-full"></div>
+          <div className="w-full bg-app-bg h-1.5 rounded-full mt-4 overflow-hidden border border-app-border">
+            <div className="gradient-bg h-full w-[100%] shadow-[0_0_15px_rgba(90,92,255,0.5)] animate-pulse"></div>
           </div>
-        </div>
+        </GlossyCard>
       </div>
     </aside>
   );
