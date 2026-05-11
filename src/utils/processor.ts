@@ -247,3 +247,79 @@ export const processContacts = async (
 
   return { valid, eliminated, stats: finalReport };
 };
+
+/**
+ * Single Email Verification Wrapper (for SingleValidation.tsx UI component)
+ * Preserves the exact original signature but routes through the new enterprise backend.
+ */
+export const verifyEmail = async (
+  email: string,
+  options: {
+    excludeDisposable: boolean;
+    excludeRoleBased: boolean;
+    excludeCatchAll: boolean;
+    excludeSpamTraps: boolean;
+  }
+): Promise<Partial<ProcessedContact>> => {
+  const clean = String(email || '').toLowerCase().trim();
+  
+  if (!clean) {
+    return {
+      verificationStatus: 'blocked',
+      verificationReason: 'Fatal Syntax: Impossible Identity Structure',
+      subStatus: 'invalid_syntax',
+      confidenceScore: 0,
+      bounceRisk: 'Dangerous',
+      reputationImpact: 'Critical',
+      mxRecordFound: false,
+      isCatchAll: false,
+      isDisposable: false,
+      isRoleBased: false,
+      isFreeEmail: false,
+      provider: 'Unknown',
+      smtpValid: false,
+      syntaxValid: false,
+      email: clean
+    };
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 9500);
+
+    const response = await fetch('/api/validate-batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        emails: [clean],
+        options
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const { results } = await response.json();
+    return results[0] as Partial<ProcessedContact>;
+  } catch (err: any) {
+    console.error('[SINGLE_VALIDATION_ERROR]', err);
+    return {
+      verificationStatus: 'risky',
+      verificationReason: `Network/Timeout Failure: ${err.message}`,
+      subStatus: 'timeout',
+      confidenceScore: 50,
+      bounceRisk: 'Medium',
+      reputationImpact: 'Neutral',
+      mxRecordFound: false,
+      isCatchAll: false,
+      isDisposable: false,
+      isRoleBased: false,
+      isFreeEmail: false,
+      provider: 'Unknown',
+      smtpValid: false,
+      syntaxValid: false,
+      email: clean
+    };
+  }
+};
