@@ -45,4 +45,4 @@ export function GlossyCard({ children, className, glow = 'none', onClick }: Glos
       <div className="relative z-10 h-full">{children}</div>
     </div>
   );
-}
+} 

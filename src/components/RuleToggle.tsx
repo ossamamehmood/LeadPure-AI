@@ -79,4 +79,4 @@ export function RuleToggle({ domain, title, description, active, onToggle }: Rul
       )}
     </div>
   );
-}
+} 

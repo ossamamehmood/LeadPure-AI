@@ -110,4 +110,4 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
       </div>
     </aside>
   );
-}
+} 

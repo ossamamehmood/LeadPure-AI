@@ -98,4 +98,4 @@ export function RulesSection({ rules, onToggle }: RulesSectionProps) {
       </GlossyCard>
     </div>
   );
-}
+} 

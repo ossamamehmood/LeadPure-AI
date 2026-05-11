@@ -82,4 +82,4 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
       )}
     </div>
   );
-}
+} 

@@ -79,4 +79,4 @@ export function MappingSection({
       </GlossyCard>
     </div>
   );
-}
+} 

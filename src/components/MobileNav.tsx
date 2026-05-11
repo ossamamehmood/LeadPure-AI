@@ -69,4 +69,4 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
       </nav>
     </div>
   );
-}
+} 

@@ -72,5 +72,4 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
       </div>
     </header>
   );
-} 
- 
+}

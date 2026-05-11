@@ -290,4 +290,4 @@ export function SingleValidation() {
       </div>
     </section>
   );
-}
+} 

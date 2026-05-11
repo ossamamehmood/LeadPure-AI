@@ -57,4 +57,4 @@ export function LoadingOverlay({ progress, estimatedSeconds }: LoadingOverlayPro
       </div>
     </motion.div>
   );
-}
+} 
