@@ -595,7 +595,7 @@ export const processContacts = async (
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
   const total = preProcessedData.length;
-  const BATCH_SIZE = 20; // High-performance throughput with stable parity
+  const BATCH_SIZE = 10; // Optimized for high-precision verifications and zero-drift parity
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
     const end = Math.min(i + BATCH_SIZE, total);

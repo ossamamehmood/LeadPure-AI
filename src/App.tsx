@@ -198,39 +198,6 @@ export default function App() {
     }
   };
 
-  const handleDownloadDebugReport = () => {
-    const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
-    
-    // Combine valid and eliminated for a full audit log
-    const auditLog = [
-      ...processor.processedData.map((item, idx) => ({
-        "Row": idx + 1,
-        "Email": item.email,
-        "Final Status": "VERIFIED",
-        "Failure Reason": "N/A",
-        "Step Failed": "NONE",
-        "Confidence": item.confidenceScore,
-        "Bounce Risk": item.bounceRisk
-      })),
-      ...processor.eliminatedData.map((item, idx) => ({
-        "Row": processor.processedData.length + idx + 1,
-        "Email": item.email || item[mappings.emailKey] || 'N/A',
-        "Final Status": "REJECTED",
-        "Failure Reason": item.verificationReason || item.reason || 'Unknown',
-        "Step Failed": item.subStatus || 'Validation Protocol',
-        "Confidence": item.score || 0,
-        "Bounce Risk": item.bounceRisk || 'High'
-      }))
-    ];
-
-    const worksheet = XLSX.utils.json_to_sheet(auditLog);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Audit Log');
-    
-    XLSX.writeFile(workbook, `${baseName}_DEBUG_AUDIT.xlsx`);
-    toast('AUDIT LOG EXPORTED: DEBUG_RESULTS.XLSX', 'success');
-  };
-
   const handleDownloadEliminated = () => {
     const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
     const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
@@ -374,7 +341,6 @@ export default function App() {
                     onPreview={openPreview}
                     onDownloadEliminated={handleDownloadEliminated}
                     onDownloadValid={handleDownload}
-                    onDownloadDebug={handleDownloadDebugReport}
                     stats={processingStats}
                   />
                 </div>

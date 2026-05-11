@@ -284,14 +284,6 @@ export function ResultsDashboard({
               Preview
             </button>
             <button 
-              onClick={onDownloadDebug}
-              className="px-6 bg-brand-blue/5 hover:bg-brand-blue/10 rounded-2xl border border-brand-blue/20 text-[10px] font-black uppercase tracking-widest text-brand-blue transition-all flex items-center gap-2 h-14"
-              title="Download Detailed Audit Log"
-            >
-              <Database className="w-4 h-4" />
-              Audit Log
-            </button>
-            <button 
               onClick={activeTab === 'valid' ? onDownloadValid : onDownloadEliminated}
               className={cn(
                 "px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-14 border",
