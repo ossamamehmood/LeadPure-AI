@@ -50,9 +50,9 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
             {history.map((item, index) => (
               <motion.div
                 key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: index * 0.08, type: 'spring', stiffness: 200, damping: 20 }}
               >
                 <GlossyCard glow="blue" className="group hover:border-brand-blue/30 transition-all cursor-pointer p-6 rounded-[32px]">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -89,10 +89,10 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                       </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); loadItem(item); }}
-                        className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-brand-cyan/80 to-brand-blue/80 text-white text-[10px] font-black uppercase tracking-widest hover:from-brand-cyan hover:to-brand-blue transition-all shadow-xl shadow-brand-blue/20"
+                        className="flex items-center gap-2 px-6 py-3 rounded-full gradient-bg text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-brand-blue/30 hover:shadow-[0_0_20px_rgba(90,92,255,0.6)] group/review"
                       >
                         Review
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-4 h-4 group-hover/review:translate-x-1 transition-transform" />
                       </button>
                     </div>
                   </div>

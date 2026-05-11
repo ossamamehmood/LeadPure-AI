@@ -262,7 +262,7 @@ export function ResultsDashboard({
             </button>
           </div>
 
-          <div className="relative w-full md:w-96 group flex gap-4">
+          <div className="relative w-full md:w-auto flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1 group">
               <div className="absolute inset-0 bg-gradient-to-r from-brand-cyan/5 to-brand-pink/5 rounded-2xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700 group-focus-within:text-brand-blue transition-colors z-10" />
