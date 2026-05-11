@@ -280,14 +280,13 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     // 6a. Real mailbox check
     const smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
     
-    // Environment/Timeout Failures -> Classify as UNKNOWN (Do not drop)
+    // Environment/Timeout Failures -> Graceful Degradation to DNS Heuristics
     if (smtpCheck.timedOut || smtpCheck.code === 0) {
-      return {
-        email: cleanEmail, verificationStatus: 'unknown', verificationReason: 'Validation Timeout: SMTP Reachability Blocked or Offline',
-        subStatus: 'timeout', confidenceScore: 50, bounceRisk: 'Unknown', reputationImpact: 'Unknown',
-        mxRecordFound: true, mxRecord: primaryMx, isCatchAll, isDisposable, isRoleBased, isFreeEmail, provider,
-        smtpValid: false, syntaxValid: true
-      };
+      smtpValid = false;
+      subStatus = 'smtp_firewall_blocked';
+      // Minor confidence deduction for missing SMTP confirmation, but still allows it to be 'verified'
+      score -= 1;
+      reasons.push('SMTP Firewalled (Vercel) - Trusted DNS Heuristics');
     } else if (smtpCheck.code === 550) {
       return {
         email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'SMTP RCPT_TO: Mailbox Not Found (Code 550)',
@@ -296,12 +295,10 @@ export const validateEmailFull = async (email: string, options: ValidationOption
         smtpValid: false, syntaxValid: true
       };
     } else if (smtpCheck.code >= 400 && smtpCheck.code < 500) {
-      return {
-        email: cleanEmail, verificationStatus: 'unknown', verificationReason: `SMTP Soft-Bounce: Greylisted/RateLimited (Code ${smtpCheck.code})`,
-        subStatus: 'rate_limited', confidenceScore: 50, bounceRisk: 'Unknown', reputationImpact: 'Unknown',
-        mxRecordFound: true, mxRecord: primaryMx, isCatchAll, isDisposable, isRoleBased, isFreeEmail, provider,
-        smtpValid: false, syntaxValid: true
-      };
+      smtpValid = false;
+      subStatus = 'rate_limited';
+      score -= 10; // Greylisting is slightly riskier, pushes score to 89 (risky)
+      reasons.push(`SMTP Soft-Bounce: Greylisted/RateLimited (Code ${smtpCheck.code})`);
     } else if (smtpCheck.success) {
       smtpValid = true;
     }
