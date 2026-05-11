@@ -126,17 +126,25 @@ export const processContacts = async (
 
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
-  // Stage 2: Batch Processing to Backend Engine
+  // Stage 2: Concurrent Batch Processing to Backend Engine
   const total = preProcessedData.length;
-  // Use small batches to respect Vercel's 10s timeout, since real SMTP handshakes take time.
-  const BATCH_SIZE = 10; 
+  // Increase batch size to 50 and use 3 concurrent Vercel instances to drop processing time by 90%
+  const BATCH_SIZE = 50; 
+  const CONCURRENT_BATCHES = 3;
   
+  const batches = [];
   for (let i = 0; i < total; i += BATCH_SIZE) {
-    const end = Math.min(i + BATCH_SIZE, total);
-    const batch = preProcessedData.slice(i, end);
-    
-    // Extract emails for the API
-    const emailsToVerify = batch.map(item => String(item[mappings.emailKey] || '').toLowerCase().trim());
+    batches.push({
+      startIndex: i,
+      items: preProcessedData.slice(i, i + BATCH_SIZE)
+    });
+  }
+
+  let completedBatches = 0;
+
+  const processBatch = async (batchObj: { startIndex: number, items: any[] }) => {
+    const { startIndex, items } = batchObj;
+    const emailsToVerify = items.map(item => String(item[mappings.emailKey] || '').toLowerCase().trim());
     
     try {
       const controller = new AbortController();
@@ -164,7 +172,7 @@ export const processContacts = async (
       
       // Merge results back into items
       results.forEach((verificationResult: any, idx: number) => {
-        const item = batch[idx];
+        const item = items[idx];
         
         const isRejected = verificationResult.verificationStatus === 'rejected' || verificationResult.verificationStatus === 'blocked';
         const isRisky = verificationResult.verificationStatus === 'risky';
@@ -216,24 +224,29 @@ export const processContacts = async (
           valid.push({
             ...verificationResult,
             ...updatedItem,
-            originalIndex: i + idx,
+            originalIndex: startIndex + idx,
             __originalData: updatedItem
           } as ProcessedContact);
         }
       });
 
     } catch (err: any) {
-      console.error(`[BATCH_ERROR] Batch ${i} failed:`, err);
-      // Soft fail: On fatal network errors, push to eliminated
-      batch.forEach(item => eliminated.push({ ...item, reason: `Network/Timeout Failure: ${err.message}` }));
+      console.error(`[BATCH_ERROR] Batch starting at ${startIndex} failed:`, err);
+      items.forEach(item => eliminated.push({ ...item, reason: `Network/Timeout Failure: ${err.message}` }));
     }
 
+    completedBatches++;
     if (onProgress) {
-      onProgress(Math.min(100, Math.round((end / total) * 100)));
+      onProgress(Math.min(100, Math.round((completedBatches / batches.length) * 100)));
     }
+  };
 
-    // Deterministic Wait: Ensure event loop yield for UI stability
-    await new Promise(resolve => setTimeout(resolve, 10));
+  // Process in chunks of CONCURRENT_BATCHES
+  for (let i = 0; i < batches.length; i += CONCURRENT_BATCHES) {
+    const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
+    await Promise.all(concurrentChunk.map(b => processBatch(b)));
+    // Deterministic Wait: Ensure event loop yield for UI stability between heavy chunks
+    await new Promise(resolve => setTimeout(resolve, 50));
   }
 
   const finalReport = {
