@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { processContacts } from '../utils/processor';
 import { ContactData, ValidationRules, ProcessedContact } from '../types';
 
@@ -9,7 +9,7 @@ export function useLeadProcessor() {
   const [processedData, setProcessedData] = useState<ProcessedContact[]>([]);
   const [eliminatedData, setEliminatedData] = useState<any[]>([]);
 
-  const abortControllerRef = React.useRef<AbortController | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const runProcessor = async (
     data: ContactData[],
