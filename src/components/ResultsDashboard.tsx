@@ -200,7 +200,7 @@ export function ResultsDashboard({
           </div>
           <div className="mt-6 flex items-center justify-between">
             <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">SMTP Mode</p>
-            <div className="px-2 py-0.5 bg-brand-blue/20 text-brand-blue text-[8px] font-black rounded uppercase tracking-widest border border-brand-blue/20">v7.0 Highest Precision</div>
+            <div className="px-2 py-0.5 bg-brand-blue/20 text-brand-blue text-[8px] font-black rounded uppercase tracking-widest border border-brand-blue/20">v8.0 Production Release</div>
           </div>
         </GlossyCard>
       </div>

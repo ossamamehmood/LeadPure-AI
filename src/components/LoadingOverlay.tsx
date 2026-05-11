@@ -5,9 +5,11 @@ import { RefreshCw } from 'lucide-react';
 interface LoadingOverlayProps {
   progress: number;
   estimatedSeconds: number | null;
+  onCancel?: () => void;
+  customText?: string;
 }
 
-export function LoadingOverlay({ progress, estimatedSeconds }: LoadingOverlayProps) {
+export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customText }: LoadingOverlayProps) {
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -25,8 +27,17 @@ export function LoadingOverlay({ progress, estimatedSeconds }: LoadingOverlayPro
         </div>
       </div>
       
-      <h2 className="text-4xl font-black text-app-text mb-3 uppercase italic tracking-tighter">Optimization Engine Active</h2>
+      <h2 className="text-4xl font-black text-app-text mb-3 uppercase italic tracking-tighter">{customText || "Optimization Engine Active"}</h2>
       <p className="text-slate-500 max-w-md text-sm font-medium uppercase tracking-widest leading-loose">Running 10-point validation check: formatting names, verifying phone E.164 status, and scrubbing high-bounce emails.</p>
+      
+      {onCancel && (
+        <button 
+          onClick={onCancel}
+          className="mt-6 px-6 py-2 bg-brand-pink/10 hover:bg-brand-pink/20 text-brand-pink border border-brand-pink/30 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors"
+        >
+          Cancel Processing
+        </button>
+      )}
       
       <div className="w-full max-w-xl mt-16 space-y-6">
         <div className="flex justify-between items-end mb-4">

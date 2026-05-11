@@ -75,12 +75,13 @@ export const processContacts = async (
   data: any[],
   mappings: any,
   rules: any,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  signal?: AbortSignal
 ): Promise<{ valid: any[]; eliminated: any[]; stats: any }> => {
   const valid: any[] = [];
   const eliminated: any[] = [];
   
-  console.log(`[PROCESSOR_V7.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
+  console.log(`[PROCESSOR_V8.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
   
   const stats = {
     totalInput: data.length,
@@ -143,30 +144,47 @@ export const processContacts = async (
   let completedBatches = 0;
 
   const processBatch = async (batchObj: { startIndex: number, items: any[] }) => {
+    if (signal?.aborted) return;
+    
     const { startIndex, items } = batchObj;
     const emailsToVerify = items.map(item => String(item[mappings.emailKey] || '').toLowerCase().trim());
     
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 9500); // 9.5s local timeout limit
-      
-      const response = await fetch('/api/validate-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          emails: emailsToVerify,
-          options: {
-            excludeDisposable: rules.excludeDisposable,
-            excludeRoleBased: rules.excludeRoleBased,
-            excludeCatchAll: rules.excludeCatchAll,
-            excludeSpamTraps: rules.excludeSpamTraps
-          }
-        }),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
+    let retries = 2;
+    let success = false;
+    
+    while (retries >= 0 && !success && !signal?.aborted) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 9500); // 9.5s local timeout limit
+        
+        if (signal) {
+          signal.addEventListener('abort', () => controller.abort());
+        }
+        
+        const response = await fetch('/api/validate-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emails: emailsToVerify,
+            options: {
+              excludeDisposable: rules.excludeDisposable,
+              excludeRoleBased: rules.excludeRoleBased,
+              excludeCatchAll: rules.excludeCatchAll,
+              excludeSpamTraps: rules.excludeSpamTraps
+            }
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+          if (response.status === 502 || response.status === 504 || response.status === 429) {
+            throw new Error(`Gateway/RateLimit Error ${response.status}`);
+          }
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        success = true;
       
       const { results } = await response.json();
       
@@ -233,8 +251,20 @@ export const processContacts = async (
       });
 
     } catch (err: any) {
-      console.error(`[BATCH_ERROR] Batch starting at ${startIndex} failed:`, err);
-      items.forEach(item => eliminated.push({ ...item, reason: `Network/Timeout Failure: ${err.message}` }));
+        if (err.name === 'AbortError' && signal?.aborted) {
+          retries = -1; // Force stop if specifically aborted by user
+          break;
+        }
+        
+        retries--;
+        if (retries < 0) {
+          console.error(`[BATCH_ERROR] Batch starting at ${startIndex} failed permanently:`, err);
+          items.forEach(item => eliminated.push({ ...item, reason: `Network/Timeout Failure: ${err.message}` }));
+        } else {
+          console.warn(`[BATCH_RETRY] Batch ${startIndex} failed, retrying... (${retries} left)`);
+          await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5s exponential backoff base
+        }
+      }
     }
 
     completedBatches++;
@@ -245,6 +275,10 @@ export const processContacts = async (
 
   // Process in chunks of CONCURRENT_BATCHES
   for (let i = 0; i < batches.length; i += CONCURRENT_BATCHES) {
+    if (signal?.aborted) {
+      console.log(`[PROCESSOR] PIPELINE_ABORTED by user.`);
+      throw new Error('Pipeline Aborted');
+    }
     const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
     await Promise.all(concurrentChunk.map(b => processBatch(b)));
     

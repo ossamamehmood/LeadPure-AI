@@ -30,56 +30,64 @@ export default async function handler(req: Request | any, res: Response | any) {
     const startTime = Date.now();
     const TIMEOUT_MS = 8500;
 
-    const results = await Promise.all(
-      emails.map(async (email: string) => {
-        try {
-          const validationPromise = validateEmailFull(email, mergedOptions);
-          const timeoutPromise = new Promise<ValidationResult>((resolve) => {
-            const timeElapsed = Date.now() - startTime;
-            const remainingTime = Math.max(100, TIMEOUT_MS - timeElapsed);
-            setTimeout(() => {
-              resolve({
-                email,
-                verificationStatus: 'unknown',
-                verificationReason: 'Engine Timeout: API Execution Limit Safely Caught',
-                subStatus: 'timeout',
-                confidenceScore: 50,
-                bounceRisk: 'Unknown',
-                reputationImpact: 'Unknown',
-                mxRecordFound: false,
-                isCatchAll: false,
-                isDisposable: false,
-                isRoleBased: false,
-                isFreeEmail: false,
-                provider: 'Unknown',
-                smtpValid: false,
-                syntaxValid: false
-              });
-            }, remainingTime);
-          });
+    const results: ValidationResult[] = [];
+    const MAX_CONCURRENT = 10;
+    
+    // Concurrency Throttle: Prevent Vercel worker from port exhaustion
+    for (let i = 0; i < emails.length; i += MAX_CONCURRENT) {
+      const chunk = emails.slice(i, i + MAX_CONCURRENT);
+      const chunkResults = await Promise.all(
+        chunk.map(async (email: string) => {
+          try {
+            const validationPromise = validateEmailFull(email, mergedOptions);
+            const timeoutPromise = new Promise<ValidationResult>((resolve) => {
+              const timeElapsed = Date.now() - startTime;
+              const remainingTime = Math.max(100, TIMEOUT_MS - timeElapsed);
+              setTimeout(() => {
+                resolve({
+                  email,
+                  verificationStatus: 'unknown',
+                  verificationReason: 'Engine Timeout: API Execution Limit Safely Caught',
+                  subStatus: 'timeout',
+                  confidenceScore: 50,
+                  bounceRisk: 'Unknown',
+                  reputationImpact: 'Unknown',
+                  mxRecordFound: false,
+                  isCatchAll: false,
+                  isDisposable: false,
+                  isRoleBased: false,
+                  isFreeEmail: false,
+                  provider: 'Unknown',
+                  smtpValid: false,
+                  syntaxValid: false
+                });
+              }, remainingTime);
+            });
 
-          return await Promise.race([validationPromise, timeoutPromise]);
-        } catch (internalErr: any) {
-          return {
-            email,
-            verificationStatus: 'unknown',
-            verificationReason: `Internal Engine Error: ${internalErr.message}`,
-            subStatus: 'engine_error',
-            confidenceScore: 50,
-            bounceRisk: 'Medium',
-            reputationImpact: 'Neutral',
-            mxRecordFound: false,
-            isCatchAll: false,
-            isDisposable: false,
-            isRoleBased: false,
-            isFreeEmail: false,
-            provider: 'Unknown',
-            smtpValid: false,
-            syntaxValid: false
-          } as ValidationResult;
-        }
-      })
-    );
+            return await Promise.race([validationPromise, timeoutPromise]);
+          } catch (internalErr: any) {
+            return {
+              email,
+              verificationStatus: 'unknown',
+              verificationReason: `Internal Engine Error: ${internalErr.message}`,
+              subStatus: 'engine_error',
+              confidenceScore: 50,
+              bounceRisk: 'Medium',
+              reputationImpact: 'Neutral',
+              mxRecordFound: false,
+              isCatchAll: false,
+              isDisposable: false,
+              isRoleBased: false,
+              isFreeEmail: false,
+              provider: 'Unknown',
+              smtpValid: false,
+              syntaxValid: false
+            } as ValidationResult;
+          }
+        })
+      );
+      results.push(...chunkResults);
+    }
 
     return res.status(200).json({ results });
   } catch (err: any) {

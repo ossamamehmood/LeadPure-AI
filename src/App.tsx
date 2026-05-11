@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import { AnimatePresence } from 'motion/react';
 
@@ -71,6 +71,7 @@ export default function App() {
 
   const [fileData, setFileData] = useState<ContactData[]>([]);
   const [fileName, setFileName] = useState('');
+  const [isParsing, setIsParsing] = useState(false);
   const [headers, setHeaders] = useState<string[]>([]);
   const [mappings, setMappings] = useState({
     firstNameKey: '', lastNameKey: '', nameKey: '',
@@ -101,71 +102,53 @@ export default function App() {
     if (!file) return;
 
     setFileName(file.name);
+    setIsParsing(true);
     const reader = new FileReader();
 
     reader.onload = (e) => {
       const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      // Optimized for large datasets by disabling unnecessary features
-      const workbook = XLSX.read(data, { 
-        type: 'array',
-        cellDates: true,
-        cellText: true,
-        cellFormula: false,
-        cellHTML: false
-      });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rawJson = XLSX.utils.sheet_to_json<any>(worksheet, { 
-        defval: "",
-        blankrows: false,
-        raw: false
-      });
+      
+      const worker = new Worker(new URL('./workers/xlsxWorker.ts', import.meta.url), { type: 'module' });
+      
+      worker.onmessage = (event) => {
+        setIsParsing(false);
+        const { success, payload, error } = event.data;
+        worker.terminate();
 
-      console.log(`[INGESTION] RAW_STREAM_DETECTED: ${rawJson.length} entries.`);
-
-      // Deep Normalization: Sanitize headers and values for 100% deterministic mapping
-      const json = rawJson.map(row => {
-        const normalizedRow: any = {};
-        for (const [key, value] of Object.entries(row)) {
-          // Normalize header key
-          const cleanKey = key.trim().replace(/\s+/g, ' ');
-          // Normalize value
-          let cleanValue = String(value || '').trim();
-          // Remove non-printable/hidden characters
-          cleanValue = cleanValue.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, "");
-          normalizedRow[cleanKey] = cleanValue;
+        if (!success) {
+          toast(`PARSING_ERROR: ${error}`, 'error');
+          return;
         }
-        return normalizedRow;
-      });
 
-      // Aggressive filtering: Only keep rows that have at least one non-empty value
-      const filteredJson = json.filter((row) => {
-        const values = Object.values(row).filter(v => v !== "");
-        return values.length > 0;
-      });
+        const filteredJson = payload;
+        console.log(`[INGESTION] WORKER_COMPLETE: ${filteredJson.length} valid rows extracted.`);
 
-      console.log(`[INGESTION] CLEAN_IMPORT_READY: ${filteredJson.length} valid rows extracted. (${json.length - filteredJson.length} empty/invalid removed)`);
+        if (filteredJson.length > 0) {
+          setFileData(filteredJson);
+          const fileHeaders = Object.keys(filteredJson[0]);
+          setHeaders(fileHeaders);
+          
+          setMappings({
+            firstNameKey: fileHeaders.find(h => /first.*name|fname|f\.name/i.test(h)) || '',
+            lastNameKey: fileHeaders.find(h => /last.*name|lname|l\.name/i.test(h)) || '',
+            nameKey: fileHeaders.find(h => /full.*name|^name$|contact.*name/i.test(h)) || '',
+            emailKey: fileHeaders.find(h => /email|e-mail|mail.*address/i.test(h)) || '',
+            phoneKey: fileHeaders.find(h => /phone|cell|mobile|tel|contact.*number/i.test(h)) || '',
+            countryKey: fileHeaders.find(h => /country|nation/i.test(h)) || '',
+            cityKey: fileHeaders.find(h => /city|town|locality/i.test(h)) || '',
+            postalCodeKey: fileHeaders.find(h => /zip|postal|pincode|post.*code/i.test(h)) || ''
+          });
+          setAppState('mapping');
+          toast('PROTOCOL: IDENTITY INGESTION COMPLETE', 'success');
+        } else {
+          toast('PROTOCOL: NO DATA FOUND', 'error');
+        }
+      };
 
-      if (filteredJson.length > 0) {
-        setFileData(filteredJson);
-        const fileHeaders = Object.keys(filteredJson[0]);
-        setHeaders(fileHeaders);
-        
-        setMappings({
-          firstNameKey: fileHeaders.find(h => /first.*name|fname|f\.name/i.test(h)) || '',
-          lastNameKey: fileHeaders.find(h => /last.*name|lname|l\.name/i.test(h)) || '',
-          nameKey: fileHeaders.find(h => /full.*name|^name$|contact.*name/i.test(h)) || '',
-          emailKey: fileHeaders.find(h => /email|e-mail|mail.*address/i.test(h)) || '',
-          phoneKey: fileHeaders.find(h => /phone|cell|mobile|tel|contact.*number/i.test(h)) || '',
-          countryKey: fileHeaders.find(h => /country|nation/i.test(h)) || '',
-          cityKey: fileHeaders.find(h => /city|town|locality/i.test(h)) || '',
-          postalCodeKey: fileHeaders.find(h => /zip|postal|pincode|post.*code/i.test(h)) || ''
-        });
-        setAppState('mapping');
-        toast('PROTOCOL: IDENTITY INGESTION COMPLETE', 'success');
-      }
+      worker.postMessage({ data });
     };
     reader.readAsArrayBuffer(file);
-  }, []);
+  }, [toast]);
 
   const handleStartProcessing = async () => {
     setAppState('processing');
@@ -357,8 +340,11 @@ export default function App() {
       <MobileNav currentTab={appState} setTab={setAppState} />
 
       <AnimatePresence>
+        {isParsing && (
+          <LoadingOverlay progress={10} estimatedSeconds={1} customText="PARSING DATA FILE..." />
+        )}
         {appState === 'processing' && (
-          <LoadingOverlay progress={processor.progress} estimatedSeconds={processor.estimatedSeconds} />
+          <LoadingOverlay progress={processor.progress} estimatedSeconds={processor.estimatedSeconds} onCancel={processor.cancelProcessing} />
         )}
       </AnimatePresence>
 

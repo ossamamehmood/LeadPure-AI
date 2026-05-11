@@ -135,6 +135,16 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
       }
     }, 2500); // 2.5s strict timeout to protect Vercel's global 8.5s limit
 
+    socket.setTimeout(2500); // OS-level TCP timeout
+    socket.on('timeout', () => {
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timeout);
+        socket.destroy();
+        resolve({ success: false, code: 0, response: 'TCP Socket Timeout', timedOut: true });
+      }
+    });
+
     socket.connect(25, mxRecord, () => {
       // Connected!
     });

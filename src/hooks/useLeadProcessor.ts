@@ -9,6 +9,8 @@ export function useLeadProcessor() {
   const [processedData, setProcessedData] = useState<ProcessedContact[]>([]);
   const [eliminatedData, setEliminatedData] = useState<any[]>([]);
 
+  const abortControllerRef = React.useRef<AbortController | null>(null);
+
   const runProcessor = async (
     data: ContactData[],
     mappings: any,
@@ -18,26 +20,44 @@ export function useLeadProcessor() {
     setProgress(0);
     setEstimatedSeconds(null);
     
+    abortControllerRef.current = new AbortController();
     const startTime = Date.now();
 
     try {
-      const { valid, eliminated, stats } = await processContacts(data, mappings, rules, (p) => {
-        setProgress(p);
-        if (p > 2) {
-          const elapsed = (Date.now() - startTime) / 1000;
-          const totalEstimated = elapsed / (p / 100);
-          setEstimatedSeconds(Math.max(0, Math.round(totalEstimated - elapsed)));
-        }
-      });
+      const { valid, eliminated, stats } = await processContacts(
+        data, 
+        mappings, 
+        rules, 
+        (p) => {
+          setProgress(p);
+          if (p > 2) {
+            const elapsed = (Date.now() - startTime) / 1000;
+            const totalEstimated = elapsed / (p / 100);
+            setEstimatedSeconds(Math.max(0, Math.round(totalEstimated - elapsed)));
+          }
+        },
+        abortControllerRef.current.signal
+      );
       
       setProcessedData(valid);
       setEliminatedData(eliminated);
       return { valid, eliminated, stats };
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message === 'Pipeline Aborted') {
+        console.log('Processor cancelled by user.');
+        return { valid: [], eliminated: [], stats: null };
+      }
       console.error('Processing failed', error);
       throw error;
     } finally {
       setIsProcessing(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const cancelProcessing = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
   };
 
@@ -55,6 +75,7 @@ export function useLeadProcessor() {
     processedData,
     eliminatedData,
     runProcessor,
+    cancelProcessing,
     resetProcessor,
     setProcessedData,
     setEliminatedData
