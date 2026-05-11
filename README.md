@@ -483,21 +483,6 @@ The platform must maintain structured logs for:
 * Catch-all detections
 * Final classifications
 
----
-
-## Debug Export Support
-
-The platform should support generating:
-
-`debug-results.csv`
-
-Containing:
-
-| Row | Email | Final Status | Validation Step Failed | Failure Reason |
-| --- | ----- | ------------ | ---------------------- | -------------- |
-
----
-
 # 18. DEPLOYMENT REQUIREMENTS
 
 The platform must remain stable when deployed via:
