@@ -68,7 +68,7 @@ export function SingleValidation() {
           <Zap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
         </div>
         <div>
-          <h2 className="text-xl font-semibold text-app-text tracking-tight">Single Verification</h2>
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">Single Verification</h2>
           <p className="text-sm text-slate-500 mt-1">
             Test our verification engine in real-time.
           </p>
@@ -77,10 +77,10 @@ export function SingleValidation() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-5">
-          <div className="glass-panel p-6 rounded-2xl">
+          <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-6 rounded-2xl">
             <form onSubmit={handleVerify} className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-app-text mb-2 block">Email Address</label>
+                <label className="text-sm font-medium text-slate-900 dark:text-white mb-2 block">Email Address</label>
                 <div className="relative group">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input 
@@ -88,7 +88,7 @@ export function SingleValidation() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
-                    className="w-full bg-white dark:bg-slate-900 border border-border-color rounded-xl h-12 pl-11 pr-4 text-sm text-app-text focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none"
+                    className="w-full bg-white dark:bg-slate-900 border border-border-color rounded-xl h-12 pl-11 pr-4 text-sm text-slate-900 dark:text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none"
                   />
                 </div>
               </div>
@@ -141,7 +141,7 @@ export function SingleValidation() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="h-full min-h-[300px] flex items-center justify-center border border-border-color rounded-2xl bg-white dark:bg-slate-900"
+                className="h-full min-h-[300px] flex items-center justify-center border border-border-color rounded-2xl bg-white dark:bg-slate-900 shadow-sm"
               >
                 <div className="text-center text-indigo-500">
                   <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
@@ -155,17 +155,17 @@ export function SingleValidation() {
                 className="space-y-4"
               >
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="glass-panel p-6 rounded-2xl relative overflow-hidden">
+                  <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-6 rounded-2xl relative overflow-hidden">
                     <p className="text-xs text-slate-500 font-medium mb-1 relative z-10">Verification Status</p>
                     <div className={`text-2xl font-bold capitalize relative z-10 ${getStatusColor(result.verificationStatus)}`}>
                       {result.verificationStatus}
                     </div>
                   </div>
 
-                  <div className="glass-panel p-6 rounded-2xl">
+                  <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-6 rounded-2xl">
                     <p className="text-xs text-slate-500 font-medium mb-1">Confidence Score</p>
                     <div className="flex items-baseline gap-1">
-                       <span className="text-2xl font-bold text-app-text">{result.confidenceScore}</span>
+                       <span className="text-2xl font-bold text-slate-900 dark:text-white">{result.confidenceScore}</span>
                        <span className="text-sm text-slate-500">/100</span>
                     </div>
                   </div>
@@ -177,12 +177,12 @@ export function SingleValidation() {
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 font-medium mb-0.5">Intelligence Assessment</p>
-                    <h4 className="text-sm font-semibold text-app-text">{result.verificationReason}</h4>
+                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{result.verificationReason}</h4>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="glass-panel p-5 rounded-2xl">
+                  <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-5 rounded-2xl">
                     <div className="flex items-center gap-2 mb-4">
                       <Globe className="w-4 h-4 text-slate-400" />
                       <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Infrastructure</span>
@@ -190,22 +190,22 @@ export function SingleValidation() {
                     <div className="space-y-3">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-500">MX Host</span>
-                        <span className={`font-medium ${result.mxRecordFound ? 'text-app-text' : 'text-red-500'}`}>
+                        <span className={`font-medium ${result.mxRecordFound ? 'text-slate-900 dark:text-white' : 'text-red-500'}`}>
                           {result.mxRecordFound ? 'Found' : 'Missing'}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-500">Provider</span>
-                        <span className="font-medium text-app-text capitalize">{result.provider || 'Custom'}</span>
+                        <span className="font-medium text-slate-900 dark:text-white capitalize">{result.provider || 'Custom'}</span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-500">Type</span>
-                        <span className="font-medium text-app-text">{result.isFreeEmail ? 'Consumer' : 'Business'}</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{result.isFreeEmail ? 'Consumer' : 'Business'}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="glass-panel p-5 rounded-2xl">
+                  <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-5 rounded-2xl">
                     <div className="flex items-center gap-2 mb-4">
                       <ShieldCheck className="w-4 h-4 text-slate-400" />
                       <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Analysis</span>
@@ -222,7 +222,7 @@ export function SingleValidation() {
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-500">Sub-Status</span>
-                        <span className="font-medium text-app-text capitalize">{result.subStatus || 'N/A'}</span>
+                        <span className="font-medium text-slate-900 dark:text-white capitalize">{result.subStatus || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-slate-500">Security</span>
@@ -236,25 +236,25 @@ export function SingleValidation() {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="flex flex-col gap-1 px-4 py-3 glass-panel rounded-xl">
+                  <div className="flex flex-col gap-1 px-4 py-3 bg-white dark:bg-slate-800 border border-border-color shadow-sm rounded-xl">
                     <span className="text-[10px] font-medium text-slate-500 uppercase">Disposable</span>
-                    <span className={`text-sm font-semibold ${result.isDisposable ? 'text-red-500' : 'text-app-text'}`}>
+                    <span className={`text-sm font-semibold ${result.isDisposable ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
                       {result.isDisposable ? 'Yes' : 'No'}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-1 px-4 py-3 glass-panel rounded-xl">
+                  <div className="flex flex-col gap-1 px-4 py-3 bg-white dark:bg-slate-800 border border-border-color shadow-sm rounded-xl">
                     <span className="text-[10px] font-medium text-slate-500 uppercase">Catch-All</span>
-                    <span className={`text-sm font-semibold ${result.isCatchAll ? 'text-amber-500' : 'text-app-text'}`}>
+                    <span className={`text-sm font-semibold ${result.isCatchAll ? 'text-amber-500' : 'text-slate-900 dark:text-white'}`}>
                       {result.isCatchAll ? 'Yes' : 'No'}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-1 px-4 py-3 glass-panel rounded-xl">
+                  <div className="flex flex-col gap-1 px-4 py-3 bg-white dark:bg-slate-800 border border-border-color shadow-sm rounded-xl">
                     <span className="text-[10px] font-medium text-slate-500 uppercase">Role-Based</span>
-                    <span className={`text-sm font-semibold ${result.isRoleBased ? 'text-indigo-500' : 'text-app-text'}`}>
+                    <span className={`text-sm font-semibold ${result.isRoleBased ? 'text-indigo-500' : 'text-slate-900 dark:text-white'}`}>
                       {result.isRoleBased ? 'Yes' : 'No'}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-1 px-4 py-3 glass-panel rounded-xl">
+                  <div className="flex flex-col gap-1 px-4 py-3 bg-white dark:bg-slate-800 border border-border-color shadow-sm rounded-xl">
                     <span className="text-[10px] font-medium text-slate-500 uppercase">SMTP Valid</span>
                     <span className={`text-sm font-semibold ${result.smtpValid ? 'text-emerald-500' : (result.mxRecordFound ? 'text-amber-500' : 'text-red-500')}`}>
                       {result.smtpValid ? 'Yes' : (result.mxRecordFound ? 'Unknown' : 'No')}

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 type ToastType = 'success' | 'error' | 'info';
@@ -45,17 +45,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 50, scale: 0.9 }}
               className={cn(
-                "pointer-events-auto min-w-[300px] glossy-card p-4 rounded-2xl flex items-center gap-4 shadow-2xl",
-                t.type === 'success' && "border-brand-blue/20 bg-brand-blue/5 shadow-[0_0_20px_rgba(90,92,255,0.1)]",
-                t.type === 'error' && "border-rose-500/20 bg-rose-500/5",
+                "pointer-events-auto min-w-[300px] bg-white dark:bg-slate-800 border p-4 rounded-xl flex items-center gap-4 shadow-lg",
+                t.type === 'success' && "border-emerald-200 dark:border-emerald-500/20",
+                t.type === 'error' && "border-rose-200 dark:border-rose-500/20",
+                t.type === 'info' && "border-indigo-200 dark:border-indigo-500/20",
+                "dark:shadow-none"
               )}
             >
-              {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-brand-blue shrink-0 drop-shadow-[0_0_8px_rgba(90,92,255,0.4)]" />}
+              {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />}
               {t.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />}
-              <p className="text-xs font-bold text-white flex-1">{t.message}</p>
+              {t.type === 'info' && <Info className="w-5 h-5 text-indigo-500 shrink-0" />}
+              <p className="text-sm font-medium text-slate-900 dark:text-white flex-1">{t.message}</p>
               <button 
                 onClick={() => removeToast(t.id)}
-                className="text-slate-500 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>

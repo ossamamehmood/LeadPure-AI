@@ -37,7 +37,7 @@
 }
 
 body {
-  @apply selection:bg-brand-primary/20 selection:text-brand-primary bg-app-bg text-app-text antialiased;
+  @apply selection:bg-brand-primary/20 selection:text-brand-primary antialiased;
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: background-color 0.2s ease, color 0.2s ease;

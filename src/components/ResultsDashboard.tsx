@@ -29,7 +29,7 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
           {String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || 'U')[0].toUpperCase()}
         </div>
         <div className="overflow-hidden">
-          <div className="text-sm font-semibold text-app-text mb-0.5 truncate">
+          <div className="text-sm font-semibold text-slate-900 dark:text-white mb-0.5 truncate">
             {String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || 'Unknown')} {String(contact[mappings.lastNameKey] || '')}
           </div>
           <div className="text-xs text-slate-500 truncate">{String(contact[mappings.emailKey] || 'N/A')}</div>
@@ -127,7 +127,7 @@ export function ResultsDashboard({
     <div className="max-w-7xl mx-auto w-full space-y-8 pb-20 px-4 sm:px-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
         <div>
-          <h2 className="text-2xl font-semibold text-app-text tracking-tight">Verification Results</h2>
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">Verification Results</h2>
           <p className="text-sm text-slate-500 mt-1">Review and export your verified list.</p>
         </div>
       </div>
@@ -142,7 +142,7 @@ export function ResultsDashboard({
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold text-app-text">{(processedData || []).length}</p>
+            <p className="text-3xl font-bold text-slate-900 dark:text-white">{(processedData || []).length}</p>
           </div>
           <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-2">Ready to export</p>
         </div>
@@ -155,7 +155,7 @@ export function ResultsDashboard({
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold text-app-text">{(eliminatedData || []).length}</p>
+            <p className="text-3xl font-bold text-slate-900 dark:text-white">{(eliminatedData || []).length}</p>
           </div>
           <div className="text-xs text-slate-500 mt-2 space-y-0.5">
             <p>{dangerousCount} bounces prevented</p>
@@ -170,7 +170,7 @@ export function ResultsDashboard({
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold text-app-text">{avgConfidence}%</p>
+            <p className="text-3xl font-bold text-slate-900 dark:text-white">{avgConfidence}%</p>
           </div>
           <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mt-3 overflow-hidden">
             <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${avgConfidence}%` }} />
@@ -184,7 +184,7 @@ export function ResultsDashboard({
               <Cpu className="w-4 h-4 text-slate-500" />
             </div>
           </div>
-          <p className="text-lg font-semibold text-app-text mb-2">SMTP + DNS</p>
+          <p className="text-lg font-semibold text-slate-900 dark:text-white mb-2">SMTP + DNS</p>
           <div className="flex items-center justify-between text-xs text-slate-500">
             <span>Validation Mode</span>
             <span className="font-medium text-indigo-600 dark:text-indigo-400">Deep Scan</span>
@@ -200,7 +200,7 @@ export function ResultsDashboard({
               onClick={() => { setActiveTab('valid'); setSearchTerm(''); }}
               className={cn(
                 "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
-                activeTab === 'valid' ? "bg-white dark:bg-slate-700 text-app-text shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                activeTab === 'valid' ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
               )}
             >
               Deliverable ({processedData.length})
@@ -209,7 +209,7 @@ export function ResultsDashboard({
               onClick={() => { setActiveTab('eliminated'); setSearchTerm(''); }}
               className={cn(
                 "px-4 py-1.5 text-sm font-medium rounded-md transition-all",
-                activeTab === 'eliminated' ? "bg-white dark:bg-slate-700 text-app-text shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                activeTab === 'eliminated' ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
               )}
             >
               Filtered ({eliminatedData.length})
@@ -224,7 +224,7 @@ export function ResultsDashboard({
                 placeholder="Search records..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-border-color rounded-lg h-10 pl-9 pr-4 text-sm text-app-text focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none"
+                className="w-full bg-white dark:bg-slate-900 border border-border-color rounded-lg h-10 pl-9 pr-4 text-sm text-slate-900 dark:text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all outline-none"
               />
             </div>
             <button 
@@ -259,7 +259,7 @@ export function ResultsDashboard({
               <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
                 <Database className="w-8 h-8 text-slate-400" />
               </div>
-              <h4 className="text-lg font-medium text-app-text mb-2">No records found</h4>
+              <h4 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No records found</h4>
               <p className="text-sm text-slate-500 max-w-sm">
                 Try adjusting your search criteria or switch tabs to view other records.
               </p>

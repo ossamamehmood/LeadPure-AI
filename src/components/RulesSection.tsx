@@ -11,12 +11,12 @@ interface RulesSectionProps {
 export function RulesSection({ rules, onToggle }: RulesSectionProps) {
   return (
     <div className="max-w-5xl mx-auto w-full px-4 sm:px-6">
-      <div className="glass-panel p-8 md:p-12 rounded-3xl relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 border border-border-color shadow-sm p-8 md:p-12 rounded-3xl relative overflow-hidden">
         <div className="relative z-10 mb-10">
           <div className="flex items-center gap-4">
             <div className="w-1.5 h-8 bg-indigo-500 rounded-full" />
             <div>
-              <h2 className="text-2xl font-semibold text-app-text tracking-tight">Security Protocols</h2>
+              <h2 className="text-2xl font-semibold text-slate-900 dark:text-white tracking-tight">Security Protocols</h2>
               <p className="text-slate-500 text-sm mt-1 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 Zero-Bounce Neutralization Active
@@ -83,7 +83,7 @@ export function RulesSection({ rules, onToggle }: RulesSectionProps) {
               <ShieldCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div className="text-center md:text-left">
-              <p className="font-semibold text-app-text text-sm">Enterprise Data Privacy Loop Active</p>
+              <p className="font-semibold text-slate-900 dark:text-white text-sm">Enterprise Data Privacy Loop Active</p>
               <p className="text-slate-500 mt-2 text-sm leading-relaxed max-w-xl">
                 All validation occurs in a stateless secure environment. Zero data persistence protocols ensure your lead lists never exit the temporary processing sandbox.
               </p>
