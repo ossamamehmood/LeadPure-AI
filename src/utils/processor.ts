@@ -285,20 +285,25 @@ export const verifyEmail = async (
     'temp-mail.org', 'guerrillamail.com', 'mailinator.com', '10minutemail.com', 
     'dispostable.com', 'getnada.com', 'throwawaymail.com', 'maildrop.cc', 
     'yopmail.com', 'trashmail.com', 'tempmail.net', 'temp-mail.io',
-    'boun.cr', 'sharklasers.com', 'mail-fake.com', 'fakeinbox.com', 'emailfake.com'
+    'boun.cr', 'sharklasers.com', 'mail-fake.com', 'fakeinbox.com', 'emailfake.com',
+    'disposable.com', 'spam4.me', 'pwned.com', 'mail-temp.com', '0r.jp'
   ];
 
   // Toxic keywords typically used in bot/spam registrations
-  const toxicKeywords = ['spam', 'junk', 'trash', 'fake', 'dummy', 'bot', 'crawler', 'honey', 'trap'];
+  const toxicKeywords = ['spam', 'junk', 'trash', 'fake', 'dummy', 'bot', 'crawler', 'honey', 'trap', 'sinkhole'];
   const isToxic = toxicKeywords.some(k => localPart.includes(k) || domain.includes(k));
+
+  // Dead/Internal Domain Check
+  const isInternalOnly = /\.(local|test|invalid|example|lan|internal)$/i.test(domain);
 
   // More precise patterns to avoid blocking genuine leads with "test" or "info" in name
   const isDisposable = deaList.some(dea => domain.includes(dea));
   const isClearlyFake = (
-    /^(asdf|qwerty|12345|test|example|abc|xyz|sample)@/i.test(cleanEmail) ||
+    /^(asdf|qwerty|12345|abc|xyz|sample)@/i.test(cleanEmail) ||
     /@(example|test|sample|domain)\.com$/i.test(cleanEmail) ||
     (/^[a-z0-9]{1}$/i.test(localPart)) || // single char local part
-    (/^[0-9]+$/i.test(localPart)) // numeric only local part
+    (/^[0-9]+$/i.test(localPart)) || // numeric only local part
+    isInternalOnly
   );
 
   if (isDisposable || isClearlyFake) {
@@ -317,13 +322,13 @@ export const verifyEmail = async (
         email: cleanEmail
       };
     } else {
-      score -= isDisposable ? 80 : 75;
+      score -= isDisposable ? 85 : 75;
       reasons.push(isDisposable ? "Disposable Provider Flag" : "Synthetic Profile Signature");
     }
   }
 
   if (isToxic) {
-    score -= 45;
+    score -= 50;
     reasons.push("Toxic Interaction Signature");
   }
 
@@ -331,7 +336,8 @@ export const verifyEmail = async (
   const rolePrefixes = [
     'admin', 'support', 'info', 'sales', 'hello', 'webmaster', 'jobs', 
     'office', 'contact', 'postmaster', 'no-reply', 'marketing', 'billing',
-    'privacy', 'abuse', 'security', 'it', 'manager', 'editor', 'hr', 'careers'
+    'privacy', 'abuse', 'security', 'it', 'manager', 'editor', 'hr', 'careers',
+    'dev', 'developer', 'sysadmin', 'root'
   ];
   const isRole = rolePrefixes.includes(localPart);
   if (isRole) {
@@ -350,7 +356,7 @@ export const verifyEmail = async (
         email: cleanEmail
       };
     } else {
-      score -= 30;
+      score -= 35;
       reasons.push("Generic Role Identity");
     }
   }
@@ -360,7 +366,7 @@ export const verifyEmail = async (
   const knownCatchAllSuffixes = ['.gov', '.edu', '.int', '.mil'];
   const isCandidateCatchAll = knownCatchAllSuffixes.some(s => domain.endsWith(s)) || 
                              (domain.split('.').length > 2 && !isFreeEmail) ||
-                             (!isFreeEmail && domainSeed > 0.7);
+                             (!isFreeEmail && domainSeed > 0.65);
 
   if (isCandidateCatchAll) {
     if (options.excludeCatchAll) {
@@ -368,7 +374,7 @@ export const verifyEmail = async (
         verificationStatus: 'rejected', 
         verificationReason: 'Policy Block: Likely Catch-All Protocol', 
         subStatus: 'catch_all',
-        confidenceScore: 35, 
+        confidenceScore: 30, 
         bounceRisk: 'High',
         reputationImpact: 'Negative',
         mxRecordFound: true,
@@ -378,7 +384,7 @@ export const verifyEmail = async (
         email: cleanEmail
       };
     } else {
-      score -= 22;
+      score -= 25;
       reasons.push("Catch-All Domain Signature");
       subStatus = 'catch_all';
     }
@@ -435,9 +441,9 @@ export const verifyEmail = async (
   let finalStatus: 'verified' | 'risky' | 'rejected' = 'verified';
   
   // 0% Bounce Policy: Absolute Strictness. 
-  // Any score below 96 is considered risky/rejected to ensure total safety across all providers.
-  if (score < 85) finalStatus = 'rejected';
-  else if (score < 96) finalStatus = 'risky';
+  // Any score below 98 is considered risky/rejected to ensure total safety across all providers.
+  if (score < 90) finalStatus = 'rejected';
+  else if (score < 98) finalStatus = 'risky';
 
   return { 
     verificationStatus: finalStatus, 
@@ -544,7 +550,7 @@ export const processContacts = async (
   const eliminated: any[] = [];
   
   // Statistical Tracking for Debugging & Reliability
-  console.log(`[PROCESSOR_V3.0.0] PROTOCOL_INIT: Ingesting ${data.length} identities.`);
+  console.log(`[PROCESSOR_V5.5.0] PROTOCOL_INIT: Ingesting ${data.length} identities.`);
   
   // Statistical Tracking for Debugging & Reliability (Deterministic Pipeline)
   const stats = {

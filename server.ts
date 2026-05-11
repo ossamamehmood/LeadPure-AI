@@ -54,8 +54,8 @@ export async function createServer() {
       let records: any[] = [];
       let source = 'unknown';
 
-      // CONSENSUS ENGINE v4.8: Ultimate Zero-Drift Quorum (Deterministic Platform Parity)
-      const performLookup = async (attempt: number = 1): Promise<{ success: boolean, hasMx: boolean, source: string, records: any[] }> => {
+      // CONSENSUS ENGINE v5.5: Core-Omnisync (Environmental Parity + Sinkhole Filtering)
+      const performLookup = async (attempt: number = 1): Promise<{ success: boolean, hasMx: boolean, source: string, records: any[], hasSpf?: boolean }> => {
         const controller = new AbortController();
         const timeoutMs = attempt === 1 ? 20000 : 50000;
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
@@ -64,7 +64,7 @@ export async function createServer() {
           signal: controller.signal,
           headers: { 
             'accept': 'application/dns-json',
-            'user-agent': `LeadPure-Engine/v4.8-QuorumSync`
+            'user-agent': `LeadPure-Engine/v5.5-Omnisync`
           }
         };
 
@@ -81,7 +81,11 @@ export async function createServer() {
             fetch(url, fetchOptions).then(async r => {
               if (!r.ok) throw new Error(`HTTP-${r.status}`);
               const data = await r.json() as any;
-              return { status: data.Status, hasMx: !!(data.Answer && data.Answer.length > 0), records: data.Answer || [] };
+              return { 
+                status: data.Status, 
+                hasMx: !!(data.Answer && data.Answer.length > 0), 
+                records: data.Answer || [] 
+              };
             })
           ));
 
@@ -90,47 +94,55 @@ export async function createServer() {
           
           if (successful.length === 0) throw new Error('QUORUM_FAIL');
 
-          // MAJORITY RULE: If we have multiple providers, they must agree.
-          const agreements = successful.reduce((acc: any, curr) => {
-            const key = curr.hasMx ? 'YES' : 'NO';
-            acc[key] = (acc[key] || 0) + 1;
-            return acc;
-          }, {});
+          // MAJORITY PARITY CHECK: 0% Bounce Policy
+          const positives = successful.filter(s => s.hasMx).length;
+          const negatives = successful.filter(s => !s.hasMx && s.status === 0).length;
+          const nxdomains = successful.filter(s => s.status === 3).length;
 
-          // If ANY reliable provider says MX exists, we incline towards VALID to prevent lead loss
-          const anyHasMx = successful.some(s => s.hasMx);
-          if (anyHasMx) {
-            return { success: true, hasMx: true, source: `quorum:${successful.length}n-positive`, records: successful.find(s => s.hasMx)?.records || [] };
+          // DETERMINISTIC VALIDATION
+          if (positives >= 1) {
+            // At least one positive - likely valid but check for suspicious answers
+            const mxRecords = successful.find(s => s.hasMx)?.records || [];
+            // Basic check for loopback/sinkhole names in records
+            const isSinkhole = mxRecords.some((r: any) => 
+               r.data && (r.data.includes('127.0.0.1') || r.data.includes('localhost') || r.data.includes('sinkhole'))
+            );
+            if (isSinkhole) return { success: true, hasMx: false, source: 'omnisync:sinkhole_mx', records: [] };
+            
+            return { success: true, hasMx: true, source: `omnisync:${positives}p-valid`, records: mxRecords };
           }
 
-          // If multiple providers explicitly say NXDOMAIN (Status 3), it's a solid rejection
-          const nxCount = successful.filter(s => s.status === 3).length;
-          if (nxCount >= 2 || (successful.length === 1 && successful[0].status === 3)) {
-            return { success: true, hasMx: false, source: 'quorum:nx-deterministic', records: [] };
+          // DETERMINISTIC REJECTION
+          if (nxdomains >= 2 || (successful.length === 1 && successful[0].status === 3)) {
+            return { success: true, hasMx: false, source: 'omnisync:nx-deterministic', records: [] };
           }
 
-          // If they all agree on Status 0 but no Answer
+          // If all providers say Status 0 but no Answer - definitivley no MX
           if (successful.every(s => s.status === 0)) {
-             return { success: true, hasMx: false, source: 'quorum:empty-verified', records: [] };
+             return { success: true, hasMx: false, source: 'omnisync:empty-verified', records: [] };
           }
 
-          return { success: true, hasMx: false, source: `quorum:inconclusive-${successful.length}n`, records: [] };
+          return { success: true, hasMx: false, source: `omnisync:inconclusive-${successful.length}n`, records: [] };
         } catch (e: any) {
           clearTimeout(timeoutId);
           try {
             const nativeRecords = await resolveMx(domain_clean);
-            return { success: true, hasMx: nativeRecords && nativeRecords.length > 0, source: 'native-sync', records: nativeRecords };
+            return { success: true, hasMx: nativeRecords && nativeRecords.length > 0, source: 'native-omnisync', records: nativeRecords };
           } catch (nativeErr: any) {
             const errCode = nativeErr.code || '';
-            // ENOTFOUND/ENODATA are successful rejections
-            if (errCode === 'ENOTFOUND' || errCode === 'ENODATA') return { success: true, hasMx: false, source: 'native-nx-sync', records: [] };
+            if (errCode === 'ENOTFOUND' || errCode === 'ENODATA') return { success: true, hasMx: false, source: 'native-nx-omnisync', records: [] };
             
             // HEURISTIC CROSS-CHECK
             try {
               const resolveA = promisify(dns.resolve);
               const aRecords = await resolveA(domain_clean);
               if (aRecords && aRecords.length > 0) {
-                return { success: true, hasMx: true, source: 'heuristic-consensus-alive', records: [] };
+                // Check if A records point to common parking/localhost IPs
+                const parkingIps = ['127.0.0.1', '0.0.0.0', '185.230.63.107', '185.230.63.171', '185.230.63.186'];
+                const isParked = aRecords.some(ip => parkingIps.includes(ip));
+                if (isParked) return { success: true, hasMx: false, source: 'heuristic-parked-sinkhole', records: [] };
+                
+                return { success: true, hasMx: true, source: 'heuristic-omnisync-alive', records: [] };
               }
             } catch (aErr) {}
             
@@ -142,14 +154,15 @@ export async function createServer() {
       // High-stability execution with multi-stage retry and exponential backoff
       let result = await performLookup(1);
       if (!result.success) {
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise(r => setTimeout(r, 4000));
         result = await performLookup(2);
       }
       
-      // FINAL ENVIRONMENT SYNC
+      // FINAL ENVIRONMENT SYNC: Absolute Consistency Protocol
       if (!result.success) {
-        const isCommonTld = /\.(com|net|org|edu|gov|io|co|uk|ca|it|de|fr|es|au|in)$/i.test(domain_clean);
-        result = { success: true, hasMx: isCommonTld, source: 'sync_safety_fallback', records: [] };
+        // 0% Bounce Policy: If we reach this stage, we CANNOT guarantee deliverability.
+        // We reject the lead to protect sender reputation.
+        result = { success: true, hasMx: false, source: 'strict_rejection_safety', records: [] };
       }
 
       // Cache result for SESSION consistency

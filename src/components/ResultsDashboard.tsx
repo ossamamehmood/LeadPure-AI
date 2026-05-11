@@ -35,8 +35,8 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
       <div className="px-12 py-4 w-[20%] flex flex-col gap-2">
         <span className={cn(
           "text-[11px] font-black font-mono tracking-tighter",
-          (contact.confidenceScore || 0) >= 92 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent" : 
-          (contact.confidenceScore || 0) > 80 ? "text-brand-blue" : "text-brand-pink"
+          (contact.confidenceScore || 0) >= 98 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent" : 
+          (contact.confidenceScore || 0) > 85 ? "text-brand-blue" : "text-brand-pink"
         )}>
           {contact.confidenceScore || 0}% Accuracy
         </span>
@@ -70,8 +70,8 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
       <div className="px-12 py-4 w-[30%] overflow-hidden">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
-            (contact.confidenceScore || 0) >= 92 ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/20' : 
-            (contact.confidenceScore || 0) > 80 ? 'bg-amber-400/10 text-amber-400' : 'bg-brand-pink/10 text-brand-pink'
+            (contact.confidenceScore || 0) >= 98 ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/20' : 
+            (contact.confidenceScore || 0) > 85 ? 'bg-amber-400/10 text-amber-400' : 'bg-brand-pink/10 text-brand-pink'
           }`}>
             {contact.confidenceScore}% Confidence
           </span>
@@ -200,7 +200,7 @@ export function ResultsDashboard({
           </div>
           <div className="mt-6 flex items-center justify-between">
             <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">SMTP Mode</p>
-            <div className="px-2 py-0.5 bg-brand-blue/20 text-brand-blue text-[8px] font-black rounded uppercase tracking-widest border border-brand-blue/20">Active</div>
+            <div className="px-2 py-0.5 bg-brand-blue/20 text-brand-blue text-[8px] font-black rounded uppercase tracking-widest border border-brand-blue/20">v5.5 Optimized</div>
           </div>
         </GlossyCard>
       </div>
