@@ -54,72 +54,81 @@ export async function createServer() {
       let records: any[] = [];
       let source = 'unknown';
 
-      // Advanced Two-Tier Network Retry Logic with Deterministic Feedback
+      // Advanced Three-Tier Network Retry Logic with Deterministic Feedback
       const performLookup = async (attempt: number = 1): Promise<{ success: boolean, hasMx: boolean, source: string, records: any[] }> => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), attempt === 1 ? 6000 : 12000);
+        // Give more time for the network, especially on first attempt
+        const timeoutMs = attempt === 1 ? 8000 : 15000;
+        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
         const fetchOptions = { 
           signal: controller.signal,
           headers: { 
             'accept': 'application/dns-json',
-            'user-agent': `LeadPure-Validation-Engine/3.0.0-Attempt-${attempt}`
+            'user-agent': `LeadPure-Validation-Engine/3.2.1-Attempt-${attempt}`
           }
         };
 
         try {
-          const [googleRes, cloudflareRes] = await Promise.allSettled([
-            fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions),
-            fetch(`https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions)
-          ]);
+          // Tier 1 & 2: Parallel DoH (DNS-over-HTTPS)
+          const lookupPromises = [
+            fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions).then(async r => {
+              if (!r.ok) throw new Error(`Google HTTP ${r.status}`);
+              const data = await r.json() as any;
+              if (data.Status === 0) {
+                return { success: true, hasMx: (data.Answer && data.Answer.length > 0), source: 'google', records: data.Answer || [] };
+              } else if (data.Status === 3) {
+                return { success: true, hasMx: false, source: 'google-nx', records: [] };
+              }
+              throw new Error(`Google DNS Status ${data.Status}`);
+            }),
+            fetch(`https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions).then(async r => {
+              if (!r.ok) throw new Error(`Cloudflare HTTP ${r.status}`);
+              const data = await r.json() as any;
+              if (data.Status === 0) {
+                return { success: true, hasMx: (data.Answer && data.Answer.length > 0), source: 'cloudflare', records: data.Answer || [] };
+              } else if (data.Status === 3) {
+                return { success: true, hasMx: false, source: 'cloudflare-nx', records: [] };
+              }
+              throw new Error(`Cloudflare DNS Status ${data.Status}`);
+            })
+          ];
+
+          // Use Promise.any to get the first successful DNS response
+          const fastestResponse = await Promise.any(lookupPromises);
           
           clearTimeout(timeoutId);
-
-          // Tier 1: Check Google (Primary Source of Truth)
-          if (googleRes.status === 'fulfilled' && googleRes.value.ok) {
-            const data = await googleRes.value.json() as any;
-            if (data.Status === 0) {
-              if (data.Answer && data.Answer.length > 0) {
-                return { success: true, hasMx: true, source: 'google', records: data.Answer };
-              } else {
-                return { success: true, hasMx: false, source: 'google-no-mx', records: [] };
-              }
-            } else if (data.Status === 3) { // NXDOMAIN
-              return { success: true, hasMx: false, source: 'google-nx', records: [] };
-            }
-          }
-
-          // Tier 2: Check Cloudflare (Independent Verification)
-          if (cloudflareRes.status === 'fulfilled' && cloudflareRes.value.ok) {
-            const data = await cloudflareRes.value.json() as any;
-            if (data.Status === 0) {
-              if (data.Answer && data.Answer.length > 0) {
-                return { success: true, hasMx: true, source: 'cloudflare', records: data.Answer };
-              } else {
-                return { success: true, hasMx: false, source: 'cloudflare-no-mx', records: [] };
-              }
-            } else if (data.Status === 3) {
-              return { success: true, hasMx: false, source: 'cloudflare-nx', records: [] };
-            }
-          }
-          
-          return { success: false, hasMx: false, source: 'unknown', records: [] };
+          return fastestResponse;
         } catch (e) {
           clearTimeout(timeoutId);
-          return { success: false, hasMx: false, source: 'error', records: [] };
+          
+          // Tier 3: Native DNS Fallback (Last resort if DoH fails)
+          try {
+            const nativeRecords = await resolveMx(domain_clean);
+            return { 
+              success: true, 
+              hasMx: nativeRecords && nativeRecords.length > 0, 
+              source: 'native-dns', 
+              records: nativeRecords 
+            };
+          } catch (nativeErr: any) {
+            if (nativeErr.code === 'ENOTFOUND' || nativeErr.code === 'ENODATA') {
+              return { success: true, hasMx: false, source: 'native-dns-nx', records: [] };
+            }
+            console.error(`[DNS_API] Tier-3 Fallback Failure for ${domain_clean}:`, nativeErr.message);
+            return { success: false, hasMx: false, source: 'error', records: [] };
+          }
         }
       };
 
-      const result = await performLookup(1);
+      // Execute with intelligent retry protocol
+      let result = await performLookup(1);
       if (!result.success) {
         console.log(`[DNS_API] RETRY_PROTOCOL_TRIGGERED: ${domain_clean}`);
         await new Promise(r => setTimeout(r, 1000)); 
         const retryResult = await performLookup(2);
         if (retryResult.success) {
-           result.success = true;
-           result.hasMx = retryResult.hasMx;
-           result.source = retryResult.source;
-           result.records = retryResult.records;
+           result = retryResult;
         }
       }
 
