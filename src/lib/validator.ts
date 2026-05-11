@@ -272,7 +272,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   let smtpValid = true;
   let subStatus = 'valid';
 
-  const skipSmtp = isFreeEmail && (provider === 'yahoo' || provider === 'microsoft');
+  const skipSmtp = isFreeEmail; // Skip SMTP for all free providers (including Google) to prevent Vercel firewall from blocking standard consumer emails
   
   if (!skipSmtp && primaryMx) {
     // 6a. Real mailbox check
