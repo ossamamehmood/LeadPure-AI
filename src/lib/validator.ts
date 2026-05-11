@@ -69,10 +69,9 @@ const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 
 // ----------------- UTILITIES -----------------
 const determineRisk = (score: number) => {
-  if (score < 50) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'rejected' as const };
-  if (score < 80) return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'rejected' as const };
-  if (score < 94) return { bounceRisk: 'Medium' as const, reputationImpact: 'Neutral' as const, finalStatus: 'risky' as const };
-  if (score < 99) return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'risky' as const };
+  // Score System: 0-30 Invalid, 31-70 Risky, 71-100 Safe
+  if (score <= 30) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'rejected' as const };
+  if (score <= 70) return { bounceRisk: 'Medium' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
   return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'verified' as const };
 };
 
@@ -297,7 +296,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     } else if (smtpCheck.code >= 400 && smtpCheck.code < 500) {
       smtpValid = false;
       subStatus = 'rate_limited';
-      score -= 10; // Greylisting is slightly riskier, pushes score to 89 (risky)
+      score -= 35; // Greylisting pushes score into 31-70 'risky' bracket
       reasons.push(`SMTP Soft-Bounce: Greylisted/RateLimited (Code ${smtpCheck.code})`);
     } else if (smtpCheck.success) {
       smtpValid = true;
@@ -336,7 +335,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
         smtpValid: true, syntaxValid: true
       };
     }
-    score -= 25;
+    score -= 35; // Drops to 65, placing it squarely in the RISKY bracket
     reasons.push("Catch-All Domain Signature Confirmed");
     subStatus = 'catch_all';
   }
