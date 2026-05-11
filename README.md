@@ -1,4 +1,4 @@
-# 📘 LeadPure-AI — Enterprise Email Validation System
+# 📘 LeadPure AI Enterprise Email Validation System
 
 ## 1. PROJECT OVERVIEW
 
