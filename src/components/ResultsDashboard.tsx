@@ -13,6 +13,8 @@ interface ResultsDashboardProps {
   onPreview: (data: any[], title: string) => void;
   onDownloadValid: () => void;
   onDownloadEliminated: () => void;
+  onDownloadDebug: () => void;
+  stats?: any;
 }
 
 const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings: any }) => {
@@ -94,7 +96,9 @@ export function ResultsDashboard({
   mappings, 
   onPreview,
   onDownloadValid,
-  onDownloadEliminated
+  onDownloadEliminated,
+  onDownloadDebug,
+  stats
 }: ResultsDashboardProps) {
   const [activeTab, setActiveTab] = useState<'valid' | 'eliminated'>('valid');
   const [searchTerm, setSearchTerm] = useState('');
@@ -278,6 +282,14 @@ export function ResultsDashboard({
             >
               <Database className="w-4 h-4" />
               Preview
+            </button>
+            <button 
+              onClick={onDownloadDebug}
+              className="px-6 bg-brand-blue/5 hover:bg-brand-blue/10 rounded-2xl border border-brand-blue/20 text-[10px] font-black uppercase tracking-widest text-brand-blue transition-all flex items-center gap-2 h-14"
+              title="Download Detailed Audit Log"
+            >
+              <Database className="w-4 h-4" />
+              Audit Log
             </button>
             <button 
               onClick={activeTab === 'valid' ? onDownloadValid : onDownloadEliminated}

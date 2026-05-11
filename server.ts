@@ -102,17 +102,22 @@ export async function createServer() {
         }
       };
 
-      // Execute with intelligent retry protocol
-      let result = await performLookup(1);
+      const result = await performLookup(1);
       if (!result.success) {
-        console.log(`[DNS_API] RETRY_PROTOCOL: ${domain_clean}`);
-        await new Promise(r => setTimeout(r, 1500)); 
-        result = await performLookup(2);
+        console.log(`[DNS_API] RETRY_PROTOCOL_TRIGGERED: ${domain_clean}`);
+        await new Promise(r => setTimeout(r, 1000)); 
+        const retryResult = await performLookup(2);
+        if (retryResult.success) {
+           result.success = true;
+           result.hasMx = retryResult.hasMx;
+           result.source = retryResult.source;
+           result.records = retryResult.records;
+        }
       }
 
       if (!result.success) {
-        console.error(`[DNS_API] CRITICAL_FAILURE: ${domain_clean}. Enforcing Security Protocol (False).`);
-        result.source = 'deterministic_failure';
+        console.error(`[DNS_API] CRITICAL_RESOLUTION_FAILURE: ${domain_clean}. Enforcing deterministic null status.`);
+        result.source = 'engine_error_parity_match';
       }
 
       // Cache result for cross-session consistency within same lambda lifecycle
@@ -166,3 +171,4 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 export default app; 
+ 

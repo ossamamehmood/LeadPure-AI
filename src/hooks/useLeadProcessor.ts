@@ -21,7 +21,7 @@ export function useLeadProcessor() {
     const startTime = Date.now();
 
     try {
-      const { valid, eliminated } = await processContacts(data, mappings, rules, (p) => {
+      const { valid, eliminated, stats } = await processContacts(data, mappings, rules, (p) => {
         setProgress(p);
         if (p > 2) {
           const elapsed = (Date.now() - startTime) / 1000;
@@ -32,7 +32,7 @@ export function useLeadProcessor() {
       
       setProcessedData(valid);
       setEliminatedData(eliminated);
-      return { valid, eliminated };
+      return { valid, eliminated, stats };
     } catch (error) {
       console.error('Processing failed', error);
       throw error;

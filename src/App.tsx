@@ -94,6 +94,7 @@ export default function App() {
   const { history, saveToHistory, clearHistory } = useHistory();
   const processor = useLeadProcessor();
   const { toast } = useToast();
+  const [processingStats, setProcessingStats] = useState<any>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -170,7 +171,8 @@ export default function App() {
     setAppState('processing');
     console.log(`[ENGINE] STARTING_SESSION: Roles[${validationRules.excludeRoleBased}] Disposable[${validationRules.excludeDisposable}] CatchAll[${validationRules.excludeCatchAll}]`);
     try {
-      const { valid, eliminated } = await processor.runProcessor(fileData, mappings, validationRules);
+      const { valid, eliminated, stats } = await processor.runProcessor(fileData, mappings, validationRules);
+      setProcessingStats(stats);
       
       saveToHistory({
         id: Math.random().toString(36).substr(2, 9),
@@ -194,6 +196,39 @@ export default function App() {
       setAppState('mapping');
       toast('SYSTEM_ERROR: VALIDATION ENGINE FAILURE', 'error');
     }
+  };
+
+  const handleDownloadDebugReport = () => {
+    const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+    
+    // Combine valid and eliminated for a full audit log
+    const auditLog = [
+      ...processor.processedData.map((item, idx) => ({
+        "Row": idx + 1,
+        "Email": item.email,
+        "Final Status": "VERIFIED",
+        "Failure Reason": "N/A",
+        "Step Failed": "NONE",
+        "Confidence": item.confidenceScore,
+        "Bounce Risk": item.bounceRisk
+      })),
+      ...processor.eliminatedData.map((item, idx) => ({
+        "Row": processor.processedData.length + idx + 1,
+        "Email": item.email || item[mappings.emailKey] || 'N/A',
+        "Final Status": "REJECTED",
+        "Failure Reason": item.verificationReason || item.reason || 'Unknown',
+        "Step Failed": item.subStatus || 'Validation Protocol',
+        "Confidence": item.score || 0,
+        "Bounce Risk": item.bounceRisk || 'High'
+      }))
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(auditLog);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Audit Log');
+    
+    XLSX.writeFile(workbook, `${baseName}_DEBUG_AUDIT.xlsx`);
+    toast('AUDIT LOG EXPORTED: DEBUG_RESULTS.XLSX', 'success');
   };
 
   const handleDownloadEliminated = () => {
@@ -339,6 +374,8 @@ export default function App() {
                     onPreview={openPreview}
                     onDownloadEliminated={handleDownloadEliminated}
                     onDownloadValid={handleDownload}
+                    onDownloadDebug={handleDownloadDebugReport}
+                    stats={processingStats}
                   />
                 </div>
               )}
@@ -368,3 +405,4 @@ export default function App() {
     </div>
   );
 } 
+ 

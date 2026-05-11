@@ -226,7 +226,7 @@ export const verifyEmail = async (
 
   // STEP 4 — DOMAIN ACCESSIBILITY (MX/DNS)
   const hasMX = await checkMXRecords(domain);
-  if (!hasMX) {
+  if (hasMX === false) {
     return { 
       verificationStatus: 'rejected', 
       verificationReason: 'Engine Rejected: Dead Domain (No MX Records Found)', 
@@ -594,8 +594,9 @@ export const processContacts = async (
 
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
-  const BATCH_SIZE = 8; // Max stability for Serverless concurrency limits
   const total = preProcessedData.length;
+  // USE SERIAL PROCESSING (BATCH_SIZE = 1) for Absolute Parity Debugging
+  const BATCH_SIZE = 1; 
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
     const end = Math.min(i + BATCH_SIZE, total);
@@ -649,5 +650,6 @@ export const processContacts = async (
   console.table(finalReport);
   console.log(`[PROCESSOR] PIPELINE_COMPLETE. Deterministic parity achieved.`);
 
-  return { valid, eliminated };
+  return { valid, eliminated, stats: finalReport };
 }; 
+ 
