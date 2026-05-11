@@ -1,78 +1,210 @@
-# LeadPure-AI: Enterprise Email Validation System
+# 📘 LeadPure-AI — Enterprise Email Validation System
 
 ## 1. PROJECT OVERVIEW
-LeadPure-AI Private is an AI-powered email verification, validation, and lead cleaning system designed to reduce email bounce rates to near zero for email campaigns and outreach systems. The system processes Excel/CSV lead files and classifies emails based on deliverability risk.
 
-## 2. CORE GOAL
-The primary objective of this system is to achieve a **0% bounce rate** in real email campaigns, ensuring maximum possible accuracy in email validation and domain verification, and guaranteeing **100% deterministic output** across all environments.
+LeadPure-AI Private is a deterministic, enterprise-grade email verification and lead cleaning system designed to minimize email bounce rates in real-world outbound campaigns.
 
-Every email is accurately classified as:
-- **VALID** (Safe to send)
-- **INVALID** (Must be removed)
-- **UNKNOWN** (Uncertain or failed verification, do NOT delete blindly)
+It processes Excel/CSV lead files and evaluates each email for deliverability risk using a strict, rule-based validation pipeline.
 
-## 3. VALIDATION LOGIC REQUIREMENTS
-Each email must be validated using strict backend rules. **We do not rely on AI-based guessing.** Validation is strictly rule-based and deterministic:
-1. Domain extraction from email
-2. DNS + MX record verification (domain must exist and be active)
-3. SMTP handshake validation (real mailbox check via Port 25)
-4. Catch-all domain detection
-5. Disposable email detection
-6. Role-based email detection (optional)
-7. Bounce-risk scoring system
+The system is built for **production reliability, consistency, and large-scale batch processing**.
 
-## 4. CRITICAL SYSTEM PROBLEM
-The system was previously non-deterministic—the same Excel file produced different results across environments (Google AI Studio, Localhost, GitHub deployment, Vercel production). This resulted in inconsistent lead counts and incorrect filtering. This is unacceptable, and the current architecture has been rebuilt to ensure absolute determinism.
+---
 
-## 5. COMPETITORS (REFERENCE BENCHMARK)
-The system must match or exceed the accuracy, consistency, speed, and reliability of industry leaders:
-- ZeroBounce
-- NeverBounce
-- MillionVerifier
+## 2. CORE OBJECTIVE
 
-## 6. SYSTEM REQUIREMENTS
-### A. Deterministic Behavior
-The same input file MUST always produce the exact same output count, the exact same valid/invalid classification, and the exact same processing result across all environments.
+The primary objective of LeadPure-AI is:
 
-### B. Backend Only Changes (STRICT RULE)
-- 🚫 DO NOT change UI
-- 🚫 DO NOT redesign frontend
-- 🚫 DO NOT modify UI logic or layout
-- Only the backend, validation engine, and processing pipeline can be modified.
+> Achieve near **0% email bounce rate** in outbound campaigns through highly accurate and deterministic email validation.
 
-### C. Environment Independence
-The system behaves identically everywhere. We have removed all dependencies on Google AI Studio runtime behavior, Vercel serverless quirks, local caching differences, and hidden memory/state behavior.
+The system guarantees:
 
-## 7. ARCHITECTURE EXPECTATION
-The system follows this exact pipeline:
-1. Upload Excel/CSV
-2. Normalize data (clean emails, remove duplicates)
-3. Extract domain
-4. DNS/MX validation
-5. SMTP verification (if applicable)
-6. Disposable email check
-7. Catch-all detection
-8. Risk scoring
-9. Final classification (VALID / INVALID / UNKNOWN)
+* Consistent results across all environments
+* No randomness or AI-based decision variation
+* Same input file ALWAYS produces identical output
+
+---
+
+## 3. EMAIL CLASSIFICATION MODEL
+
+Every email is classified into one of three deterministic states:
+
+* **VALID** → Safe to send (high deliverability confidence)
+* **INVALID** → Must be removed (high bounce risk or non-existent)
+* **UNKNOWN** → Verification inconclusive (do not delete blindly)
+
+---
+
+## 4. VALIDATION ENGINE (RULE-BASED ONLY)
+
+⚠️ The system does NOT rely on AI prediction or probabilistic scoring.
+
+Each email passes through a strict validation pipeline:
+
+### 4.1 Syntax Validation
+
+* RFC-compliant email format check
+* Invalid characters detection
+* Structural integrity validation
+
+---
+
+### 4.2 Domain Extraction & Validation
+
+* Extract domain from email
+* Verify DNS records
+* Verify MX records (primary deliverability signal)
+* Confirm domain is active and resolvable
+
+---
+
+### 4.3 SMTP Verification (Mailbox Check)
+
+* SMTP handshake validation (where supported)
+* Verify mailbox existence via server response
+* Handle timeouts safely without false rejection
+
+---
+
+### 4.4 Disposable Email Detection
+
+* Identify temporary / throwaway email providers
+* Block known disposable domains
+
+---
+
+### 4.5 Role-Based Email Detection
+
+* Detect generic inboxes (e.g., info@, support@, admin@)
+* Flag as **RISKY**, not necessarily invalid
+
+---
+
+### 4.6 Catch-All Detection
+
+* Detect domains that accept all emails
+* Mark as **RISKY** due to unpredictable deliverability
+
+---
+
+### 4.7 Bounce Risk Classification
+
+Final risk scoring is derived from deterministic rules:
+
+* High confidence valid → VALID
+* High failure signals → INVALID
+* Mixed or uncertain signals → UNKNOWN / RISKY
+
+---
+
+## 5. CRITICAL SYSTEM REQUIREMENT (NON-NEGOTIABLE)
+
+The system MUST behave as a **pure deterministic engine**:
+
+> Same input file → SAME output everywhere
+
+This applies across:
+
+* Local environment
+* Google AI Studio
+* GitHub deployment
+* Vercel production
+
+No exceptions.
+
+---
+
+## 6. COMPETITIVE BENCHMARK
+
+LeadPure-AI is designed to match or exceed:
+
+* ZeroBounce
+* NeverBounce
+* MillionVerifier
+
+Focus areas:
+
+* Accuracy
+* Consistency
+* Speed
+* Deliverability confidence
+
+---
+
+## 7. SYSTEM ARCHITECTURE PIPELINE
+
+The system follows a strict sequential processing flow:
+
+1. File Upload (Excel/CSV)
+2. Data Normalization
+3. Duplicate Removal
+4. Email Syntax Validation
+5. Domain Extraction
+6. DNS / MX Validation
+7. SMTP Verification
+8. Disposable Email Detection
+9. Catch-All Detection
+10. Risk Scoring Engine
+11. Final Classification Output
+
+No step may be skipped or reordered.
+
+---
 
 ## 8. PERFORMANCE REQUIREMENTS
-- Fast batch processing
-- Optimized API calls
-- No unnecessary repeated DNS/SMTP checks
-- Proper async handling (no race conditions)
-- Consistent results under load
 
-## 9. AGENTS DEFINITION
-The rebuilding and maintenance of this system coordinates the following internal roles:
-1. **System Architect Agent:** Defines correct architecture, ensures deterministic flow.
-2. **Backend Engineer Agent:** Rewrites validation logic, fixes async issues, optimizes performance.
-3. **Email Validation Specialist Agent:** Handles DNS, MX, SMTP logic, improves accuracy rules.
-4. **QA / Testing Agent:** Tests the same file multiple times, ensures identical output across environments.
+* Optimized batch processing for large datasets
+* Controlled concurrency (no race conditions)
+* Minimal external API dependency calls
+* No redundant DNS/SMTP lookups
+* Fully stable async execution
+* Safe handling of timeouts and failures
 
-## 10. FINAL EXPECTATION
-- Same Excel file = identical results everywhere
-- No missing or randomly skipped rows
-- No environment-based differences
-- No silent failures
-- No UI changes
-- Fully production-ready backend system
+---
+
+## 9. ENGINEERING AGENTS MODEL
+
+System design and maintenance follows a structured internal role model:
+
+### 9.1 System Architect Agent
+
+Defines architecture and ensures deterministic processing flow.
+
+### 9.2 Backend Engineer Agent
+
+Implements validation engine, async stability, and performance optimization.
+
+### 9.3 Email Validation Specialist Agent
+
+Owns DNS, MX, SMTP, and deliverability logic accuracy.
+
+### 9.4 QA / Reliability Agent
+
+Ensures:
+
+* Same input = same output
+* No missing or duplicated rows
+* Cross-environment consistency
+
+---
+
+## 10. BACKEND ONLY RULE
+
+* 🚫 No UI changes allowed
+* 🚫 No frontend modifications allowed
+* 🚫 No design or layout updates allowed
+
+Only backend logic, validation engine, and processing pipeline may be modified.
+
+---
+
+## 11. FINAL SYSTEM GUARANTEE
+
+The system is considered production-ready only when:
+
+* Same Excel file produces identical results everywhere
+* No missing or randomly skipped rows
+* No environment-based inconsistencies
+* No silent failures
+* No async race conditions
+* Fully deterministic output behavior
+* Fully stable Vercel deployment
