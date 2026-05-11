@@ -7,7 +7,7 @@ import { promisify } from "util";
 const resolveMx = promisify(dns.resolveMx);
 
 // Server-side cache for DNS results (In-memory, lasts as long as lambda is warm)
-const serverMxCache = new Map<string, { hasMx: boolean, source: string, timestamp: number }>();
+const serverMxCache = new Map<string, { hasMx: boolean, hasA: boolean, hasSpf: boolean, hasDmarc: boolean, isSinkhole: boolean, smtpValid: boolean, smtpReason: string, source: string, timestamp: number }>();
 const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 
 const app = express();
@@ -58,6 +58,8 @@ export async function createServer() {
           hasSpf: cached.hasSpf,
           hasDmarc: cached.hasDmarc,
           isSinkhole: cached.isSinkhole,
+          smtpValid: cached.smtpValid,
+          smtpReason: cached.smtpReason,
           source: `server_cache:${cached.source}`
         });
       }
@@ -76,13 +78,21 @@ export async function createServer() {
         let hasSpf = false;
         let hasDmarc = false;
         let isSinkhole = false;
+        let smtpValid = false;
+        let smtpReason = '';
         let source = 'native-strict';
 
         try {
           // 1. Resolve MX
+          let mxHost = '';
           try {
             const mxRecords = await resolveMx(domain_clean);
             hasMx = mxRecords && mxRecords.length > 0;
+            if (hasMx) {
+              // Sort by priority
+              mxRecords.sort((a, b) => a.priority - b.priority);
+              mxHost = mxRecords[0].exchange;
+            }
             if (isKnownSinkhole(mxRecords)) {
               isSinkhole = true;
               hasMx = false;
@@ -113,7 +123,69 @@ export async function createServer() {
             hasDmarc = dmarcRecords.some(r => r.join('').includes('v=DMARC1'));
           } catch (e) {}
 
-          // 5. Fallback to DoH if Native failed completely (DNS block in environment)
+          // 5. Native SMTP Handshake (Port 25)
+          // Fails gracefully on Vercel (blocked port 25), works on local/VPS.
+          if (hasMx && mxHost && !isSinkhole) {
+            try {
+              smtpValid = await new Promise((resolveSmtp) => {
+                const net = require('net');
+                const socket = new net.Socket();
+                let step = 0;
+                let isResolved = false;
+
+                const finish = (result: boolean, reason: string) => {
+                  if (!isResolved) {
+                    isResolved = true;
+                    smtpReason = reason;
+                    socket.destroy();
+                    resolveSmtp(result);
+                  }
+                };
+
+                // 2.5s absolute timeout for SMTP to preserve Vercel limit
+                const smtpTimeout = setTimeout(() => {
+                  finish(false, 'timeout_port_25_blocked');
+                }, 2500);
+
+                socket.connect(25, mxHost, () => {
+                  // Connected
+                });
+
+                socket.on('data', (data: Buffer) => {
+                  const response = data.toString();
+                  if (response.startsWith('220') && step === 0) {
+                    step = 1;
+                    socket.write(`EHLO leadpure.ai\r\n`);
+                  } else if (response.startsWith('250') && step === 1) {
+                    step = 2;
+                    socket.write(`MAIL FROM:<verify@leadpure.ai>\r\n`);
+                  } else if (response.startsWith('250') && step === 2) {
+                    step = 3;
+                    socket.write(`RCPT TO:<test@${domain_clean}>\r\n`);
+                  } else if ((response.startsWith('250') || response.startsWith('450') || response.startsWith('451')) && step === 3) {
+                    finish(true, 'smtp_handshake_success');
+                  } else if (response.startsWith('550') && step === 3) {
+                    finish(false, 'smtp_rejected_user');
+                  } else if (step === 3) {
+                     finish(false, 'smtp_unexpected_response');
+                  }
+                });
+
+                socket.on('error', () => {
+                  finish(false, 'smtp_connection_failed');
+                });
+                
+                socket.on('close', () => {
+                   clearTimeout(smtpTimeout);
+                   finish(false, 'smtp_connection_closed');
+                });
+              });
+            } catch(e) {
+              // Ignore SMTP errors, fallback to deep DNS
+            }
+          }
+
+          // 6. Fallback to DoH if Native failed completely (DNS block in environment)
           if (!hasMx && !hasA && !isSinkhole) {
             try {
               const fetchOptions = { signal: controller.signal, headers: { 'accept': 'application/dns-json' } };
@@ -133,11 +205,11 @@ export async function createServer() {
           }
 
           clearTimeout(timeoutId);
-          return { success: true, hasMx, hasA, hasSpf, hasDmarc, isSinkhole, source };
+          return { success: true, hasMx, hasA, hasSpf, hasDmarc, isSinkhole, smtpValid, smtpReason, source };
 
         } catch (error) {
           clearTimeout(timeoutId);
-          return { success: false, hasMx: false, hasA: false, hasSpf: false, hasDmarc: false, isSinkhole: false, source: 'error_environmental_drift' };
+          return { success: false, hasMx: false, hasA: false, hasSpf: false, hasDmarc: false, isSinkhole: false, smtpValid: false, smtpReason: 'error', source: 'error_environmental_drift' };
         }
       };
 
@@ -161,13 +233,15 @@ export async function createServer() {
         hasSpf: result.hasSpf,
         hasDmarc: result.hasDmarc,
         isSinkhole: result.isSinkhole,
+        smtpValid: result.smtpValid,
+        smtpReason: result.smtpReason,
         source: result.source
       });
-      console.log(`[DNS_API] VERIFIED: ${domain_clean} -> MX:${result.hasMx} SPF:${result.hasSpf} DMARC:${result.hasDmarc}`);
+      console.log(`[DNS_API] VERIFIED: ${domain_clean} -> MX:${result.hasMx} SPF:${result.hasSpf} DMARC:${result.hasDmarc} SMTP:${result.smtpValid}(${result.smtpReason})`);
     } catch (error) {
       console.error(`[DNS_API] Root DNS check failed for ${domain}:`, error);
       res.json({ 
-        hasMx: false, hasA: false, hasSpf: false, hasDmarc: false, isSinkhole: false,
+        hasMx: false, hasA: false, hasSpf: false, hasDmarc: false, isSinkhole: false, smtpValid: false, smtpReason: 'error_fallback',
         source: 'engine_failure_fallback'
       });
     }

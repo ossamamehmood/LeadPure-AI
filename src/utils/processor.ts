@@ -92,6 +92,8 @@ export interface DomainHealth {
   hasSpf: boolean;
   hasDmarc: boolean;
   isSinkhole: boolean;
+  smtpValid: boolean;
+  smtpReason: string;
 }
 
 const domainCache = new Map<string, DomainHealth>();
@@ -100,9 +102,9 @@ export const verifyDomainInfrastructure = async (domain: string): Promise<Domain
   const cleanDomain = domain.toLowerCase().trim().replace(/\.$/, '');
   if (domainCache.has(cleanDomain)) return domainCache.get(cleanDomain)!;
 
-  const defaultFail: DomainHealth = { hasMx: false, hasA: false, hasSpf: false, hasDmarc: false, isSinkhole: false };
+  const defaultFail: DomainHealth = { hasMx: false, hasA: false, hasSpf: false, hasDmarc: false, isSinkhole: false, smtpValid: false, smtpReason: 'error' };
 
-  // Step 1: Server-Side API (Deep DNS)
+  // Step 1: Server-Side API (Deep DNS + SMTP)
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -117,7 +119,9 @@ export const verifyDomainInfrastructure = async (domain: string): Promise<Domain
           hasA: !!data.hasA,
           hasSpf: !!data.hasSpf,
           hasDmarc: !!data.hasDmarc,
-          isSinkhole: !!data.isSinkhole
+          isSinkhole: !!data.isSinkhole,
+          smtpValid: !!data.smtpValid,
+          smtpReason: String(data.smtpReason || '')
         };
         domainCache.set(cleanDomain, health);
         return health;
@@ -138,7 +142,7 @@ export const verifyDomainInfrastructure = async (domain: string): Promise<Domain
       const data = await response.json();
       if (data.Status === 0 || data.Status === 3) {
         const hasMx = data.Status === 0 && data.Answer && data.Answer.length > 0;
-        const health = { ...defaultFail, hasMx };
+        const health = { ...defaultFail, hasMx, smtpReason: 'doh_fallback' };
         domainCache.set(cleanDomain, health);
         return health;
       }
@@ -217,6 +221,11 @@ export const verifyEmail = async (
 
   if (!health.hasMx) {
     return { verificationStatus: 'rejected', verificationReason: 'No Mail Exchanger (MX) Configured', subStatus: 'domain_not_found', confidenceScore: 10, bounceRisk: 'High', reputationImpact: 'Negative', mxRecordFound: false, email: cleanEmail };
+  }
+
+  // Handle Native SMTP Result
+  if (health.smtpReason === 'smtp_rejected_user') {
+    return { verificationStatus: 'rejected', verificationReason: 'Hard Bounce: Mailbox Does Not Exist', subStatus: 'invalid_mailbox', confidenceScore: 0, bounceRisk: 'Dangerous', reputationImpact: 'Critical', mxRecordFound: true, smtpValid: false, email: cleanEmail };
   }
 
   const isFreeEmail = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com', 'msn.com', 'live.com'].includes(domain);

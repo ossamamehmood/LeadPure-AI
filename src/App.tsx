@@ -276,15 +276,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white" data-theme={theme}>
-      {/* Premium Background Layering */}
-      <div className="mesh-background" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(90,92,255,0.05),transparent_50%)] pointer-events-none" />
-      
-      <div className="fixed inset-0 pointer-events-none opacity-[0.02] z-[9999] mix-blend-overlay" 
-           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}>
-      </div>
-
+    <div className="flex h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans overflow-hidden relative selection:bg-indigo-500/30" data-theme={theme}>
       <Sidebar currentTab={appState} setTab={setAppState} />
 
       <main className="flex-1 flex flex-col overflow-hidden pb-24 lg:pb-0 relative z-10">

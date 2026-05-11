@@ -1,6 +1,5 @@
 import React from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { GlossyCard } from './ui/GlossyCard';
 import { RuleToggle } from './RuleToggle';
 import { ValidationRules } from '../types';
 
@@ -11,25 +10,22 @@ interface RulesSectionProps {
 
 export function RulesSection({ rules, onToggle }: RulesSectionProps) {
   return (
-    <div className="max-w-5xl mx-auto w-full">
-      <GlossyCard className="p-8 md:p-14 rounded-[48px] shadow-2xl relative overflow-hidden border-white/5">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-blue/5 blur-[120px] rounded-full -mr-64 -mt-64 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-brand-blue/5 blur-[100px] rounded-full -ml-32 -mb-32 pointer-events-none" />
-        
-        <div className="relative z-10 mb-16">
-          <div className="flex items-center gap-6">
-            <div className="w-1.5 h-10 bg-gradient-to-b from-brand-cyan via-brand-blue to-brand-pink rounded-full shadow-[0_0_15px_rgba(90,92,255,0.4)]" />
+    <div className="max-w-5xl mx-auto w-full px-4 sm:px-6">
+      <div className="glass-panel p-8 md:p-12 rounded-3xl relative overflow-hidden">
+        <div className="relative z-10 mb-10">
+          <div className="flex items-center gap-4">
+            <div className="w-1.5 h-8 bg-indigo-500 rounded-full" />
             <div>
-              <h2 className="text-4xl font-black text-app-text uppercase italic tracking-tighter leading-none transition-colors duration-500">Security Protocols</h2>
-              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.5em] mt-3 italic flex items-center gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-pink animate-pulse" />
-                Zero-Bounce Neutralization ACTIVE
+              <h2 className="text-2xl font-semibold text-app-text tracking-tight">Security Protocols</h2>
+              <p className="text-slate-500 text-sm mt-1 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                Zero-Bounce Neutralization Active
               </p>
             </div>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
           <RuleToggle 
             domain="Deliverability"
             title="Real-Time MX Verification" 
@@ -81,21 +77,20 @@ export function RulesSection({ rules, onToggle }: RulesSectionProps) {
           />
         </div>
 
-        <div className="mt-16 p-8 bg-app-card rounded-[32px] border border-app-border relative z-10 backdrop-blur-sm transition-colors duration-500 overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-pink/5 blur-2xl rounded-full -mr-16 -mt-16" />
-          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
-            <div className="bg-brand-pink/10 p-4 rounded-2xl shrink-0 h-fit border border-brand-pink/20">
-              <ShieldCheck className="w-8 h-8 text-brand-pink" />
+        <div className="mt-12 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-border-color relative z-10 transition-colors duration-200">
+          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+            <div className="bg-indigo-50 dark:bg-indigo-500/10 p-3 rounded-xl shrink-0 h-fit border border-indigo-100 dark:border-indigo-500/20">
+              <ShieldCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div className="text-center md:text-left">
-              <p className="font-black text-app-text uppercase tracking-[0.2em] text-sm italic transition-colors duration-500">Military-Grade Encryption Loop Active</p>
-              <p className="text-slate-500 mt-3 leading-relaxed font-medium text-xs max-w-xl">
+              <p className="font-semibold text-app-text text-sm">Enterprise Data Privacy Loop Active</p>
+              <p className="text-slate-500 mt-2 text-sm leading-relaxed max-w-xl">
                 All validation occurs in a stateless secure environment. Zero data persistence protocols ensure your lead lists never exit the temporary processing sandbox.
               </p>
             </div>
           </div>
         </div>
-      </GlossyCard>
+      </div>
     </div>
   );
 } 
