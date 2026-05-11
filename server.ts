@@ -57,7 +57,7 @@ export async function createServer() {
       // Advanced Two-Tier Network Retry Logic with Deterministic Feedback
       const performLookup = async (attempt: number = 1): Promise<{ success: boolean, hasMx: boolean, source: string, records: any[] }> => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000 + (attempt * 2000));
+        const timeoutId = setTimeout(() => controller.abort(), attempt === 1 ? 4000 : 8000);
 
         const fetchOptions = { 
           signal: controller.signal,
@@ -78,8 +78,12 @@ export async function createServer() {
           // Tier 1: Check Google (Primary Source of Truth)
           if (googleRes.status === 'fulfilled' && googleRes.value.ok) {
             const data = await googleRes.value.json() as any;
-            if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
-              return { success: true, hasMx: true, source: 'google', records: data.Answer };
+            if (data.Status === 0) {
+              if (data.Answer && data.Answer.length > 0) {
+                return { success: true, hasMx: true, source: 'google', records: data.Answer };
+              } else {
+                return { success: true, hasMx: false, source: 'google-no-mx', records: [] };
+              }
             } else if (data.Status === 3) { // NXDOMAIN
               return { success: true, hasMx: false, source: 'google-nx', records: [] };
             }
@@ -88,8 +92,12 @@ export async function createServer() {
           // Tier 2: Check Cloudflare (Independent Verification)
           if (cloudflareRes.status === 'fulfilled' && cloudflareRes.value.ok) {
             const data = await cloudflareRes.value.json() as any;
-            if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
-              return { success: true, hasMx: true, source: 'cloudflare', records: data.Answer };
+            if (data.Status === 0) {
+              if (data.Answer && data.Answer.length > 0) {
+                return { success: true, hasMx: true, source: 'cloudflare', records: data.Answer };
+              } else {
+                return { success: true, hasMx: false, source: 'cloudflare-no-mx', records: [] };
+              }
             } else if (data.Status === 3) {
               return { success: true, hasMx: false, source: 'cloudflare-nx', records: [] };
             }
@@ -105,7 +113,7 @@ export async function createServer() {
       const result = await performLookup(1);
       if (!result.success) {
         console.log(`[DNS_API] RETRY_PROTOCOL_TRIGGERED: ${domain_clean}`);
-        await new Promise(r => setTimeout(r, 1000)); 
+        await new Promise(r => setTimeout(r, 500)); 
         const retryResult = await performLookup(2);
         if (retryResult.success) {
            result.success = true;

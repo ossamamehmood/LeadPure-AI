@@ -595,8 +595,7 @@ export const processContacts = async (
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
   const total = preProcessedData.length;
-  // USE SERIAL PROCESSING (BATCH_SIZE = 1) for Absolute Parity Debugging
-  const BATCH_SIZE = 1; 
+  const BATCH_SIZE = 12; // Optimized throughput for Vercel/Serverless while maintaining parity
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
     const end = Math.min(i + BATCH_SIZE, total);
@@ -638,7 +637,7 @@ export const processContacts = async (
     }
 
     // Deterministic Wait: Ensure event loop yield for UI stability
-    await new Promise(resolve => setTimeout(resolve, 5));
+    await new Promise(resolve => setTimeout(resolve, 0));
   }
 
   const finalReport = {
