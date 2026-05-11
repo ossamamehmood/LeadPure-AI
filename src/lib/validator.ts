@@ -278,13 +278,14 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     // 6a. Real mailbox check
     const smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
     
-    // Environment/Timeout Failures -> Graceful Degradation to DNS Heuristics
+    // Environment/Timeout Failures -> Strict UNKNOWN enforcement for 0% Bounce Rate
     if (smtpCheck.timedOut || smtpCheck.code === 0) {
-      smtpValid = false;
-      subStatus = 'smtp_firewall_blocked';
-      // Minor confidence deduction for missing SMTP confirmation, but still allows it to be 'verified'
-      score -= 1;
-      reasons.push('SMTP Firewalled (Vercel) - Trusted DNS Heuristics');
+      return {
+        email: cleanEmail, verificationStatus: 'unknown', verificationReason: 'Validation Timeout: SMTP Port 25 Blocked or Unreachable',
+        subStatus: 'timeout', confidenceScore: 50, bounceRisk: 'Unknown', reputationImpact: 'Unknown',
+        mxRecordFound: true, mxRecord: primaryMx, isCatchAll: false, isDisposable, isRoleBased, isFreeEmail, provider,
+        smtpValid: false, syntaxValid: true
+      };
     } else if (smtpCheck.code === 550) {
       return {
         email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'SMTP RCPT_TO: Mailbox Not Found (Code 550)',

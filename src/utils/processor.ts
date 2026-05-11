@@ -176,9 +176,11 @@ export const processContacts = async (
         
         const isRejected = verificationResult.verificationStatus === 'rejected' || verificationResult.verificationStatus === 'blocked';
         const isRisky = verificationResult.verificationStatus === 'risky';
+        const isUnknown = verificationResult.verificationStatus === 'unknown';
         const isTooRisky = (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous' || verificationResult.bounceRisk === 'Medium');
 
-        if (isRejected || isRisky || isTooRisky) {
+        // STRICT 100% QUALITY MATRIX ENFORCEMENT: Only absolute verified emails pass to valid array.
+        if (isRejected || isRisky || isUnknown || isTooRisky) {
           // Track granular stats
           const subStatus = verificationResult.subStatus || '';
           if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
