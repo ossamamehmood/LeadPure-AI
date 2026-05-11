@@ -440,10 +440,10 @@ export const verifyEmail = async (
   // Final Assessment logic: Absolute Strictness
   let finalStatus: 'verified' | 'risky' | 'rejected' = 'verified';
   
-  // 0% Bounce Policy: Absolute Strictness. 
-  // Any score below 98 is considered risky/rejected to ensure total safety across all providers.
-  if (score < 90) finalStatus = 'rejected';
-  else if (score < 98) finalStatus = 'risky';
+  // 0% Bounce Policy: Absolute Strictness (v6.0 Absolute-Zero)
+  // Any score below 99 is considered risky/rejected to ensure total safety across all providers.
+  if (score < 95) finalStatus = 'rejected';
+  else if (score < 99) finalStatus = 'risky';
 
   return { 
     verificationStatus: finalStatus, 
@@ -486,18 +486,20 @@ const processSingleContact = async (item: any, mappings: any, rules: any, origin
     excludeSpamTraps: rules.excludeSpamTraps
   });
   
-  // Deliverability Wall: Purge anything with High/Dangerous bounce risk
-  const isRejected = ['rejected', 'blocked'].includes(verificationResult.verificationStatus!);
-  const isTooRisky = (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous');
+  // Deliverability Wall: Purge anything that isn't explicitly 99-100% verified (Absolute-Zero Policy)
+  const isRejected = verificationResult.verificationStatus === 'rejected';
+  const isRisky = verificationResult.verificationStatus === 'risky';
+  const isTooRisky = (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous' || verificationResult.bounceRisk === 'Medium');
 
-  if (isRejected || isTooRisky) {
+  if (isRejected || isRisky || isTooRisky) {
     return { 
       eliminated: { 
         ...item, 
         reason: verificationResult.verificationReason,
         score: verificationResult.confidenceScore,
         bounceRisk: verificationResult.bounceRisk,
-        reputationImpact: verificationResult.reputationImpact
+        reputationImpact: verificationResult.reputationImpact,
+        subStatus: verificationResult.subStatus
       } 
     };
   }
@@ -550,7 +552,7 @@ export const processContacts = async (
   const eliminated: any[] = [];
   
   // Statistical Tracking for Debugging & Reliability
-  console.log(`[PROCESSOR_V5.5.0] PROTOCOL_INIT: Ingesting ${data.length} identities.`);
+  console.log(`[PROCESSOR_V6.0.0] PROTOCOL_INIT: Ingesting ${data.length} identities.`);
   
   // Statistical Tracking for Debugging & Reliability (Deterministic Pipeline)
   const stats = {
