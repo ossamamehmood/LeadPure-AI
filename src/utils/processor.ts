@@ -141,7 +141,7 @@ export const processContacts = async (
   const valid: any[] = [];
   const eliminated: any[] = [];
   
-  console.log(`[PROCESSOR_V8.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
+  console.log(`[PROCESSOR_V10.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
   
   const stats = {
     totalInput: data.length,
@@ -154,6 +154,7 @@ export const processContacts = async (
     roleBasedMatch: 0,
     catchAllMatch: 0,
     toxicPatternMatch: 0,
+    greylistedMatch: 0,
     highBounceRisk: 0,
     verifiedLeads: 0
   };
@@ -267,6 +268,7 @@ export const processContacts = async (
           else if (subStatus === 'role_based') stats.roleBasedMatch++;
           else if (subStatus === 'catch_all') stats.catchAllMatch++;
           else if (subStatus === 'toxic') stats.toxicPatternMatch++;
+          else if (subStatus === 'greylisted') stats.greylistedMatch++;
           else if (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous') stats.highBounceRisk++;
 
           eliminated.push({ 

@@ -26,12 +26,12 @@ export default async function handler(req: Request | any, res: Response | any) {
     
     const mergedOptions: ValidationOptions = { ...defaultOptions, ...(options || {}) };
 
-    // Vercel Serverless Function Limit: 10s. We enforce an 8.5s hard timeout.
+    // Vercel Serverless Function Limit: 10s. We enforce an 9.0s hard timeout.
     const startTime = Date.now();
-    const TIMEOUT_MS = 8500;
+    const TIMEOUT_MS = 9000;
 
     const results: ValidationResult[] = [];
-    const MAX_CONCURRENT = 10;
+    const MAX_CONCURRENT = 25; // Boosted for Enterprise scale
     
     // Concurrency Throttle: Prevent Vercel worker from port exhaustion
     for (let i = 0; i < emails.length; i += MAX_CONCURRENT) {

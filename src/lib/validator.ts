@@ -42,25 +42,41 @@ export interface ValidationResult {
 
 // ----------------- DATA SETS -----------------
 const disposableDomains = new Set([
+  // Expanded Enterprise Disposable List
   'temp-mail.org', 'guerrillamail.com', 'mailinator.com', '10minutemail.com', 
   'dispostable.com', 'getnada.com', 'throwawaymail.com', 'maildrop.cc', 
   'yopmail.com', 'trashmail.com', 'tempmail.net', 'temp-mail.io',
   'boun.cr', 'sharklasers.com', 'mail-fake.com', 'fakeinbox.com', 'emailfake.com',
-  'disposable.com', 'spam4.me', 'pwned.com', 'mail-temp.com', '0r.jp'
+  'disposable.com', 'spam4.me', 'pwned.com', 'mail-temp.com', '0r.jp',
+  'mytemp.email', 'tempmailaddress.com', 'generator.email', 'tempemail.co',
+  'minuteinbox.com', 'throwmail.cc', 'temp-mail.org', 'dropmail.me', '10mail.org',
+  'guerrillamail.biz', 'guerrillamail.info', 'guerrillamail.net', 'guerrillamail.org',
+  'spamgourmet.com', 'spambog.com', 'spambog.de', 'spambog.ru', 'discard.email',
+  'disbox.net', 'disbox.org', '10minutemail.net', '10minutemail.co.za', '10minutemail.info',
+  'tempmail.de', 'maildrop.cc', 'yopmail.fr', 'yopmail.net', 'cool.fr.nf',
+  'jetable.org.nf', 'nospam.ze.tc', 'nomail.xl.cx', 'mega.zik.dj', 'speed.1s.fr',
+  'courriel.fr.nf', 'moncourrier.fr.nf', 'monemail.fr.nf', 'monmail.fr.nf'
 ]);
 
 const rolePrefixes = new Set([
+  // Expanded Enterprise Role List
   'admin', 'support', 'info', 'sales', 'hello', 'webmaster', 'jobs', 
   'office', 'contact', 'postmaster', 'no-reply', 'noreply', 'marketing', 'billing',
   'privacy', 'abuse', 'security', 'it', 'manager', 'editor', 'hr', 'careers',
   'dev', 'developer', 'sysadmin', 'root', 'accounting', 'legal', 'finance', 
-  'enquiries', 'press', 'media', 'compliance', 'purchasing', 'help'
+  'enquiries', 'press', 'media', 'compliance', 'purchasing', 'help', 'team',
+  'management', 'exec', 'executive', 'director', 'ceo', 'cto', 'cfo', 'coo',
+  'board', 'investors', 'pr', 'partners', 'affiliates', 'sponsorship', 'inquiries',
+  'frontdesk', 'reception', 'booking', 'reservations', 'events', 'design', 'ux',
+  'web', 'social', 'community', 'engineering', 'qa', 'test', 'testing', 'operations',
+  'facilities', 'maintenance', 'payroll', 'accounts', 'billing', 'invoices', 'ap', 'ar'
 ]);
 
 const freeProviders = new Set([
   'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 
   'aol.com', 'icloud.com', 'msn.com', 'live.com', 'ymail.com',
-  'mac.com', 'me.com'
+  'mac.com', 'me.com', 'protonmail.com', 'pm.me', 'zoho.com', 
+  'mail.com', 'gmx.com', 'yandex.com', 'yandex.ru', 'mail.ru'
 ]);
 
 // ----------------- DOMAIN CACHING -----------------
@@ -202,9 +218,13 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   let score = 100;
   let reasons: string[] = [];
   
-  // 1. Syntax Check
-  const syntaxRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  if (!syntaxRegex.test(cleanEmail)) {
+  // 1. Strict RFC 5322 Syntax Check (v10.0 Enterprise)
+  // Ensures no trailing dots, leading dots, or consecutive dots.
+  const syntaxRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  const hasConsecutiveDots = cleanEmail.includes('..');
+  const hasInvalidDots = cleanEmail.startsWith('.') || cleanEmail.includes('.@') || cleanEmail.endsWith('.');
+  
+  if (!syntaxRegex.test(cleanEmail) || hasConsecutiveDots || hasInvalidDots) {
     return {
       email: cleanEmail,
       verificationStatus: 'blocked',
@@ -355,10 +375,14 @@ export const validateEmailFull = async (email: string, options: ValidationOption
         smtpValid: false, syntaxValid: true
       };
     } else if (smtpCheck.code >= 400 && smtpCheck.code < 500) {
-      smtpValid = false;
-      subStatus = 'rate_limited';
-      score -= 35;
-      reasons.push(`SMTP Soft-Bounce: Greylisted/RateLimited (Code ${smtpCheck.code})`);
+      // Enterprise Greylisting Handling (v10.0)
+      // Top-tier systems return 'unknown' rather than 'rejected' for 4xx temporary delays.
+      return {
+        email: cleanEmail, verificationStatus: 'unknown', verificationReason: `SMTP Greylisted / Temporarily Deferred (Code ${smtpCheck.code})`,
+        subStatus: 'greylisted', confidenceScore: 50, bounceRisk: 'Unknown', reputationImpact: 'Neutral',
+        mxRecordFound: true, mxRecord: primaryMx, isCatchAll: false, isDisposable, isRoleBased, isFreeEmail, provider,
+        smtpValid: false, syntaxValid: true
+      };
     } else if (smtpCheck.success) {
       smtpValid = true;
     }
@@ -398,19 +422,25 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   }
 
   if (isCatchAll) {
-    // Section 15 of README: Catch-all domains MUST be classified as INVALID in strict mode.
-    // To match the 559 lead benchmark, we must treat Catch-all as a hard rejection.
-    return {
-      email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Enterprise Policy: Catch-All Domain Profile Confirmed',
-      subStatus: 'catch_all', confidenceScore: 30, bounceRisk: 'High', reputationImpact: 'Negative',
-      mxRecordFound: true, mxRecord: primaryMx, isCatchAll: true, isDisposable, isRoleBased, isFreeEmail, provider,
-      smtpValid: true, syntaxValid: true
-    };
+    if (options.excludeCatchAll) {
+      return {
+        email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Strict Policy: Catch-All Domain Profile Blocked',
+        subStatus: 'catch_all', confidenceScore: 30, bounceRisk: 'High', reputationImpact: 'Negative',
+        mxRecordFound: true, mxRecord: primaryMx, isCatchAll: true, isDisposable, isRoleBased, isFreeEmail, provider,
+        smtpValid: true, syntaxValid: true
+      };
+    }
+    score -= 40;
+    reasons.push("Catch-All Domain (Risky)");
   }
 
-  // Enhanced Spam Trap Heuristics: Avoid false positives on valid standard name structures
-  const isSuspiciousAlphaNum = /^[a-z]{3,4}[0-9]{3,4}$/.test(localPart) && !/[a-z]+[0-9]{1,2}/.test(localPart);
-  if (localPart.includes('honey') || localPart.includes('trap') || localPart.includes('spam') || isSuspiciousAlphaNum) {
+  // Enterprise Spam Trap Heuristics: Precision filtering
+  const knownToxicPatterns = ['honey', 'trap', 'spam', 'test', 'fake', 'donotreply'];
+  const isSuspiciousAlphaNum = /^[a-z]{1,2}[0-9]{5,}$/.test(localPart); // Extreme numeric randomness like "ab123456" instead of standard "john1990"
+  
+  const hasToxicPattern = knownToxicPatterns.some(p => localPart.includes(p));
+
+  if (hasToxicPattern || isSuspiciousAlphaNum) {
     if (options.excludeSpamTraps) {
       return {
         email: cleanEmail, verificationStatus: 'blocked', verificationReason: 'System Rejected: Honeypot / Spam Trap Probability High',
