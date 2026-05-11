@@ -54,47 +54,48 @@ export async function createServer() {
       let records: any[] = [];
       let source = 'unknown';
 
-      // Advanced Three-Tier Network Retry Logic with Deterministic Feedback
+      // Advanced Quad-Tier Parallel Resolution Engine with Deterministic Feedback
       const performLookup = async (attempt: number = 1): Promise<{ success: boolean, hasMx: boolean, source: string, records: any[] }> => {
         const controller = new AbortController();
-        // Give more time for the network, especially on first attempt
-        const timeoutMs = attempt === 1 ? 8000 : 15000;
+        // Extended timeouts for high-latency serverless environments
+        const timeoutMs = attempt === 1 ? 10000 : 20000;
         const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
         const fetchOptions = { 
           signal: controller.signal,
           headers: { 
             'accept': 'application/dns-json',
-            'user-agent': `LeadPure-Validation-Engine/3.2.1-Attempt-${attempt}`
+            'user-agent': `LeadPure-Validation-Engine/3.2.2-Attempt-${attempt}`
           }
         };
 
         try {
-          // Tier 1 & 2: Parallel DoH (DNS-over-HTTPS)
+          // Parallel execution of multiple DoH providers for maximum availability
           const lookupPromises = [
             fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions).then(async r => {
-              if (!r.ok) throw new Error(`Google HTTP ${r.status}`);
+              if (!r.ok) throw new Error(`G-HTTP-${r.status}`);
               const data = await r.json() as any;
-              if (data.Status === 0) {
-                return { success: true, hasMx: (data.Answer && data.Answer.length > 0), source: 'google', records: data.Answer || [] };
-              } else if (data.Status === 3) {
-                return { success: true, hasMx: false, source: 'google-nx', records: [] };
-              }
-              throw new Error(`Google DNS Status ${data.Status}`);
+              if (data.Status === 0) return { success: true, hasMx: (data.Answer && data.Answer.length > 0), source: 'google', records: data.Answer || [] };
+              if (data.Status === 3) return { success: true, hasMx: false, source: 'google-nx', records: [] };
+              throw new Error(`G-DNS-${data.Status}`);
             }),
             fetch(`https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions).then(async r => {
-              if (!r.ok) throw new Error(`Cloudflare HTTP ${r.status}`);
+              if (!r.ok) throw new Error(`CF-HTTP-${r.status}`);
               const data = await r.json() as any;
-              if (data.Status === 0) {
-                return { success: true, hasMx: (data.Answer && data.Answer.length > 0), source: 'cloudflare', records: data.Answer || [] };
-              } else if (data.Status === 3) {
-                return { success: true, hasMx: false, source: 'cloudflare-nx', records: [] };
-              }
-              throw new Error(`Cloudflare DNS Status ${data.Status}`);
+              if (data.Status === 0) return { success: true, hasMx: (data.Answer && data.Answer.length > 0), source: 'cloudflare', records: data.Answer || [] };
+              if (data.Status === 3) return { success: true, hasMx: false, source: 'cloudflare-nx', records: [] };
+              throw new Error(`CF-DNS-${data.Status}`);
+            }),
+            fetch(`https://dns.quad9.net:5053/dns-query?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions).then(async r => {
+              if (!r.ok) throw new Error(`Q9-HTTP-${r.status}`);
+              const data = await r.json() as any;
+              if (data.Status === 0) return { success: true, hasMx: (data.Answer && data.Answer.length > 0), source: 'quad9', records: data.Answer || [] };
+              if (data.Status === 3) return { success: true, hasMx: false, source: 'quad9-nx', records: [] };
+              throw new Error(`Q9-DNS-${data.Status}`);
             })
           ];
 
-          // Use Promise.any to get the first successful DNS response
+          // Winner takes all: wait for the fastest successful DNS response
           const fastestResponse = await Promise.any(lookupPromises);
           
           clearTimeout(timeoutId);
@@ -102,7 +103,7 @@ export async function createServer() {
         } catch (e) {
           clearTimeout(timeoutId);
           
-          // Tier 3: Native DNS Fallback (Last resort if DoH fails)
+          // Tier 4: Native DNS Direct Resolution (Node.js fallback)
           try {
             const nativeRecords = await resolveMx(domain_clean);
             return { 
@@ -112,20 +113,21 @@ export async function createServer() {
               records: nativeRecords 
             };
           } catch (nativeErr: any) {
-            if (nativeErr.code === 'ENOTFOUND' || nativeErr.code === 'ENODATA') {
-              return { success: true, hasMx: false, source: 'native-dns-nx', records: [] };
+            // Treat ENOTFOUND and ENODATA as successful negative resolutions
+            if (nativeErr.code === 'ENOTFOUND' || nativeErr.code === 'ENODATA' || nativeErr.message?.includes('queryMx ENOTFOUND')) {
+              return { success: true, hasMx: false, source: 'native-nx', records: [] };
             }
-            console.error(`[DNS_API] Tier-3 Fallback Failure for ${domain_clean}:`, nativeErr.message);
+            console.error(`[DNS_API] ALL_TIERS_FAILED for ${domain_clean}:`, nativeErr.message);
             return { success: false, hasMx: false, source: 'error', records: [] };
           }
         }
       };
 
-      // Execute with intelligent retry protocol
+      // Execute with high-stability retry protocol
       let result = await performLookup(1);
       if (!result.success) {
         console.log(`[DNS_API] RETRY_PROTOCOL_TRIGGERED: ${domain_clean}`);
-        await new Promise(r => setTimeout(r, 1000)); 
+        await new Promise(r => setTimeout(r, 1500)); 
         const retryResult = await performLookup(2);
         if (retryResult.success) {
            result = retryResult;
@@ -133,8 +135,8 @@ export async function createServer() {
       }
 
       if (!result.success) {
-        console.error(`[DNS_API] CRITICAL_RESOLUTION_FAILURE: ${domain_clean}. Enforcing deterministic null status.`);
-        result.source = 'engine_error_parity_match';
+        console.error(`[DNS_API] CRITICAL_RESOLUTION_FAILURE: ${domain_clean}.`);
+        result.source = 'engine_parity_error_match';
       }
 
       // Cache result for cross-session consistency within same lambda lifecycle
