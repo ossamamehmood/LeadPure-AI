@@ -196,14 +196,11 @@ export function ResultsDashboard({
             </div>
           </div>
           <div className="flex items-center gap-3 mt-1">
-            <div className="px-4 py-1.5 bg-gradient-to-r from-brand-cyan/20 to-brand-blue/20 text-white text-[10px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30 shadow-[0_0_10px_rgba(90,92,255,0.2)] flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse" />
-              Protected SMTP Mode
-            </div>
+            <p className="text-4xl font-black text-app-text tracking-tighter uppercase italic transition-colors duration-500">Protected</p>
           </div>
           <div className="mt-6 flex items-center justify-between">
-            <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">System Core</p>
-            <div className="px-3 py-1 bg-gradient-to-r from-brand-pink/20 to-brand-purple/20 text-brand-pink text-[8px] font-black rounded-full uppercase tracking-widest border border-brand-pink/20">v9.0 Enterprise Release</div>
+            <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">SMTP Mode</p>
+            <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[8px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30 shadow-[0_0_10px_rgba(90,92,255,0.1)]">v9.0 Enterprise Release</div>
           </div>
         </GlossyCard>
       </div>
