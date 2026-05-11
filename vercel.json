@@ -5,4 +5,3 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
-// Trigger full redeployment to Vercel with new Serverless timeout fix

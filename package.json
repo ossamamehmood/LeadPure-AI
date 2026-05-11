@@ -14,7 +14,6 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@google/genai": "1.29.0",
     "@tailwindcss/vite": "4.1.14",
     "@types/react-window": "1.8.8",
     "@vitejs/plugin-react": "5.0.4",
