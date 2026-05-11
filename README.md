@@ -1,4 +1,4 @@
-# LeadPure-AI Private: Enterprise Email Validation System
+# LeadPure-AI: Enterprise Email Validation System
 
 ## 1. PROJECT OVERVIEW
 LeadPure-AI Private is an AI-powered email verification, validation, and lead cleaning system designed to reduce email bounce rates to near zero for email campaigns and outreach systems. The system processes Excel/CSV lead files and classifies emails based on deliverability risk.
