@@ -1,4 +1,4 @@
-# 📘 LeadPure-AI — Enterprise Email Validation & Bounce Prevention System
+# 📘 LeadPure AI: Enterprise Email Validation & Bounce Prevention System
 
 ---
 
