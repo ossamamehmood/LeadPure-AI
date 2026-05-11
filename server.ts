@@ -72,7 +72,8 @@ export async function createServer() {
           const dohEndpoints = [
             `https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`,
             `https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`,
-            `https://dns.quad9.net:5053/dns-query?name=${encodeURIComponent(domain_clean)}&type=MX`
+            `https://dns.quad9.net:5053/dns-query?name=${encodeURIComponent(domain_clean)}&type=MX`,
+            `https://dns.adguard-dns.com/dns-query?name=${encodeURIComponent(domain_clean)}&type=MX`
           ];
 
           const results = await Promise.allSettled(dohEndpoints.map(url => 

@@ -539,7 +539,7 @@ export const processContacts = async (
   mappings: any,
   rules: any,
   onProgress?: (progress: number) => void
-): Promise<{ valid: any[]; eliminated: any[] }> => {
+): Promise<{ valid: any[]; eliminated: any[]; stats: any }> => {
   const valid: any[] = [];
   const eliminated: any[] = [];
   
@@ -595,7 +595,7 @@ export const processContacts = async (
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
   const total = preProcessedData.length;
-  const BATCH_SIZE = 10; // Optimized for high-precision verifications and zero-drift parity
+  const BATCH_SIZE = 25; // Balanced throughput for speed and consistent parity across environments
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
     const end = Math.min(i + BATCH_SIZE, total);

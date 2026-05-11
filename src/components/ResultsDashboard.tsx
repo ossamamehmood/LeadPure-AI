@@ -13,7 +13,6 @@ interface ResultsDashboardProps {
   onPreview: (data: any[], title: string) => void;
   onDownloadValid: () => void;
   onDownloadEliminated: () => void;
-  onDownloadDebug: () => void;
   stats?: any;
 }
 
@@ -97,7 +96,6 @@ export function ResultsDashboard({
   onPreview,
   onDownloadValid,
   onDownloadEliminated,
-  onDownloadDebug,
   stats
 }: ResultsDashboardProps) {
   const [activeTab, setActiveTab] = useState<'valid' | 'eliminated'>('valid');
