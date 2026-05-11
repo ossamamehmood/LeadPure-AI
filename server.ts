@@ -65,110 +65,58 @@ export async function createServer() {
       let records: any[] = [];
       let source = 'unknown';
 
-      // CONSENSUS ENGINE v6.0: Absolute-Zero (Strict Quorum + Deep Sinkhole Intelligence)
-      const performLookup = async (attempt: number = 1): Promise<{ success: boolean, hasMx: boolean, source: string, records: any[], hasSpf?: boolean }> => {
+      // Fast, deterministic DNS lookup for Vercel
+      const performLookup = async (): Promise<{ success: boolean, hasMx: boolean, source: string, records: any[] }> => {
         const controller = new AbortController();
-        const timeoutMs = attempt === 1 ? 15000 : 30000;
-        const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-        const fetchOptions = { 
-          signal: controller.signal,
-          headers: { 
-            'accept': 'application/dns-json',
-            'user-agent': `LeadPure-Engine/v6.0-StrictQuorum`
-          }
-        };
-
+        const timeoutId = setTimeout(() => controller.abort(), 4000); // 4 seconds max per fetch
+        
+        // 1. Try Native DNS first (Fastest on good VPCs)
         try {
-          const dohEndpoints = [
-            `https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`,
-            `https://cloudflare-dns.com/query?name=${encodeURIComponent(domain_clean)}&type=MX`,
-            `https://dns.quad9.net:5053/dns-query?name=${encodeURIComponent(domain_clean)}&type=MX`,
-            `https://dns.adguard-dns.com/dns-query?name=${encodeURIComponent(domain_clean)}&type=MX`,
-            `https://doh.cleanbrowsing.org/doh/family-filter?name=${encodeURIComponent(domain_clean)}&type=MX`
-          ];
-
-          const results = await Promise.allSettled(dohEndpoints.map(url => 
-            fetch(url, fetchOptions).then(async r => {
-              if (!r.ok) throw new Error(`HTTP-${r.status}`);
-              const data = await r.json() as any;
-              return { 
-                status: data.Status, 
-                hasMx: !!(data.Answer && data.Answer.length > 0), 
-                records: data.Answer || [] 
-              };
-            })
-          ));
-
-          clearTimeout(timeoutId);
-          const successful = results.filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled').map(r => r.value);
-          
-          if (successful.length < 2) throw new Error('QUORUM_INSUFFICIENT');
-
-          // MAJORITY PARITY CHECK: 0% Bounce Policy (Absolute Precision)
-          const positives = successful.filter(s => s.hasMx).length;
-          const nxdomains = successful.filter(s => s.status === 3).length; // NXDOMAIN
-          const noData = successful.filter(s => s.status === 0 && !s.hasMx).length;
-
-          // DETERMINISTIC VALIDATION: Requires at least 2 providers to agree for POSITIVE
-          if (positives >= 2) {
-            const mxRecords = successful.find(s => s.hasMx)?.records || [];
-            if (isKnownSinkhole(mxRecords)) return { success: true, hasMx: false, source: 'strict:sinkhole_mx_intercept', records: [] };
-            return { success: true, hasMx: true, source: `strict_quorum:${positives}/${successful.length}p`, records: mxRecords };
-          }
-
-          // DETERMINISTIC REJECTION: If any 2 providers say NXDOMAIN or No MX, we purge.
-          if (nxdomains >= 1 || noData >= 2) {
-            return { success: true, hasMx: false, source: 'strict_rejection:consensus_dead', records: [] };
-          }
-
-          return { success: true, hasMx: false, source: `strict_fallback:unproven_${successful.length}n`, records: [] };
-        } catch (e: any) {
-          clearTimeout(timeoutId);
-          try {
-            const nativeRecords = await resolveMx(domain_clean);
-            // Even native resolution must pass sinkhole check
-            if (isKnownSinkhole(nativeRecords)) return { success: true, hasMx: false, source: 'native:sinkhole_detected', records: [] };
-            return { success: true, hasMx: nativeRecords && nativeRecords.length > 0, source: 'native-strict', records: nativeRecords };
-          } catch (nativeErr: any) {
-            const errCode = nativeErr.code || '';
-            if (errCode === 'ENOTFOUND' || errCode === 'ENODATA') return { success: true, hasMx: false, source: 'native-nx-strict', records: [] };
-            
-            // DEEP HEURISTIC TRIAGE (A/AAAA Cross-Check)
-            try {
-              const resolveA = promisify(dns.resolve);
-              const aRecords = await resolveA(domain_clean);
-              if (aRecords && aRecords.length > 0) {
-                // Enterprise IP Parking Blacklist
-                const parkingIps = [
-                  '127.0.0.1', '0.0.0.0', '185.230.63.107', '185.230.63.171', '185.230.63.186',
-                  '34.102.136.180', '199.59.243.225', '199.59.243.200', '192.64.119.167',
-                  '192.64.119.190', '185.53.177.30', '185.53.177.31'
-                ];
-                const isParked = aRecords.some(ip => parkingIps.some(p => ip.startsWith(p)));
-                if (isParked) return { success: true, hasMx: false, source: 'heuristic:parked_dead_domain', records: [] };
-                
-                // For 100% precision, we strictly require MX. A fallback is too risky for 0% bounce targets.
-                return { success: true, hasMx: false, source: 'heuristic:missing_mx_strict_policy', records: [] };
-              }
-            } catch (aErr) {}
-            
-            return { success: false, hasMx: false, source: 'error_environmental_drift', records: [] };
-          }
+          const nativeRecords = await resolveMx(domain_clean);
+          if (isKnownSinkhole(nativeRecords)) return { success: true, hasMx: false, source: 'native:sinkhole_detected', records: [] };
+          if (nativeRecords && nativeRecords.length > 0) return { success: true, hasMx: true, source: 'native-strict', records: nativeRecords };
+        } catch (nativeErr: any) {
+          const errCode = nativeErr.code || '';
+          if (errCode === 'ENOTFOUND' || errCode === 'ENODATA') return { success: true, hasMx: false, source: 'native-nx-strict', records: [] };
+          // If timeouts/refused, we fall back to DoH
         }
+
+        // 2. Fallback to DoH (Google)
+        try {
+          const fetchOptions = { 
+            signal: controller.signal,
+            headers: { 'accept': 'application/dns-json' }
+          };
+          const r = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain_clean)}&type=MX`, fetchOptions);
+          if (r.ok) {
+            const data = await r.json() as any;
+            if (data.Status === 0 && data.Answer && data.Answer.length > 0) {
+              if (isKnownSinkhole(data.Answer)) return { success: true, hasMx: false, source: 'doh:sinkhole_mx_intercept', records: [] };
+              return { success: true, hasMx: true, source: 'doh-google', records: data.Answer };
+            }
+            if (data.Status === 3 || (data.Status === 0 && !data.Answer)) {
+              return { success: true, hasMx: false, source: 'doh-nx-strict', records: [] };
+            }
+          }
+        } catch (e) {
+          // DoH failed
+        } finally {
+          clearTimeout(timeoutId);
+        }
+
+        return { success: false, hasMx: false, source: 'error_environmental_drift', records: [] };
       };
 
-      // High-stability execution with multi-stage retry and exponential backoff
-      let result = await performLookup(1);
-      if (!result.success) {
-        await new Promise(r => setTimeout(r, 4000));
-        result = await performLookup(2);
-      }
+      // Ensure we NEVER exceed Vercel 10s timeout (Bound to 8.5s)
+      const resultPromise = performLookup();
+      const timeoutPromise = new Promise<{success: boolean, hasMx: boolean, source: string, records: any[]}>((resolve) => {
+        setTimeout(() => resolve({ success: false, hasMx: false, source: 'engine_timeout_safety', records: [] }), 8500);
+      });
+
+      let result = await Promise.race([resultPromise, timeoutPromise]);
       
       // FINAL ENVIRONMENT SYNC: Absolute Consistency Protocol
       if (!result.success) {
-        // 0% Bounce Policy: If we reach this stage, we CANNOT guarantee deliverability.
-        // We reject the lead to protect sender reputation.
         result = { success: true, hasMx: false, source: 'strict_rejection_safety', records: [] };
       }
 

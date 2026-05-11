@@ -100,36 +100,22 @@ const mxCache = new Map<string, boolean>();
 
 /**
  * Perform a reliable DNS MX check via direct DNS-over-HTTPS (DoH) for maximum consistency across environments.
- * Falls back to server-side proxy if direct client access fails.
+ * Prioritizes Client-Side DoH, falls back to server-side proxy if direct client access fails.
  */
 export const checkMXRecords = async (domain: string): Promise<boolean> => {
   if (mxCache.has(domain)) return mxCache.get(domain)!;
   
   const cleanDomain = domain.toLowerCase().trim().replace(/\.$/, '');
 
-  // Validation Protocol: Server-Side Proxy (Source of Truth) -> Client-Side DoH -> Hardcoded Reputation Fallback
-  
-  // Step 1: Server-Side Proxy (Most Consistent Result)
+  // Step 1: Direct Client-Side DoH (Fastest, avoids Vercel limits)
   try {
-    const response = await fetch(`/api/check-mx?domain=${encodeURIComponent(cleanDomain)}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const response = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=MX`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
     if (response.ok) {
       const data = await response.json();
-      if (data.source !== 'failure') {
-        const hasMx = !!data.hasMx;
-        mxCache.set(cleanDomain, hasMx);
-        return hasMx;
-      }
-    }
-  } catch (error) {
-    console.warn(`[ENGINE] Proxy layer bypassed for ${domain}`);
-  }
-
-  // Step 2: Direct Client-Side DoH 
-  try {
-    const response = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=MX`);
-    if (response.ok) {
-      const data = await response.json();
-      // Only set if we get a definitive Status 0 (No Error) or 3 (NXDOMAIN)
       if (data.Status === 0 || data.Status === 3) {
         const hasMx = data.Status === 0 && data.Answer && data.Answer.length > 0;
         mxCache.set(cleanDomain, hasMx);
@@ -139,12 +125,35 @@ export const checkMXRecords = async (domain: string): Promise<boolean> => {
   } catch (error) {
     console.warn(`[ENGINE] Client DoH failed for ${domain}`);
   }
+
+  // Step 2: Server-Side Proxy (Vercel Backend)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const response = await fetch(`/api/check-mx?domain=${encodeURIComponent(cleanDomain)}`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.source !== 'engine_failure_fallback') {
+        const hasMx = !!data.hasMx;
+        mxCache.set(cleanDomain, hasMx);
+        return hasMx;
+      }
+    }
+  } catch (error) {
+    console.warn(`[ENGINE] Proxy layer bypassed for ${domain}`);
+  }
     
   // Failsafe: Trusted Domain Reputation
   const trustedDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'aol.com', 'me.com', 'mac.com', 'msn.com', 'live.com'];
-  if (trustedDomains.includes(cleanDomain)) return true;
+  if (trustedDomains.includes(cleanDomain)) {
+    mxCache.set(cleanDomain, true);
+    return true;
+  }
   
   // DEFAULT: If all network methods are blocked/failing, we MUST assume risky for 0% bounce policy.
+  mxCache.set(cleanDomain, false);
   return false; 
 };
 
@@ -602,21 +611,48 @@ export const processContacts = async (
 
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
+  // Stage 2: Pre-flight Domain Resolution (Deterministic Networking)
+  const uniqueDomains = new Set<string>();
+  preProcessedData.forEach((item) => {
+    let rawEmail = String(item[mappings.emailKey] || '').toLowerCase().trim();
+    if (rawEmail.includes('@')) {
+      uniqueDomains.add(rawEmail.split('@')[1]);
+    }
+  });
+
+  const domainArray = Array.from(uniqueDomains);
+  console.log(`[PROCESSOR] STAGE_2_PREFLIGHT: Resolving ${domainArray.length} unique domains.`);
+  
+  const DOMAIN_CONCURRENCY = 5;
+  let domainsResolved = 0;
+
+  for (let i = 0; i < domainArray.length; i += DOMAIN_CONCURRENCY) {
+    const end = Math.min(i + DOMAIN_CONCURRENCY, domainArray.length);
+    const batch = domainArray.slice(i, end);
+    await Promise.allSettled(batch.map(d => checkMXRecords(d)));
+    domainsResolved += batch.length;
+    
+    if (onProgress) {
+       onProgress(Math.min(40, Math.round((domainsResolved / domainArray.length) * 40)));
+    }
+    await new Promise(resolve => setTimeout(resolve, 20)); // Event loop yield
+  }
+
+  // Stage 3: Deterministic Data Processing
   const total = preProcessedData.length;
-  const BATCH_SIZE = 12; // Precision-balanced throughput for absolute zero-drift parity
+  const BATCH_SIZE = 50; // Increased batch size since network I/O is pre-cached
 
   for (let i = 0; i < total; i += BATCH_SIZE) {
     const end = Math.min(i + BATCH_SIZE, total);
     const batch = preProcessedData.slice(i, end);
     
-    // Process batch in parallel for efficiency
+    // Process batch synchronously/instantly from cache
     const results = await Promise.all(
       batch.map(async (item, index) => {
         const res = await processSingleContact(item, mappings, rules, i + index);
         
         // Track granular stats for the audit log
         if (res.eliminated) {
-          const reason = res.eliminated.reason?.toLowerCase() || '';
           const subStatus = res.eliminated.subStatus || '';
           
           if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
@@ -641,7 +677,7 @@ export const processContacts = async (
     }
 
     if (onProgress) {
-      onProgress(Math.min(100, Math.round((end / total) * 100)));
+      onProgress(40 + Math.min(60, Math.round((end / total) * 60)));
     }
 
     // Deterministic Wait: Ensure event loop yield for UI stability
