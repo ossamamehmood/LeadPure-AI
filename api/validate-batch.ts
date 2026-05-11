@@ -21,8 +21,7 @@ export default async function handler(req: any, res: any) {
       excludeDisposable: true,
       excludeRoleBased: true,
       excludeCatchAll: true,
-      excludeSpamTraps: true,
-      strictMode: false
+      excludeSpamTraps: true
     };
     
     const mergedOptions = { ...defaultOptions, ...(options || {}) };
@@ -41,16 +40,12 @@ export default async function handler(req: any, res: any) {
             setTimeout(() => {
               resolve({
                 email,
-                status: 'risky',
-                confidence_score: 50,
-                signals: { dns: 'error', mx: false, smtp: 'unknown' },
-                reasons: ['Engine Timeout: Vercel Execution Limit Reached'],
-                score: 50,
-                smtp_status: 'unknown',
-                dns_status: 'error',
                 verificationStatus: 'unknown',
+                verificationReason: 'Engine Timeout: Vercel Execution Limit Reached',
                 subStatus: 'timeout',
+                confidenceScore: 50,
                 bounceRisk: 'Unknown',
+                reputationImpact: 'Unknown',
                 mxRecordFound: false,
                 isCatchAll: false,
                 isDisposable: false,
@@ -58,9 +53,7 @@ export default async function handler(req: any, res: any) {
                 isFreeEmail: false,
                 provider: 'Unknown',
                 smtpValid: false,
-                syntaxValid: true,
-                verificationReason: 'Engine Timeout: Vercel Execution Limit Reached',
-                reputationImpact: 'Neutral'
+                syntaxValid: false
               });
             }, remainingTime);
           });
@@ -69,16 +62,12 @@ export default async function handler(req: any, res: any) {
         } catch (internalErr: any) {
           return {
             email,
-            status: 'risky',
-            confidence_score: 50,
-            signals: { dns: 'error', mx: false, smtp: 'unknown' },
-            reasons: [`Internal Validation Error: ${internalErr.message}`],
-            score: 50,
-            smtp_status: 'unknown',
-            dns_status: 'error',
             verificationStatus: 'unknown',
+            verificationReason: `Internal Validation Error: ${internalErr.message}`,
             subStatus: 'engine_error',
-            bounceRisk: 'Unknown',
+            confidenceScore: 50,
+            bounceRisk: 'Medium',
+            reputationImpact: 'Neutral',
             mxRecordFound: false,
             isCatchAll: false,
             isDisposable: false,
@@ -86,9 +75,7 @@ export default async function handler(req: any, res: any) {
             isFreeEmail: false,
             provider: 'Unknown',
             smtpValid: false,
-            syntaxValid: true,
-            verificationReason: `Internal Validation Error: ${internalErr.message}`,
-            reputationImpact: 'Neutral'
+            syntaxValid: false
           };
         }
       })
