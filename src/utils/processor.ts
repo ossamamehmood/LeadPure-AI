@@ -267,9 +267,9 @@ export const processContacts = async (
     }
   });
 
-  // Stage 2: Stable Batch Processing
-  const BATCH_SIZE = 25; 
-  const CONCURRENT_BATCHES = 2;
+  // Stage 2: Safe Single-Stream Processing
+  const BATCH_SIZE = 5; 
+  const CONCURRENT_BATCHES = 1;
   const batches = [];
   for (let i = 0; i < uniqueItemsToVerify.length; i += BATCH_SIZE) {
     batches.push(uniqueItemsToVerify.slice(i, i + BATCH_SIZE));
@@ -281,18 +281,25 @@ export const processContacts = async (
     if (signal?.aborted) return;
     const emails = chunk.map(item => item.email);
     
+    // FAIL_SAFE: Enforce a strict frontend timeout for the batch
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); 
+
     try {
       const response = await fetch('/api/validate-batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emails, options: rules }),
-        signal
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const { results } = await response.json();
         results.forEach((res: any, idx: number) => {
           const item = chunk[idx];
+          if (!res) return;
+          
           const isSafe = res.verificationStatus === 'safe' || res.verificationStatus === 'verified';
           
           if (res.verificationStatus === 'unknown' || res.subStatus === 'timeout') {
@@ -308,11 +315,12 @@ export const processContacts = async (
             eliminatedResults.set(item.id, { ...res, reason: res.verificationReason });
           }
         });
-      } else {
-        throw new Error(`HTTP ${response.status}`);
       }
     } catch (err) {
+      console.warn('[NETWORK_STALL] Batch failed or timed out. Marking for recovery.');
       chunk.forEach(item => { item.__needsRetry = true; });
+    } finally {
+      clearTimeout(timeoutId);
     }
   };
 
@@ -320,7 +328,7 @@ export const processContacts = async (
     if (signal?.aborted) break;
     const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
     await Promise.all(concurrentChunk.map(b => processBatch(b)));
-    const progressVal = Math.min(95, Math.round(((i + CONCURRENT_BATCHES) / batches.length) * 100));
+    const progressVal = Math.max(1, Math.min(95, Math.round(((i + CONCURRENT_BATCHES) / batches.length) * 100)));
     if (onProgress) onProgress(progressVal);
   }
 
