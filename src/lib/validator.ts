@@ -111,14 +111,22 @@ const parkedIpPatterns = [
 const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
-const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean) => {
-  // ELITE SAFETY PROTOCOL (v10.4): 0% Bounce Rate Enforcement
-  // To be 'safe', a lead MUST have direct SMTP validation OR be a high-trust personal provider.
-  // Catch-alls are NEVER allowed in the 'safe' list as they cannot be 100% verified.
+const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean, provider: string) => {
+  // ELITE SAFETY PROTOCOL (v11.0): Probabilistic Deliverability
+  // A lead is 'safe' if it has:
+  // 1. Successful SMTP handshake + Not a Catch-all
+  // 2. High-trust Free Provider (Gmail/Outlook) + High Score
+  // 3. High-trust Enterprise Infrastructure (Google/MSFT/Mimecast) + High Score + Successful Syntax
   
-  if (score < 40) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
+  const isHighTrustProvider = provider === 'google' || provider === 'microsoft' || provider === 'enterprise_gateway';
   
-  const isEliteVerified = (smtpValid && !isCatchAll) || (isFreeEmail && score >= 90);
+  if (score < 45) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
+  
+  // Deliverability Safety Margin Logic
+  const hasDirectProof = smtpValid && !isCatchAll;
+  const hasInfrastructureTrust = (isFreeEmail || isHighTrustProvider) && score >= 85;
+  
+  const isEliteVerified = hasDirectProof || hasInfrastructureTrust;
   
   if (isEliteVerified && score >= 80) {
     return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
@@ -330,7 +338,15 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     // Pattern-based fingerprinting for Enterprise Infrastructure
     const isGoogle = domain.includes('gmail.com') || mxDomain.includes('google.com') || mxDomain.includes('googlemail.com');
     const isMicrosoft = domain.includes('outlook') || domain.includes('hotmail') || mxDomain.includes('outlook.com') || mxDomain.includes('protection.outlook');
-    const isGateway = mxDomain.includes('mimecast.com') || mxDomain.includes('pphosted.com') || mxDomain.includes('barracudanetworks.com') || mxDomain.includes('sophos.com') || mxDomain.includes('mcsv.net');
+    const isGateway = mxDomain.includes('mimecast.com') || 
+                      mxDomain.includes('pphosted.com') || 
+                      mxDomain.includes('barracudanetworks.com') || 
+                      mxDomain.includes('sophos.com') || 
+                      mxDomain.includes('mcsv.net') ||
+                      mxDomain.includes('trendmicro.com') ||
+                      mxDomain.includes('appriver.com') ||
+                      mxDomain.includes('fireeye.com') ||
+                      mxDomain.includes('messagelabs.com');
 
     if (isGoogle) provider = 'google';
     else if (isMicrosoft) provider = 'microsoft';
@@ -499,7 +515,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     reasons.push("Spam-Trap Behavior Profile");
   }
 
-  const { bounceRisk, reputationImpact, finalStatus } = determineRisk(score, smtpValid, isCatchAll, isFreeEmail);
+  const { bounceRisk, reputationImpact, finalStatus } = determineRisk(score, smtpValid, isCatchAll, isFreeEmail, provider);
 
   const result: ValidationResult = {
     email: cleanEmail,
