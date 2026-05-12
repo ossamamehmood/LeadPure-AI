@@ -49,13 +49,13 @@ export default async function handler(req: Request | any, res: Response | any) {
         chunk.map(async (email: string) => {
           const domain = email.split('@')[1];
           
-          // Domain Staggering: Ensure at least 150ms between hits to the same MX
+          // Domain Staggering: Optimized to 50ms for better throughput vs stealth balance
           const lastHit = domainLastHit.get(domain) || 0;
-          const waitTime = Math.max(0, 150 - (Date.now() - lastHit));
+          const waitTime = Math.max(0, 50 - (Date.now() - lastHit));
           if (waitTime > 0) await new Promise(res => setTimeout(res, waitTime));
           domainLastHit.set(domain, Date.now());
           let attempts = 0;
-          const MAX_ATTEMPTS = 3;
+          const MAX_ATTEMPTS = 2; // Reduced to 2 to allow for Multi-MX fallbacks inside validator.ts
           let lastResult: ValidationResult | null = null;
 
           while (attempts < MAX_ATTEMPTS) {

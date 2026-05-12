@@ -128,10 +128,15 @@ const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, i
   
   const isEliteVerified = hasDirectProof || hasInfrastructureTrust;
   
-  if (isEliteVerified && score >= 80) {
+  if (isEliteVerified && score >= 75) {
     return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
   }
   
+  // Deliverability Safety Margin: Trust enterprise-grade catch-alls with high reputation scores
+  if (isCatchAll && isHighTrustProvider && score >= 90) {
+     return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
+  }
+
   return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
 };
 
@@ -168,7 +173,7 @@ const checkDmarc = async (domain: string): Promise<boolean> => {
 };
 
 // 1. Core SMTP Handshake Logic
-const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = 'verify@leadpure.ai'): Promise<{ success: boolean, code: number, response: string, timedOut: boolean }> => {
+const performSmtpCheck = async (email: string, mxRecord: string, timeoutMs = 4500, senderEmail = 'verify@leadpure.ai'): Promise<{ success: boolean, code: number, response: string, timedOut: boolean }> => {
   return new Promise((resolve) => {
     const socket = new net.Socket();
     let resolved = false;
@@ -179,7 +184,7 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
 
     const timeout = setTimeout(() => {
       cleanup('Connection Timeout', true);
-    }, 5000); // Boosted to 5s for Enterprise Stability
+    }, timeoutMs); 
 
     const cleanup = (reason = '', timedOut = false) => {
       if (resolved) return;
@@ -430,7 +435,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     reasons.push("High-Trust Free Provider Signal");
   } else if (primaryMx) {
     // ELITE_SMTP_REDUNDANCY: Try primary and fall back to secondary MX if needed
-    let smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
+    let smtpCheck = await performSmtpCheck(cleanEmail, primaryMx, 3500); // 3.5s base
     
     // If primary fails with a timeout or transient error, try secondary MX records if we have them
     if (!smtpCheck.success && (smtpCheck.timedOut || smtpCheck.code === 0 || smtpCheck.code >= 400)) {
@@ -438,7 +443,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
         const mxRecords = await resolveMxWithRetry(domain);
         if (mxRecords.length > 1) {
           const secondaryMx = mxRecords.sort((a, b) => a.priority - b.priority)[1].exchange;
-          const retryCheck = await performSmtpCheck(cleanEmail, secondaryMx);
+          const retryCheck = await performSmtpCheck(cleanEmail, secondaryMx, 3000); // 3.0s fallback
           if (retryCheck.success) smtpCheck = retryCheck;
         }
       } catch (e) {}
@@ -471,7 +476,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       
       const hasCatchAllSignature = catchAllSignatures.some(sig => mxLower.includes(sig));
       const randomPrefix = `verify_${Math.random().toString(36).substring(2, 10)}`;
-      const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '');
+      const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '', 3000);
       
       if (catchAllCheck.success || catchAllCheck.timedOut || hasCatchAllSignature) {
         isCatchAll = true;
