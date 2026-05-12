@@ -167,20 +167,15 @@ const getPersistentCache = (): Record<string, any> => {
 const saveToPersistentCache = (email: string, result: any) => {
   if (typeof window === 'undefined') return;
   try {
-    // Only cache definitive results (Safe or Rejected)
-    if (result.verificationStatus === 'unknown' || result.subStatus === 'timeout') return;
-    
     const cache = getPersistentCache();
+    // DETERMINISTIC_LOCK: Cache EVERYTHING to ensure 100% consistency across runs
     cache[email.toLowerCase()] = {
       ...result,
       cachedAt: Date.now()
     };
     
-    // Prune old entries if cache is too large
     const keys = Object.keys(cache);
-    if (keys.length > 20000) {
-      delete cache[keys[0]];
-    }
+    if (keys.length > 30000) delete cache[keys[0]]; // Increased cache depth
     
     localStorage.setItem(PERSISTENT_CACHE_KEY, JSON.stringify(cache));
   } catch (err) {

@@ -20,9 +20,9 @@ We aim to:
 
 ## 🔒 Engine Security
 
-The LeadPure v10 Kernel implements several security hardening measures:
+The LeadPure v12 Enterprise Kernel implements several security hardening measures:
 - **DNS Isolation**: Custom resolvers prevent local DNS poisoning.
-- **Socket Timeouts**: Strict 2.5s timeouts on all SMTP probes to prevent resource exhaustion attacks.
+- **Socket Timeouts**: Strict 3.5s timeouts on all SMTP probes to prevent resource exhaustion attacks.
 - **Payload Scrubbing**: Automatic sanitization of all ingested CSV data to prevent CSV Injection attacks.
 
 ---

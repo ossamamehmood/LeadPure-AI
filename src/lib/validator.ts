@@ -106,7 +106,11 @@ const parkedIpPatterns = [
   '103.224.182.', // Trellian
   '208.73.210.', // Overseas
   '64.190.63.', // Sedo
-  '34.102.136.' // Google Cloud Parked
+  '34.102.136.', // Google Cloud Parked
+  '209.99.64.', // DomainControl
+  '50.63.202.', // GoDaddy Parking
+  '199.59.243.', // NameDrive
+  '103.224.192.' // Bodis
 ];
 const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
@@ -124,17 +128,15 @@ const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, i
   
   // Deliverability Safety Margin Logic
   const hasDirectProof = smtpValid && !isCatchAll;
-  const hasInfrastructureTrust = (isFreeEmail || isHighTrustProvider) && score >= 85;
+  const hasInfrastructureTrust = (isFreeEmail || isHighTrustProvider) && score >= 90; // Higher threshold for probabilistic safety
   
   const isEliteVerified = hasDirectProof || hasInfrastructureTrust;
   
-  if (isEliteVerified && score >= 75) {
+  if (isEliteVerified && score >= 80) {
+    // FINAL_SAFETY_GATE: If it's a catch-all, it can NEVER be 'safe', only 'risky'
+    if (isCatchAll) return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
+    
     return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
-  }
-  
-  // Deliverability Safety Margin: Trust enterprise-grade catch-alls with high reputation scores
-  if (isCatchAll && isHighTrustProvider && score >= 90) {
-     return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
   }
 
   return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
@@ -467,14 +469,16 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     }
 
     if (smtpValid && !isFreeEmail) {
-      // Catch-all Detection Logic (Optimized v10.1)
+      // Catch-all Detection Logic (Optimized v12.1)
       const mxLower = (primaryMx || '').toLowerCase();
       const catchAllSignatures = [
         'mimecast.com', 'pphosted.com', 'outlook.com', 'google.com', 
-        'barracudanetworks.com', 'sophos.com', 'mcsv.net'
+        'barracudanetworks.com', 'sophos.com', 'mcsv.net', 'charter.net',
+        'spectrum.com', 'comcast.net', 'cox.net', 'att.net', 'sbcglobal.net',
+        'verizon.net', 'earthlink.net', 'bellsouth.net', 'centurylink.net'
       ];
       
-      const hasCatchAllSignature = catchAllSignatures.some(sig => mxLower.includes(sig));
+      const hasCatchAllSignature = catchAllSignatures.some(sig => mxLower.includes(sig) || domain.includes(sig));
       const randomPrefix = `verify_${Math.random().toString(36).substring(2, 10)}`;
       const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '', 3000);
       

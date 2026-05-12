@@ -72,41 +72,50 @@ export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customTex
         </div>
 
         {logs && logs.length > 0 && (
-          <div className="mt-8 text-left bg-[#020202] border border-white/5 rounded-2xl overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.8)] group">
-            {/* Terminal Chrome */}
-            <div className="h-8 bg-zinc-900/50 border-b border-white/5 flex items-center justify-between px-5">
-              <div className="flex gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-red-500/20" />
-                <div className="w-2 h-2 rounded-full bg-amber-500/20" />
-                <div className="w-2 h-2 rounded-full bg-emerald-500/20" />
+          <div className="mt-8 text-left bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[32px] overflow-hidden relative shadow-[0_40px_100px_rgba(0,0,0,0.6)] group ring-1 ring-white/5">
+            {/* Terminal Chrome - Modern Minimalist */}
+            <div className="h-12 bg-white/[0.03] border-b border-white/5 flex items-center justify-between px-8">
+              <div className="flex gap-2.5">
+                <div className="w-3 h-3 rounded-full bg-[#FF5F56] shadow-[0_0_10px_rgba(255,95,86,0.3)]" />
+                <div className="w-3 h-3 rounded-full bg-[#FFBD2E] shadow-[0_0_10px_rgba(255,189,46,0.3)]" />
+                <div className="w-3 h-3 rounded-full bg-[#27C93F] shadow-[0_0_10px_rgba(39,201,63,0.3)]" />
               </div>
-              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-600 font-mono">LeadPure v11.5.0 Intelligence Kernel</span>
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500 font-mono">LeadPure v12 Enterprise Intelligence Kernel // Deterministic_Active_Probe</span>
+              </div>
             </div>
             
             {/* Terminal Body */}
-            <div className="relative p-6">
-              {/* Scanline Effect */}
-              <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] z-10 opacity-20" />
+            <div className="relative p-8 min-h-[220px]">
+              {/* Scanline & Grid Effect */}
+              <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[length:100%_4px,20px_20px,20px_20px] z-10 opacity-30" />
               
-              <div className="h-40 overflow-y-auto font-mono text-[10px] leading-relaxed flex flex-col justify-end space-y-2 scrollbar-hide relative z-0">
-                {logs.map((log, idx) => {
+              {/* Radial Glow */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(circle,rgba(90,92,255,0.05)_0%,transparent_70%)] pointer-events-none" />
+
+              <div className="h-48 overflow-y-auto font-mono text-[11px] leading-relaxed flex flex-col justify-end space-y-3 scrollbar-hide relative z-20">
+                {logs.slice(-8).map((log, idx) => {
                   const isSafe = log.includes('SAFE') || log.includes('SECURED');
                   const isDangerous = log.includes('DANGEROUS') || log.includes('REJECTED') || log.includes('FILTERED');
                   
                   return (
                     <motion.div 
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      initial={{ opacity: 0, y: 10, filter: 'blur(5px)' }}
+                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                       key={idx} 
-                      className="flex items-start gap-3"
+                      className="flex items-center gap-4 group/log"
                     >
-                      <span className="text-slate-800 shrink-0 select-none">[{new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+                      <span className="text-slate-700 shrink-0 select-none font-black opacity-40 group-hover/log:opacity-100 transition-opacity">
+                        {new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                      <div className="w-1.5 h-px bg-white/10" />
                       <div 
                         className={cn(
-                          "font-black uppercase tracking-wider transition-all duration-300",
-                          isSafe ? "bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-purple bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(2,254,220,0.3)]" :
-                          isDangerous ? "bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(245,2,253,0.3)]" :
-                          "text-slate-500"
+                          "font-black uppercase tracking-[0.1em] transition-all duration-300 drop-shadow-sm",
+                          isSafe ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent" :
+                          isDangerous ? "text-brand-pink" :
+                          "text-slate-400"
                         )}
                       >
                         {log}
@@ -114,6 +123,9 @@ export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customTex
                     </motion.div>
                   );
                 })}
+                <div className="flex items-center gap-3">
+                  <span className="text-brand-blue animate-pulse">_</span>
+                </div>
               </div>
             </div>
           </div>
