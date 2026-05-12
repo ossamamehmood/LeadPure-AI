@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import * as XLSX from 'xlsx';
-import { AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 // Components
 import { Sidebar } from './components/Sidebar';
@@ -370,23 +370,29 @@ export default function App() {
                 </motion.div>
               )}
             </AnimatePresence>
-            </AnimatePresence>
             
             <div className="mt-20">
               <Footer />
             </div>
           </div>
         </section>
-      </main>
 
-      <MobileNav currentTab={appState} setTab={setAppState} />
+        <MobileNav currentTab={appState} setTab={setAppState} />
+      </main>
 
       <AnimatePresence>
         {isParsing && (
-          <LoadingOverlay progress={10} estimatedSeconds={1} customText="PARSING DATA FILE..." customDescription="Extracting and normalizing identities off-thread..." />
+          <LoadingOverlay 
+            key="parsing-overlay"
+            progress={10} 
+            estimatedSeconds={1} 
+            customText="PARSING DATA FILE..." 
+            customDescription="Extracting and normalizing identities off-thread..." 
+          />
         )}
         {appState === 'processing' && (
           <LoadingOverlay 
+            key="processing-overlay"
             progress={processor.progress} 
             estimatedSeconds={processor.estimatedSeconds} 
             onCancel={processor.cancelProcessing} 
