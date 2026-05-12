@@ -57,12 +57,12 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
               >
                 <GlossyCard 
                   glow="blue" 
-                  className="group hover:border-brand-blue/30 transition-all cursor-pointer p-8 rounded-[40px] border-white/5 bg-app-card relative overflow-hidden"
+                  className="group hover:border-brand-blue/30 transition-all cursor-pointer p-10 rounded-[48px] border-white/5 bg-app-card relative overflow-hidden"
                   onClick={() => loadItem(item)}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/5 blur-3xl pointer-events-none group-hover:bg-brand-blue/10 transition-colors" />
                   
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 relative z-10">
                     <div className="flex items-center gap-6">
                       <div className="w-16 h-16 rounded-[24px] bg-white/[0.03] flex items-center justify-center group-hover:scale-110 group-hover:bg-brand-blue/10 transition-all border border-white/5 shadow-inner">
                         <FileText className="w-7 h-7 text-brand-blue drop-shadow-[0_0_8px_rgba(90,92,255,0.4)]" />
@@ -83,7 +83,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                       </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-12">
+                    <div className="flex flex-col md:flex-row items-center gap-10 lg:gap-16">
                       <div className="text-center md:text-right space-y-1">
                         <div className="flex items-baseline gap-2 justify-center md:justify-end">
                           <span className="text-4xl font-black gradient-text font-mono tracking-tighter italic">
@@ -97,21 +97,21 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                         <p className="text-[9px] text-slate-600 uppercase font-black tracking-[0.3em] italic">Secure Nodes Archived</p>
                       </div>
 
-                      <div className="flex items-center gap-3 w-full md:w-auto">
+                      <div className="flex items-center gap-4 w-full md:w-auto px-1">
                         <button 
                           onClick={(e) => { e.stopPropagation(); downloadItem(item); }}
-                          className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white/[0.03] text-slate-400 hover:text-white hover:bg-brand-blue/20 transition-all border border-white/5 hover:border-brand-blue/30 group/btn"
+                          className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/[0.03] text-slate-400 hover:text-white hover:bg-brand-blue/20 transition-all border border-white/5 hover:border-brand-blue/30 group/btn"
                           title="Download Results"
                         >
                           <Download className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-                          <span className="text-[9px] font-black uppercase tracking-widest">Vault</span>
+                          <span className="text-[9px] font-black uppercase tracking-widest">Export</span>
                         </button>
                         <button 
                           onClick={(e) => { e.stopPropagation(); loadItem(item); }}
-                          className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl gradient-bg text-white text-[9px] font-black uppercase tracking-widest transition-all shadow-xl shadow-brand-blue/20 hover:shadow-[0_0_25px_rgba(90,92,255,0.4)] group/review relative overflow-hidden"
+                          className="flex-1 md:flex-none flex items-center justify-center gap-2 px-10 py-4 rounded-2xl gradient-bg text-white text-[9px] font-black uppercase tracking-widest transition-all shadow-xl shadow-brand-blue/20 hover:shadow-[0_0_25px_rgba(90,92,255,0.4)] group/review relative overflow-hidden"
                         >
                           <div className="absolute inset-0 bg-white/10 opacity-0 group-hover/review:opacity-100 transition-opacity" />
-                          <span className="relative z-10">Sync Data</span>
+                          <span className="relative z-10">Review</span>
                           <ChevronRight className="w-4 h-4 group-hover/review:translate-x-1 transition-transform relative z-10" />
                         </button>
                       </div>
