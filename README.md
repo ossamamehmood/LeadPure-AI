@@ -81,5 +81,5 @@ npm run dev
 
 ---
 
-## ⚖️ License
-Enterprise Proprietary. Built with ⚡ by [Ossama Mehmood](https://ossamamehmood.com)
+## ⚖️ Built & Published
+Built with ⚡ by [Ossama Mehmood](https://ossamamehmood.com)
