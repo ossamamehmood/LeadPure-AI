@@ -197,6 +197,10 @@ export function ResultsDashboard({
           </div>
           <div className="flex items-center gap-3 mt-1">
             <p className="text-4xl font-black text-app-text tracking-tighter uppercase italic transition-colors duration-500">Protected</p>
+            <div className="flex flex-col">
+              <span className="text-[7px] text-brand-blue font-black uppercase tracking-[0.2em] animate-pulse">Neural Core Active</span>
+              <span className="text-[7px] text-zinc-600 font-black uppercase tracking-[0.2em]">High-Precision</span>
+            </div>
           </div>
           <div className="mt-6 flex items-center justify-between">
             <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">SMTP Mode</p>

@@ -69,7 +69,7 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
 };
 
 /**
- * Advanced Email Auto-Correction (v9.0 Engine)
+ * Advanced Email Auto-Correction (v10.0 Engine)
  * Strips spaces, fixes missing @ signs, and corrects common TLD typos.
  */
 export const autoCorrectEmail = (email: string): string => {
@@ -80,25 +80,26 @@ export const autoCorrectEmail = (email: string): string => {
   
   if (!cleaned) return '';
 
-  // 2. Fix missing @ for common consumer domains if they appear as a space or just missing
-  // E.g. "johndoe gmail.com" became "johndoegmail.com" above, but wait, spaces were stripped!
-  // It's better to fix missing @ before stripping spaces if it was "johndoe gmail.com"
-  // Let's do a smarter approach for missing @:
-  
-  // 3. TLD Typo Corrections
+  // 2. TLD Typo Corrections
   const tldTypos: Record<string, string> = {
     '.cm': '.com',
     '.con': '.com',
     '.cpm': '.com',
     '.copm': '.com',
+    '.coom': '.com',
+    '.comm': '.com',
     '.com.com': '.com',
     '.net.net': '.net',
     '.org.org': '.org',
     '.gmial.com': '.gmail.com',
     '.gmal.com': '.gmail.com',
     '.gamil.com': '.gmail.com',
+    '.gmail.co': '.gmail.com',
     '.yahho.com': '.yahoo.com',
-    '.yaho.com': '.yahoo.com'
+    '.yaho.com': '.yahoo.com',
+    '.hotmial.com': '.hotmail.com',
+    '.hotmal.com': '.hotmail.com',
+    '.outlok.com': '.outlook.com'
   };
 
   for (const [typo, fix] of Object.entries(tldTypos)) {
@@ -108,11 +109,13 @@ export const autoCorrectEmail = (email: string): string => {
     }
   }
 
-  // 4. Missing dot before com (e.g. @gmailcom -> @gmail.com)
+  // 3. Missing dot before com (e.g. @gmailcom -> @gmail.com)
   if (cleaned.endsWith('gmailcom')) cleaned = cleaned.replace('gmailcom', 'gmail.com');
   if (cleaned.endsWith('yahoocom')) cleaned = cleaned.replace('yahoocom', 'yahoo.com');
   if (cleaned.endsWith('hotmailcom')) cleaned = cleaned.replace('hotmailcom', 'hotmail.com');
   if (cleaned.endsWith('outlookcom')) cleaned = cleaned.replace('outlookcom', 'outlook.com');
+  if (cleaned.endsWith('aolcom')) cleaned = cleaned.replace('aolcom', 'aol.com');
+  if (cleaned.endsWith('icloudcom')) cleaned = cleaned.replace('icloudcom', 'icloud.com');
 
   // 5. Missing @ sign for major providers (if it just says johndoegmail.com without @)
   const majorProviders = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com'];

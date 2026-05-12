@@ -36,7 +36,7 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
         {appState === 'results' && (
           <button 
             onClick={onDownload}
-            className="px-8 py-3 gradient-bg text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center gap-3 shadow-xl shadow-brand-blue/30 hover:shadow-[0_0_20px_rgba(90,92,255,0.6)] active:scale-95 group"
+            className="px-8 py-3 gradient-bg text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center gap-3 shadow-xl shadow-brand-blue/30 hover:shadow-[0_0_20px_rgba(90,92,255,0.6)] active:scale-95 group animate-shine"
           >
             <Download className="w-4 h-4 group-hover:scale-110 transition-transform" />
             Deploy Cleaned List

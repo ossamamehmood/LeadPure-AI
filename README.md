@@ -117,4 +117,13 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
+## 💎 Support & Connect
+If you find LeadPure AI valuable, consider supporting the project or reaching out for enterprise customizations:
+
+- **Patreon**: [Support on Patreon](https://www.patreon.com/c/ossamamehmood)
+- **Website**: [ossamamehmood.com](https://ossamamehmood.com)
+- **Email**: [hello@ossamamehmood.com](mailto:hello@ossamamehmood.com)
+
+---
+
 **LeadPure AI — Precision Leads. Zero Waste.**
