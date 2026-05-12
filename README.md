@@ -11,7 +11,7 @@ LeadPure AI is an enterprise-grade lead cleaning system designed to achieve a **
 ## 🚀 Key Enterprise Features (v10.0)
 
 ### 1. **High-Fidelity Validation Engine**
-Matched against industry leaders like **ZeroBounce** and **NeverBounce**, our engine performs a multi-layer verification check on every identity:
+Matched against industry leaders, our engine performs a multi-layer verification check on every identity:
 -   **SMTP Handshake Logic**: Direct "knocking" on mail server doors to verify mailbox existence without sending mail.
 -   **Anti-Greylisting Intelligence**: Detects temporary `4xx` deferrals and classifies them as `Unknown (Greylisted)` to prevent false rejections.
 -   **Catch-All Detection**: Sophisticated signature-based and active SMTP checks to identify "Accept-All" domains.
