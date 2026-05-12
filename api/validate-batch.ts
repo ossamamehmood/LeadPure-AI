@@ -46,7 +46,7 @@ export default async function handler(req: Request | any, res: Response | any) {
 
         const domain = cleanEmail.split('@')[1];
         const lastHit = domainLastHit.get(domain) || 0;
-        const waitTime = Math.max(0, 80 - (Date.now() - lastHit)); // Restored stable 80ms stagger
+        const waitTime = Math.max(0, 40 - (Date.now() - lastHit)); // Faster 40ms stagger for 2x speed
         if (waitTime > 0) await new Promise(res => setTimeout(res, waitTime));
         domainLastHit.set(domain, Date.now());
 

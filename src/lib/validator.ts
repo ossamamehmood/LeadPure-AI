@@ -128,13 +128,19 @@ const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, i
   
   // Deliverability Safety Margin Logic
   const hasDirectProof = smtpValid && !isCatchAll;
-  const hasInfrastructureTrust = (isFreeEmail || isHighTrustProvider) && score >= 90; // Higher threshold for probabilistic safety
+  const hasInfrastructureTrust = (isFreeEmail || isHighTrustProvider) && score >= 85; 
   
   const isEliteVerified = hasDirectProof || hasInfrastructureTrust;
   
-  if (isEliteVerified && score >= 80) {
-    // FINAL_SAFETY_GATE: If it's a catch-all, it can NEVER be 'safe', only 'risky'
-    if (isCatchAll) return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
+  if (isEliteVerified && score >= 75) {
+    // FINAL_SAFETY_GATE: Advanced Catch-all Deliverability
+    if (isCatchAll) {
+      // High-trust catch-alls are usable for enterprise outreach
+      if (isHighTrustProvider) {
+        return { bounceRisk: 'Medium' as const, reputationImpact: 'Neutral' as const, finalStatus: 'safe' as const };
+      }
+      return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
+    }
     
     return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
   }
@@ -469,21 +475,20 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     }
 
     if (smtpValid && !isFreeEmail) {
-      // Catch-all Detection Logic (Optimized v12.1)
+      // Catch-all Detection Logic (Optimized v12.2 - Global Domain Lock)
       const mxLower = (primaryMx || '').toLowerCase();
-      const catchAllSignatures = [
-        'mimecast.com', 'pphosted.com', 'outlook.com', 'google.com', 
-        'barracudanetworks.com', 'sophos.com', 'mcsv.net', 'charter.net',
-        'spectrum.com', 'comcast.net', 'cox.net', 'att.net', 'sbcglobal.net',
-        'verizon.net', 'earthlink.net', 'bellsouth.net', 'centurylink.net'
-      ];
       
-      const hasCatchAllSignature = catchAllSignatures.some(sig => mxLower.includes(sig) || domain.includes(sig));
-      const randomPrefix = `verify_${Math.random().toString(36).substring(2, 10)}`;
-      const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '', 3000);
-      
-      if (catchAllCheck.success || catchAllCheck.timedOut || hasCatchAllSignature) {
+      // Fast Signature Check
+      const catchAllSignatures = ['mimecast.com', 'pphosted.com', 'barracudanetworks.com', 'sophos.com'];
+      const hasCatchAllSignature = catchAllSignatures.some(sig => mxLower.includes(sig));
+
+      if (hasCatchAllSignature) {
         isCatchAll = true;
+      } else {
+        // Atomic Domain Probe (Ensures only ONE catch-all check per domain ever)
+        const randomPrefix = `lp_v_${Math.random().toString(36).substring(2, 8)}`;
+        const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '', 2500);
+        if (catchAllCheck.success) isCatchAll = true;
       }
     }
   }
