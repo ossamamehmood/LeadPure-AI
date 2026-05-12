@@ -104,6 +104,17 @@ vercel deploy --prod
 > [!IMPORTANT]
 > **Vercel Port 25 Note**: Since this platform runs in serverless environments, direct Port 25 SMTP connections are firewalled by Vercel. LeadPure AI uses high-precision SPF/DMARC and MX reputation analysis as a failover to guarantee the highest possible data integrity where port connections are blocked.
 
+## 🔒 Security & Compliance
+LeadPure AI v10.0 is built with security as a primary directive.
+- **Dependency Auditing**: Regular scanning for vulnerabilities.
+- **Data Privacy**: All processing is done locally via Web Workers where possible, minimizing server-side data exposure.
+- **Hardened Validation**: Protection against SMTP injection and malicious payload ingestion.
+
+See [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
+
+## 📄 License
+This project is licensed under the [MIT License](LICENSE).
+
 ---
 
 **LeadPure AI — Precision Leads. Zero Waste.**
