@@ -36,13 +36,24 @@ export default async function handler(req: Request | any, res: Response | any) {
     const TIMEOUT_MS = 9000;
 
     const results: ValidationResult[] = [];
-    const MAX_CONCURRENT = 15; // Hardened for absolute consistency
+    const MAX_CONCURRENT = 15;
+    const domainLastHit = new Map<string, number>();
+
+    // ELITE_SHUFFLE: Randomize the verification order to naturally spread domain load
+    const shuffledEmails = [...emails].sort(() => Math.random() - 0.5);
     
     // Concurrency Throttle
-    for (let i = 0; i < emails.length; i += MAX_CONCURRENT) {
-      const chunk = emails.slice(i, i + MAX_CONCURRENT);
+    for (let i = 0; i < shuffledEmails.length; i += MAX_CONCURRENT) {
+      const chunk = shuffledEmails.slice(i, i + MAX_CONCURRENT);
       const chunkResults = await Promise.all(
         chunk.map(async (email: string) => {
+          const domain = email.split('@')[1];
+          
+          // Domain Staggering: Ensure at least 150ms between hits to the same MX
+          const lastHit = domainLastHit.get(domain) || 0;
+          const waitTime = Math.max(0, 150 - (Date.now() - lastHit));
+          if (waitTime > 0) await new Promise(res => setTimeout(res, waitTime));
+          domainLastHit.set(domain, Date.now());
           let attempts = 0;
           const MAX_ATTEMPTS = 3;
           let lastResult: ValidationResult | null = null;

@@ -316,16 +316,43 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   } else {
     // Determine provider intelligence with robust fingerprinting
     isFreeEmail = freeProviders.has(domain);
-    const mxDomain = (primaryMx || '').toLowerCase();
     
+    try {
+      const mxRecords = await resolveMxWithRetry(domain);
+      mxRecordFound = mxRecords && mxRecords.length > 0;
+      if (mxRecordFound) {
+        // Elite Multi-MX Selection
+        const sortedMx = mxRecords.sort((a, b) => a.priority - b.priority);
+        primaryMx = sortedMx[0].exchange;
+        const mxDomain = primaryMx.toLowerCase();
+        
+        // Pattern-based fingerprinting
+        const isGoogle = domain.includes('gmail.com') || mxDomain.includes('google.com') || mxDomain.includes('googlemail.com');
+        const isMicrosoft = domain.includes('outlook') || domain.includes('hotmail') || mxDomain.includes('outlook.com') || mxDomain.includes('protection.outlook');
+        const isGateway = mxDomain.includes('mimecast.com') || 
+                          mxDomain.includes('pphosted.com') || 
+                          mxDomain.includes('barracudanetworks.com') || 
+                          mxDomain.includes('sophos.com') || 
+                          mxDomain.includes('mcsv.net') ||
+                          mxDomain.includes('trendmicro.com') ||
+                          mxDomain.includes('appriver.com') ||
+                          mxDomain.includes('fireeye.com') ||
+                          mxDomain.includes('messagelabs.com');
+
+        if (isGoogle) provider = 'google';
+        else if (isMicrosoft) provider = 'microsoft';
+        else if (isGateway) provider = 'enterprise_gateway';
+      }
+    } catch (e) {
+      mxRecordFound = false;
+    }
+
     // Check for Parked Domain Signature
     let isParked = false;
     try {
       const aRecords = await resolver.resolve4(domain);
-      isParked = aRecords.some(ip => parkedIpPatterns.some(pattern => ip.startsWith(pattern)));
-    } catch (e) {
-      // Ignore DNS errors for A records
-    }
+      isParked = aRecords.some(ip => ip && parkedIpPatterns.some(pattern => String(ip).startsWith(pattern)));
+    } catch (e) {}
 
     if (isParked) {
       return {
@@ -335,28 +362,11 @@ export const validateEmailFull = async (email: string, options: ValidationOption
         smtpValid: false, syntaxValid: true
       };
     }
-    // Pattern-based fingerprinting for Enterprise Infrastructure
-    const isGoogle = domain.includes('gmail.com') || mxDomain.includes('google.com') || mxDomain.includes('googlemail.com');
-    const isMicrosoft = domain.includes('outlook') || domain.includes('hotmail') || mxDomain.includes('outlook.com') || mxDomain.includes('protection.outlook');
-    const isGateway = mxDomain.includes('mimecast.com') || 
-                      mxDomain.includes('pphosted.com') || 
-                      mxDomain.includes('barracudanetworks.com') || 
-                      mxDomain.includes('sophos.com') || 
-                      mxDomain.includes('mcsv.net') ||
-                      mxDomain.includes('trendmicro.com') ||
-                      mxDomain.includes('appriver.com') ||
-                      mxDomain.includes('fireeye.com') ||
-                      mxDomain.includes('messagelabs.com');
-
-    if (isGoogle) provider = 'google';
-    else if (isMicrosoft) provider = 'microsoft';
-    else if (isGateway) provider = 'enterprise_gateway';
 
     // Disposable Check
     isDisposable = disposableDomains.has(domain);
 
     if (mxRecordFound) {
-      // Parallelize DNS queries
       const [spfResult, dmarcResult] = await Promise.all([
         checkSpf(domain),
         checkDmarc(domain)
@@ -419,7 +429,20 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     score += 25;
     reasons.push("High-Trust Free Provider Signal");
   } else if (primaryMx) {
-    const smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
+    // ELITE_SMTP_REDUNDANCY: Try primary and fall back to secondary MX if needed
+    let smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
+    
+    // If primary fails with a timeout or transient error, try secondary MX records if we have them
+    if (!smtpCheck.success && (smtpCheck.timedOut || smtpCheck.code === 0 || smtpCheck.code >= 400)) {
+      try {
+        const mxRecords = await resolveMxWithRetry(domain);
+        if (mxRecords.length > 1) {
+          const secondaryMx = mxRecords.sort((a, b) => a.priority - b.priority)[1].exchange;
+          const retryCheck = await performSmtpCheck(cleanEmail, secondaryMx);
+          if (retryCheck.success) smtpCheck = retryCheck;
+        }
+      } catch (e) {}
+    }
     
     if (smtpCheck.success) {
       score += 25;
