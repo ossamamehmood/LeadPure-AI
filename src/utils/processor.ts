@@ -267,9 +267,9 @@ export const processContacts = async (
     }
   });
 
-  // Stage 2: Safe Single-Stream Processing
-  const BATCH_SIZE = 5; 
-  const CONCURRENT_BATCHES = 1;
+  // Stage 2: High-Granularity Processing
+  const BATCH_SIZE = 25; 
+  const CONCURRENT_BATCHES = 2;
   const batches = [];
   for (let i = 0; i < uniqueItemsToVerify.length; i += BATCH_SIZE) {
     batches.push(uniqueItemsToVerify.slice(i, i + BATCH_SIZE));
@@ -281,9 +281,9 @@ export const processContacts = async (
     if (signal?.aborted) return;
     const emails = chunk.map(item => item.email);
     
-    // FAIL_SAFE: Enforce a strict frontend timeout for the batch
+    // FAIL_SAFE: Enforce a strict 12s timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); 
+    const timeoutId = setTimeout(() => controller.abort(), 12000); 
 
     try {
       const response = await fetch('/api/validate-batch', {
@@ -299,14 +299,11 @@ export const processContacts = async (
         results.forEach((res: any, idx: number) => {
           const item = chunk[idx];
           if (!res) return;
-          
           const isSafe = res.verificationStatus === 'safe' || res.verificationStatus === 'verified';
-          
           if (res.verificationStatus === 'unknown' || res.subStatus === 'timeout') {
             item.__needsRetry = true;
             return;
           }
-
           saveToPersistentCache(item.email, res);
           if (isSafe) {
             stats.verifiedLeads++;
@@ -317,7 +314,6 @@ export const processContacts = async (
         });
       }
     } catch (err) {
-      console.warn('[NETWORK_STALL] Batch failed or timed out. Marking for recovery.');
       chunk.forEach(item => { item.__needsRetry = true; });
     } finally {
       clearTimeout(timeoutId);
@@ -328,7 +324,10 @@ export const processContacts = async (
     if (signal?.aborted) break;
     const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
     await Promise.all(concurrentChunk.map(b => processBatch(b)));
-    const progressVal = Math.max(1, Math.min(95, Math.round(((i + CONCURRENT_BATCHES) / batches.length) * 100)));
+    
+    // PROGRESS_MATH_FIX: Ensure visible movement even on huge files
+    const currentProcessed = i + concurrentChunk.length;
+    const progressVal = Math.max(1, Math.min(95, Math.ceil((currentProcessed / batches.length) * 100)));
     if (onProgress) onProgress(progressVal);
   }
 
