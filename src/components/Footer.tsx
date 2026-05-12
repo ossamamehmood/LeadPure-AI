@@ -36,13 +36,6 @@ export function Footer() {
         </div>
         <span className="text-app-text/10 hidden md:block">|</span>
         <a 
-          href="mailto:hello@ossamamehmood.com" 
-          className="hover:text-app-text transition-colors"
-        >
-          hello@ossamamehmood.com
-        </a>
-        <span className="text-app-text/10 hidden md:block">|</span>
-        <a 
           href="https://ossamamehmood.com" 
           target="_blank" 
           rel="noreferrer" 
