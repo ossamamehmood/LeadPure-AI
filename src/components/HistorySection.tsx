@@ -46,54 +46,75 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
             </p>
           </GlossyCard>
         ) : (
-          <AnimatePresence>
+          <AnimatePresence mode="popLayout">
             {history.map((item, index) => (
               <motion.div
                 key={item.id}
-                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                initial={{ opacity: 0, y: 30, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: index * 0.08, type: 'spring', stiffness: 200, damping: 20 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: index * 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               >
-                <GlossyCard glow="blue" className="group hover:border-brand-blue/30 transition-all cursor-pointer p-6 rounded-[32px]">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex items-start gap-5">
-                      <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 group-hover:bg-brand-blue/10 transition-all border border-white/5">
-                        <FileText className="w-6 h-6 text-brand-blue" />
+                <GlossyCard 
+                  glow="blue" 
+                  className="group hover:border-brand-blue/30 transition-all cursor-pointer p-8 rounded-[40px] border-white/5 bg-app-card relative overflow-hidden"
+                  onClick={() => loadItem(item)}
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/5 blur-3xl pointer-events-none group-hover:bg-brand-blue/10 transition-colors" />
+                  
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+                    <div className="flex items-center gap-6">
+                      <div className="w-16 h-16 rounded-[24px] bg-white/[0.03] flex items-center justify-center group-hover:scale-110 group-hover:bg-brand-blue/10 transition-all border border-white/5 shadow-inner">
+                        <FileText className="w-7 h-7 text-brand-blue drop-shadow-[0_0_8px_rgba(90,92,255,0.4)]" />
                       </div>
-                      <div className="mt-1">
-                        <h4 className="text-white font-black text-sm uppercase tracking-widest line-clamp-1 group-hover:text-brand-blue transition-colors">
+                      <div className="space-y-1.5">
+                        <h4 className="text-white font-black text-lg uppercase tracking-wider line-clamp-1 group-hover:text-brand-blue transition-colors font-mono">
                           {item.fileName}
                         </h4>
-                        <div className="flex items-center gap-4 mt-2">
-                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                            <Clock className="w-3 h-3" />
-                            {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                            <Clock className="w-3 h-3 text-brand-blue" />
+                            {new Date(item.date).toLocaleDateString()}
                           </span>
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-800" />
-                          <span className="text-[10px] text-brand-blue font-black uppercase tracking-widest flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand-blue animate-pulse shadow-[0_0_5px_#5A5CFF]" />
-                            {item.validRows} / {item.totalRows} SECURED
+                          <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
+                            {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); downloadItem(item); }}
-                        className="flex items-center gap-2 px-5 py-3 rounded-full bg-brand-blue/10 text-brand-blue hover:text-white hover:bg-brand-blue transition-all border border-brand-blue/20 hover:border-brand-blue group/btn"
-                        title="Download Results"
-                      >
-                        <Download className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Download</span>
-                      </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); loadItem(item); }}
-                        className="flex items-center gap-2 px-6 py-3 rounded-full gradient-bg text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-brand-blue/30 hover:shadow-[0_0_20px_rgba(90,92,255,0.6)] group/review"
-                      >
-                        Review
-                        <ChevronRight className="w-4 h-4 group-hover/review:translate-x-1 transition-transform" />
-                      </button>
+                    <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-12">
+                      <div className="text-center md:text-right space-y-1">
+                        <div className="flex items-baseline gap-2 justify-center md:justify-end">
+                          <span className="text-4xl font-black gradient-text font-mono tracking-tighter italic">
+                            {item.validRows}
+                          </span>
+                          <span className="text-slate-600 font-black text-sm italic">/</span>
+                          <span className="text-slate-500 font-bold text-xl font-mono tracking-tighter">
+                            {item.totalRows}
+                          </span>
+                        </div>
+                        <p className="text-[9px] text-slate-600 uppercase font-black tracking-[0.3em] italic">Secure Nodes Archived</p>
+                      </div>
+
+                      <div className="flex items-center gap-3 w-full md:w-auto">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); downloadItem(item); }}
+                          className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white/[0.03] text-slate-400 hover:text-white hover:bg-brand-blue/20 transition-all border border-white/5 hover:border-brand-blue/30 group/btn"
+                          title="Download Results"
+                        >
+                          <Download className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                          <span className="text-[9px] font-black uppercase tracking-widest">Vault</span>
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); loadItem(item); }}
+                          className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl gradient-bg text-white text-[9px] font-black uppercase tracking-widest transition-all shadow-xl shadow-brand-blue/20 hover:shadow-[0_0_25px_rgba(90,92,255,0.4)] group/review relative overflow-hidden"
+                        >
+                          <div className="absolute inset-0 bg-white/10 opacity-0 group-hover/review:opacity-100 transition-opacity" />
+                          <span className="relative z-10">Sync Data</span>
+                          <ChevronRight className="w-4 h-4 group-hover/review:translate-x-1 transition-transform relative z-10" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </GlossyCard>
