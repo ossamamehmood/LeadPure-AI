@@ -189,11 +189,7 @@ export default function App() {
       ? processor.eliminatedData 
       : processor.eliminatedData.filter(item => item.status === tier);
 
-    const exportData = filteredData.map(item => ({
-      ...(item.__originalData || item),
-      elimination_reason: item.verificationReason || item.reason || 'Security Protocol',
-      risk_tier: item.status || 'dangerous'
-    }));
+    const exportData = filteredData.map(item => item.__originalData || item);
 
     if (exportData.length === 0) {
       toast(`NO ${tier.toUpperCase()} LEADS FOUND TO EXPORT`, 'info');
@@ -212,15 +208,15 @@ export default function App() {
     const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
     const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
     
-    // Only export original columns as requested (using protected data copy)
-    const exportData = processor.processedData.map(item => item.__originalData || item);
+    // STRICT_COLUMN_INTEGRITY: Only export the exact original columns (but enhanced/cleaned)
+    const exportData = processor.processedData.map(item => item.__enhancedData || item.__originalData || item);
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Cleaned Leads');
     
     XLSX.writeFile(workbook, `${baseName}_Cleaned${extension}`);
-    toast('EXPORT COMPLETE: CLEANED LIST READY', 'success');
+    toast('EXPORT COMPLETE: ORIGINAL STRUCTURE PRESERVED', 'success');
   };
 
   const openPreview = (data: ContactData[], title: string) => {

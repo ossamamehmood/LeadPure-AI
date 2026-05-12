@@ -49,7 +49,9 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
   }, [data, deferredSearchTerm]);
 
   const itemContent = React.useCallback((index: number) => {
-    return <MemoizedPreviewRow row={filteredData[index]} headers={headers} />;
+    const row = filteredData[index];
+    const displayRow = row?.__originalData || row;
+    return <MemoizedPreviewRow row={displayRow} headers={headers} />;
   }, [filteredData, headers]);
 
   return (
