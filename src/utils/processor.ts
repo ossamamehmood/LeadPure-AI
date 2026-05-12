@@ -45,7 +45,7 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
   if (raw.startsWith('+')) {
     try {
       const parsed = parsePhoneNumberWithError(raw);
-      formatted = parsed.formatInternational();
+      formatted = parsed.format('E164');
     } catch {
       formatted = '+' + cleaned;
     }
@@ -53,7 +53,7 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
     try {
       const countryCode = (country?.toUpperCase().slice(0, 2) || 'US') as CountryCode;
       const parsed = parsePhoneNumberWithError(cleaned, countryCode);
-      formatted = parsed.formatInternational();
+      formatted = parsed.format('E164');
     } catch {
       if (cleaned.startsWith('00')) {
         formatted = '+' + cleaned.slice(2);
@@ -63,12 +63,15 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
     }
   }
 
+  // Final cleanup to ensure absolutely NO spaces or special characters in the identity string
+  formatted = formatted.replace(/[\s\(\)\-\.]/g, '');
+
   if (forcePlus && !formatted.startsWith('+')) {
     formatted = '+' + formatted.replace(/\D/g, '');
   }
 
   phoneCache.set(cacheKey, formatted);
-  if (phoneCache.size > 10000) phoneCache.clear(); // Prevents memory leak in browser memory
+  if (phoneCache.size > 10000) phoneCache.clear();
 
   return formatted;
 };
