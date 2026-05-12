@@ -73,19 +73,18 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
             (contact.confidenceScore || 0) >= 86 ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/20' : 
-            (contact.confidenceScore || 0) >= 61 ? 'bg-blue-400/10 text-blue-400' : 
+            (contact.confidenceScore || 0) >= 65 ? 'bg-blue-400/10 text-blue-400' : 
             (contact.confidenceScore || 0) >= 31 ? 'bg-amber-400/10 text-amber-400' : 'bg-brand-pink/10 text-brand-pink'
           }`}>
             {contact.confidenceScore}% Confidence
           </span>
-          {contact.subStatus && (
-            <span className="text-[8px] font-black uppercase tracking-widest bg-app-bg text-app-text/50 px-2 py-0.5 rounded-md border border-app-border uppercase transition-colors duration-500">
-              {contact.subStatus}
-            </span>
-          )}
+          <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{contact.verificationStatus === 'safe' ? 'Verified Safe' : contact.verificationStatus}</span>
         </div>
-        <p className="text-[10px] text-app-text/60 font-black uppercase tracking-widest italic truncate transition-colors duration-500">
-          {contact.verificationReason || contact.reason || 'Verified Identity Profile'}
+        <p className="text-[9px] font-black bg-gradient-to-r from-slate-400 to-slate-500 bg-clip-text text-transparent uppercase tracking-wider line-clamp-1 italic">
+          {contact.provider === 'google' ? 'Google Cloud Intelligence: Trusted Identity' : 
+           contact.provider === 'microsoft' ? 'Microsoft 365 Security: Verified Profile' :
+           contact.provider === 'enterprise_gateway' ? 'Enterprise Gateway: High Deliverability' :
+           (contact.verificationReason || contact.reason || 'Verified Identity Profile')}
         </p>
       </div>
     </div>

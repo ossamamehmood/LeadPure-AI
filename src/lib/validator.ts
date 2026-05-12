@@ -102,10 +102,9 @@ const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
 const determineRisk = (score: number) => {
-  // Score System: 0-30 Dangerous, 31-60 Risky, 61-85 Usable, 86-100 Safe
-  if (score <= 30) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
-  if (score <= 60) return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
-  if (score <= 85) return { bounceRisk: 'Medium' as const, reputationImpact: 'Neutral' as const, finalStatus: 'usable' as const };
+  // Enterprise Weighted Scoring (v10.1): 0-29 Dangerous, 30-64 Risky, 65-100 Safe
+  if (score < 30) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
+  if (score < 65) return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
   return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
 };
 
@@ -244,9 +243,8 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     return emailCache.get(cleanEmail)!;
   }
 
-  // Base Score Matrix
-  // Free emails are inherently high deliverability but not guaranteed active without SMTP.
-  let score = 100;
+  // ENTERPRISE WEIGHTED SCORING MATRIX (v10.1)
+  let score = 0;
   let reasons: string[] = [];
   
   // 1. Strict RFC 5322 Syntax Check (v10.0 Enterprise)
@@ -299,31 +297,23 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     hasSpf = cachedDomain.hasSpf;
     hasDmarc = cachedDomain.hasDmarc;
   } else {
-    // Determine provider
+    // Determine provider intelligence
     isFreeEmail = freeProviders.has(domain);
-    if (domain.includes('gmail.com')) provider = 'google';
-    else if (domain.includes('yahoo') || domain.includes('ymail')) provider = 'yahoo';
-    else if (domain.includes('outlook') || domain.includes('hotmail') || domain.includes('live')) provider = 'microsoft';
+    const mxDomain = (primaryMx || '').toLowerCase();
+    
+    if (domain.includes('gmail.com') || mxDomain.includes('google.com') || mxDomain.includes('googlemail.com')) {
+      provider = 'google';
+    } else if (domain.includes('outlook') || domain.includes('hotmail') || mxDomain.includes('outlook.com')) {
+      provider = 'microsoft';
+    } else if (mxDomain.includes('mimecast.com') || mxDomain.includes('pphosted.com') || mxDomain.includes('barracudanetworks.com')) {
+      provider = 'enterprise_gateway';
+    }
 
     // Disposable Check
     isDisposable = disposableDomains.has(domain);
 
-    // DNS Audit
-    try {
-      const mxRecords = await resolveMxWithRetry(domain);
-      if (mxRecords && mxRecords.length > 0) {
-        mxRecords.sort((a, b) => a.priority - b.priority);
-        primaryMx = mxRecords[0].exchange;
-        mxRecordFound = true;
-      } else {
-        mxRecordFound = false;
-      }
-    } catch {
-      mxRecordFound = false;
-    }
-
     if (mxRecordFound) {
-      // Parallelize DNS queries for massive speed boost (saves 100-300ms per row)
+      // Parallelize DNS queries
       const [spfResult, dmarcResult] = await Promise.all([
         checkSpf(domain),
         checkDmarc(domain)
@@ -333,47 +323,37 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     }
   }
 
-  if (isDisposable) {
-    if (options.excludeDisposable) {
-      return {
-        email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Policy Block: Disposable Mail Provider',
-        subStatus: 'disposable', confidenceScore: 0, bounceRisk: 'Dangerous', reputationImpact: 'Critical',
-        mxRecordFound, isCatchAll, isDisposable: true, isRoleBased: false, isFreeEmail, provider,
-        smtpValid: false, syntaxValid: true
-      };
-    }
-    score -= 85;
-    reasons.push("Disposable Provider Flag");
-  }
-
-  if (!mxRecordFound) {
+  // --- WEIGHTED POINT ACCUMULATION ---
+  if (mxRecordFound) {
+    score += 30; // Base MX health
+    reasons.push("MX Infrastructure Active");
+  } else {
     return {
-      email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Engine Rejected: Dead Domain (No MX Records)',
+      email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Dead Domain: No MX Records Detected',
       subStatus: 'domain_not_found', confidenceScore: 0, bounceRisk: 'Dangerous', reputationImpact: 'Critical',
       mxRecordFound: false, isCatchAll: false, isDisposable, isRoleBased: false, isFreeEmail, provider,
       smtpValid: false, syntaxValid: true
     };
   }
 
-  // If Free Email (Gmail, Yahoo, Outlook), set base score to 95 since we bypass SMTP
-  if (isFreeEmail) {
-    score = 95;
-    reasons.push('Trusted Provider (High Deliverability)');
+  if (hasSpf) { score += 15; reasons.push("SPF Authenticated"); }
+  if (hasDmarc) { score += 10; reasons.push("DMARC Policy Active"); }
+  
+  if (provider === 'google' || provider === 'microsoft' || provider === 'enterprise_gateway') {
+    score += 20;
+    reasons.push("Trusted Enterprise Infrastructure");
+  }
+
+  if (isDisposable) {
+    score -= 100;
+    reasons.push("Disposable Mail Provider Filtered");
   }
 
   // Role-based Check
   const isRoleBased = rolePrefixes.has(localPart);
   if (isRoleBased) {
-    if (options.excludeRoleBased) {
-      return {
-        email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Protocol Filter: Role-Based Identity Purge',
-        subStatus: 'role_based', confidenceScore: 15, bounceRisk: 'Medium', reputationImpact: 'Neutral',
-        mxRecordFound: true, isCatchAll, isDisposable, isRoleBased: true, isFreeEmail, provider,
-        smtpValid: true, syntaxValid: true
-      };
-    }
-    score -= 35;
-    reasons.push("Generic Role Identity");
+    score -= 15;
+    reasons.push("Non-Individual Role Identity");
   }
 
   // 6. SMTP Handshake Check
@@ -382,63 +362,42 @@ export const validateEmailFull = async (email: string, options: ValidationOption
 
   const skipSmtp = isFreeEmail;
   
-  if (!skipSmtp && primaryMx) {
+  if (skipSmtp) {
+    score += 25;
+    reasons.push("High-Trust Free Provider Signal");
+  } else if (primaryMx) {
     const smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
     
-    if (smtpCheck.timedOut || smtpCheck.code === 0) {
-      smtpValid = false;
-      subStatus = 'smtp_firewall_blocked';
-      
-      // Intelligent Domain Confidence Fallback if SMTP is blocked
-      let fallbackScore = 20;
-      let reason = 'Engine Blocked: Port 25 Firewall. No Security Records.';
-      
-      if (hasSpf && hasDmarc) {
-        fallbackScore = 80;
-        reason = 'Engine Blocked: Fallback to Strong DNS Confidence (SPF+DMARC)';
-      } else if (hasSpf) {
-        fallbackScore = 55;
-        reason = 'Engine Blocked: Weak DNS Confidence (SPF Only)';
-      }
-      
-      score = Math.min(score, fallbackScore);
-      reasons.push(reason);
-
+    if (smtpCheck.success) {
+      score += 25;
+      reasons.push("SMTP Verification Success");
+      smtpValid = true;
     } else if (smtpCheck.code === 550) {
       return {
-        email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'SMTP RCPT_TO: Mailbox Not Found (Code 550)',
+        email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Critical Fail: Mailbox Does Not Exist (Code 550)',
         subStatus: 'mailbox_not_found', confidenceScore: 0, bounceRisk: 'Dangerous', reputationImpact: 'Critical',
         mxRecordFound: true, mxRecord: primaryMx, isCatchAll: false, isDisposable, isRoleBased, isFreeEmail, provider,
         smtpValid: false, syntaxValid: true
       };
-    } else if (smtpCheck.code >= 400 && smtpCheck.code < 500) {
-      // Enterprise Greylisting Handling (v10.0)
-      // Top-tier systems return 'unknown' rather than 'rejected' for 4xx temporary delays.
-      return {
-        email: cleanEmail, verificationStatus: 'unknown', verificationReason: `SMTP Greylisted / Temporarily Deferred (Code ${smtpCheck.code})`,
-        subStatus: 'greylisted', confidenceScore: 50, bounceRisk: 'Unknown', reputationImpact: 'Neutral',
-        mxRecordFound: true, mxRecord: primaryMx, isCatchAll: false, isDisposable, isRoleBased, isFreeEmail, provider,
-        smtpValid: false, syntaxValid: true
-      };
-    } else if (smtpCheck.success) {
-      smtpValid = true;
+    } else if (smtpCheck.timedOut || smtpCheck.code === 0 || (smtpCheck.code >= 400 && smtpCheck.code < 500)) {
+      smtpValid = false;
+      subStatus = smtpCheck.timedOut ? 'timeout' : 'greylisted';
+      reasons.push("SMTP Inconclusive (Probing Suppressed by Firewall)");
     }
 
-    if (smtpValid && !isFreeEmail && !cachedDomain) {
-      // 1. Signature-based Catch-all Detection (Zero Port 25 required)
+    if (smtpValid && !isFreeEmail) {
+      // Catch-all Detection Logic (Optimized v10.1)
       const mxLower = (primaryMx || '').toLowerCase();
       const catchAllSignatures = [
         'mimecast.com', 'pphosted.com', 'outlook.com', 'google.com', 
-        'barracudanetworks.com', 'sophos.com', 'mcsv.net', 'message-point.com'
+        'barracudanetworks.com', 'sophos.com', 'mcsv.net'
       ];
       
       const hasCatchAllSignature = catchAllSignatures.some(sig => mxLower.includes(sig));
-      
-      // 2. Active SMTP Catch-all Check (Fallback if Port 25 is somehow open)
       const randomPrefix = `verify_${Math.random().toString(36).substring(2, 10)}`;
       const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '');
       
-      if (catchAllCheck.success || (hasCatchAllSignature && !isFreeEmail)) {
+      if (catchAllCheck.success || hasCatchAllSignature) {
         isCatchAll = true;
       }
     }
@@ -459,13 +418,8 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   }
 
   if (isCatchAll) {
-    if (options.excludeCatchAll) {
-      score -= 25; // Downgrade score dynamically instead of rejecting completely
-      reasons.push("Strict Policy: Catch-All Domain Profile (Downgraded)");
-    } else {
-      score -= 25;
-      reasons.push("Catch-All Domain (Risky)");
-    }
+    score -= 15;
+    reasons.push("Catch-All Domain Signature Detected");
   }
 
   // Enterprise Spam Trap Heuristics: Precision filtering
