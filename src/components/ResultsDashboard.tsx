@@ -197,14 +197,10 @@ export function ResultsDashboard({
           </div>
           <div className="flex items-center gap-3 mt-1">
             <p className="text-4xl font-black text-app-text tracking-tighter uppercase italic transition-colors duration-500">Protected</p>
-            <div className="flex flex-col">
-              <span className="text-[7px] text-brand-blue font-black uppercase tracking-[0.2em] animate-pulse">Neural Core Active</span>
-              <span className="text-[7px] text-zinc-600 font-black uppercase tracking-[0.2em]">High-Precision</span>
-            </div>
           </div>
           <div className="mt-6 flex items-center justify-between">
             <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">SMTP Mode</p>
-            <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[8px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30 shadow-[0_0_10px_rgba(90,92,255,0.1)]">v10.0 Enterprise Release</div>
+            <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[8px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30 shadow-[0_0_10px_rgba(90,92,255,0.1)]">v10.0 Release</div>
           </div>
         </GlossyCard>
       </div>
