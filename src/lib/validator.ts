@@ -171,7 +171,10 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
       // Connected!
     });
 
-    socket.on('data', (data) => {
+    // Human-like delay to prevent tarpitting
+    const humanDelay = async () => new Promise(res => setTimeout(res, Math.floor(Math.random() * 50) + 20));
+
+    socket.on('data', async (data) => {
       const response = data.toString();
       responseData += response;
       const lines = response.split('\n').filter(l => l.trim().length > 0);
@@ -181,15 +184,19 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
 
       if (currentStep === 0 && code === 220) {
         currentStep++;
+        await humanDelay();
         socket.write(`EHLO leadpure.ai\r\n`);
       } else if (currentStep === 1 && code === 250) {
         currentStep++;
+        await humanDelay();
         socket.write(`MAIL FROM:<${senderEmail}>\r\n`);
       } else if (currentStep === 2 && code === 250) {
         currentStep++;
+        await humanDelay();
         socket.write(`RCPT TO:<${email}>\r\n`);
       } else if (currentStep === 3) {
         smtpCode = code;
+        await humanDelay();
         socket.write('QUIT\r\n');
       } else if (currentStep === 4 || code === 221) {
         if (!resolved) {
