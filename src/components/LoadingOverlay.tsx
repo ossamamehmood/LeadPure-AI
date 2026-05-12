@@ -75,12 +75,25 @@ export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customTex
             <div className="absolute top-0 left-0 right-0 h-6 bg-white/5 border-b border-white/5 flex items-center px-4">
               <span className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">Live Engine Terminal</span>
             </div>
-            <div className="mt-4 h-32 overflow-y-auto font-mono text-[9px] leading-relaxed flex flex-col justify-end space-y-1">
-              {logs.map((log, idx) => (
-                <div key={idx} className={log.includes('SAFE') || log.includes('SECURED') ? 'text-brand-blue' : log.includes('DANGEROUS') || log.includes('REJECTED') ? 'text-brand-pink' : 'text-slate-400'}>
-                  {log}
-                </div>
-              ))}
+            <div className="mt-4 h-32 overflow-y-auto font-mono text-[9px] leading-relaxed flex flex-col justify-end space-y-1 scrollbar-hide">
+              {logs.map((log, idx) => {
+                const isSafe = log.includes('SAFE') || log.includes('SECURED');
+                const isDangerous = log.includes('DANGEROUS') || log.includes('REJECTED') || log.includes('FILTERED');
+                
+                return (
+                  <div 
+                    key={idx} 
+                    className={cn(
+                      "font-black uppercase tracking-wider",
+                      isSafe ? "bg-gradient-to-r from-[#02FEDC] to-[#5A5CFF] bg-clip-text text-transparent" :
+                      isDangerous ? "bg-gradient-to-r from-[#F502FD] to-[#5A5CFF] bg-clip-text text-transparent" :
+                      "text-slate-500"
+                    )}
+                  >
+                    {log}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

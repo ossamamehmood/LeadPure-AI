@@ -261,11 +261,11 @@ export const processContacts = async (
         const item = items[idx];
         
         const status = verificationResult.verificationStatus;
-        const isDangerousOrRisky = status === 'dangerous' || status === 'risky';
+        const isSafe = status === 'safe' || status === 'verified';
 
-        // STRICT 100% QUALITY MATRIX ENFORCEMENT
-        // 'safe' and 'usable' leads are kept. 'risky' and 'dangerous' leads are eliminated.
-        if (isDangerousOrRisky) {
+        // STRICT 100% QUALITY MATRIX ENFORCEMENT: Only 'safe' leads allowed for 0% bounce rate goal.
+        // 'usable', 'risky', and 'dangerous' leads are now eliminated to ensure maximum deliverability.
+        if (!isSafe) {
           // Track granular stats
           const subStatus = verificationResult.subStatus || '';
           if (subStatus === 'invalid_syntax') stats.invalidSyntax++;

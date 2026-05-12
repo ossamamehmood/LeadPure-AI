@@ -187,7 +187,12 @@ export function ResultsDashboard({
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-5xl font-black text-app-text font-mono tracking-tighter italic transition-colors duration-500">{avgConfidence}<span className="text-2xl">%</span></p>
+            <p className={cn(
+              "text-5xl font-black font-mono tracking-tighter italic transition-colors duration-500",
+              avgConfidence >= 98 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent" : "text-app-text"
+            )}>
+              {avgConfidence}<span className="text-2xl">%</span>
+            </p>
           </div>
           <div className="text-[10px] text-slate-600 mt-6 uppercase font-black tracking-[0.2em] italic leading-none flex items-center gap-2">
             <div className="w-1 h-1 rounded-full bg-slate-800" />
