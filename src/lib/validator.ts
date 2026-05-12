@@ -536,14 +536,11 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     syntaxValid: true
   };
 
-  // ELITE CACHE POLICY: Only persist definitive results.
-  // Never cache 'unknown' or 'timeout' results to ensure consistency across runs.
-  const isDefinitive = result.verificationStatus !== 'unknown' && result.subStatus !== 'timeout' && result.subStatus !== 'engine_error';
+  // SESSION LOCK POLICY: Persist all results to ensure UI consistency.
+  // We cache even unknown/timeouts, but the processor will attempt a second pass.
+  emailCache.set(cleanEmail, result);
   
-  if (isDefinitive) {
-    emailCache.set(cleanEmail, result);
-    if (emailCache.size > 20000) emailCache.clear();
-  }
+  if (emailCache.size > 30000) emailCache.clear();
 
   return result;
 };
