@@ -79,6 +79,9 @@ const freeProviders = new Set([
   'mail.com', 'gmx.com', 'yandex.com', 'yandex.ru', 'mail.ru'
 ]);
 
+const toxicTlds = new Set(['.top', '.xyz', '.work', '.biz', '.buzz', '.loan', '.icu', '.gdn', '.monster', '.bid', '.date', '.party', '.win']);
+const trustTlds = new Set(['.com', '.org', '.net', '.edu', '.gov', '.io', '.ai', '.co', '.de', '.uk', '.ca', '.fr', '.au', '.ch']);
+
 // ----------------- DOMAIN & EMAIL CACHING -----------------
 interface DomainCacheEntry {
   mxRecordFound: boolean;
@@ -325,7 +328,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     }
   }
 
-  // --- WEIGHTED POINT ACCUMULATION (v10.2 Optimized) ---
+  // --- WEIGHTED POINT ACCUMULATION (v10.3 Advanced) ---
   if (mxRecordFound) {
     score += 40; // Core infrastructure foundation
     reasons.push("MX Infrastructure Active");
@@ -336,6 +339,16 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       mxRecordFound: false, isCatchAll: false, isDisposable, isRoleBased: false, isFreeEmail, provider,
       smtpValid: false, syntaxValid: true
     };
+  }
+
+  // TLD Reputation Analysis
+  const tld = domain.substring(domain.lastIndexOf('.'));
+  if (trustTlds.has(tld)) {
+    score += 10;
+    reasons.push("High-Trust TLD Reputation");
+  } else if (toxicTlds.has(tld)) {
+    score -= 30;
+    reasons.push("Low-Trust/Toxic TLD Signature");
   }
 
   if (hasSpf) { score += 15; reasons.push("SPF Authenticated"); }
@@ -420,13 +433,30 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   }
 
   if (isCatchAll) {
-    score -= 10;
-    reasons.push("Catch-All Configuration Detected");
+    // Advanced Catch-All Behavior: Corporate Catch-alls are safer than random ones
+    if (provider === 'google' || provider === 'microsoft') {
+      score -= 5; // Minimal penalty for high-trust corporate catch-alls
+      reasons.push("Enterprise Catch-All Configuration (Reduced Risk)");
+    } else {
+      score -= 15;
+      reasons.push("Catch-All Domain Configuration Detected");
+    }
   }
 
   if (isRoleBased) {
     score -= 10;
     reasons.push("Professional Role Identity");
+  }
+
+  // Identity Pattern Analysis: Detection of "Professional" vs "Randomized" identities
+  const hasDigit = /\d/.test(localPart);
+  const isProfessionalPattern = localPart.includes('.') || localPart.includes('_');
+  if (isProfessionalPattern && !hasDigit) {
+    score += 5;
+    reasons.push("Professional Identity Signature");
+  } else if (localPart.length > 15 && !isProfessionalPattern) {
+    score -= 10;
+    reasons.push("Irregular Identity Structure");
   }
 
   // Enterprise Spam Trap Heuristics: Precision filtering
