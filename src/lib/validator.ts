@@ -101,6 +101,13 @@ const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 // ----------------- STATIC ENGINE PATTERNS -----------------
 const syntaxRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 const knownToxicPatterns = ['honey', 'trap', 'spam', 'test', 'fake', 'donotreply'];
+const parkedIpPatterns = [
+  '184.168.', // GoDaddy
+  '103.224.182.', // Trellian
+  '208.73.210.', // Overseas
+  '64.190.63.', // Sedo
+  '34.102.136.' // Google Cloud Parked
+];
 const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
@@ -155,96 +162,86 @@ const checkDmarc = async (domain: string): Promise<boolean> => {
 // 1. Core SMTP Handshake Logic
 const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = 'verify@leadpure.ai'): Promise<{ success: boolean, code: number, response: string, timedOut: boolean }> => {
   return new Promise((resolve) => {
+    const socket = new net.Socket();
     let resolved = false;
     let currentStep = 0;
     let responseData = '';
     let smtpCode = 0;
+    let retried = false;
 
-    const socket = new net.Socket();
     const timeout = setTimeout(() => {
-      if (!resolved) {
-        resolved = true;
-        socket.destroy();
-        resolve({ success: false, code: 0, response: 'Connection Timeout', timedOut: true });
-      }
-    }, 2500); // 2.5s strict timeout to protect Vercel's global 8.5s limit
+      cleanup('Connection Timeout', true);
+    }, 2500);
 
-    socket.setTimeout(2500); // OS-level TCP timeout
-    socket.on('timeout', () => {
-      if (!resolved) {
-        resolved = true;
-        clearTimeout(timeout);
-        socket.destroy();
-        resolve({ success: false, code: 0, response: 'TCP Socket Timeout', timedOut: true });
+    const cleanup = (reason = '', timedOut = false) => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timeout);
+      socket.removeAllListeners();
+      socket.destroy();
+      if (reason) {
+        resolve({ success: false, code: 0, response: reason, timedOut });
       }
-    });
+    };
 
-    socket.connect(25, mxRecord, () => {
-      // Connected!
-    });
+    socket.setTimeout(2500);
+    socket.on('timeout', () => cleanup('TCP Socket Timeout', true));
+    socket.on('error', (err) => cleanup(err.message));
 
     // Human-like delay to prevent tarpitting
     const humanDelay = async () => new Promise(res => setTimeout(res, Math.floor(Math.random() * 50) + 20));
-    let retried = false;
+
+    socket.connect(25, mxRecord, () => {
+      // Step 0: Wait for 220
+    });
 
     socket.on('data', async (data) => {
       const response = data.toString();
       responseData += response;
       const lines = response.split('\n').filter(l => l.trim().length > 0);
-      if (lines.length === 0) return; // Prevent empty line crash
+      if (lines.length === 0) return;
       const lastLine = lines[lines.length - 1];
       const code = parseInt(lastLine.substring(0, 3), 10);
 
-      if (currentStep === 0 && code === 220) {
-        currentStep++;
-        await humanDelay();
-        socket.write(`EHLO leadpure.ai\r\n`);
-      } else if (currentStep === 1 && code === 250) {
-        currentStep++;
-        await humanDelay();
-        socket.write(`MAIL FROM:<${senderEmail}>\r\n`);
-      } else if (currentStep === 2 && code === 250) {
-        currentStep++;
-        await humanDelay();
-        socket.write(`RCPT TO:<${email}>\r\n`);
-      } else if (currentStep === 3) {
-        // Greylisting Micro-Retry (v10.0 Enterprise)
-        if (code >= 400 && code < 500 && !retried) {
-          retried = true;
-          await new Promise(res => setTimeout(res, 800)); // 800ms backoff
+      try {
+        if (currentStep === 0 && code === 220) {
+          currentStep++;
+          await humanDelay();
+          socket.write(`EHLO leadpure.ai\r\n`);
+        } else if (currentStep === 1 && code === 250) {
+          currentStep++;
+          await humanDelay();
+          socket.write(`MAIL FROM:<${senderEmail}>\r\n`);
+        } else if (currentStep === 2 && code === 250) {
+          currentStep++;
+          await humanDelay();
           socket.write(`RCPT TO:<${email}>\r\n`);
-          return; // Stay at step 3 to catch the retry response
-        }
-        
-        smtpCode = code;
-        currentStep++; // Advance to step 4 so QUIT response is caught properly
-        await humanDelay();
-        socket.write('QUIT\r\n');
-      } else if (currentStep === 4 || code === 221) {
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(timeout);
-          socket.destroy();
-          resolve({ success: smtpCode === 250 || smtpCode === 251, code: smtpCode, response: responseData, timedOut: false });
-        }
-      } else if (code >= 400) {
-        if (!resolved) {
-          resolved = true;
-          clearTimeout(timeout);
-          socket.destroy();
+        } else if (currentStep === 3) {
+          if (code >= 400 && code < 500 && !retried) {
+            retried = true;
+            await new Promise(res => setTimeout(res, 800));
+            socket.write(`RCPT TO:<${email}>\r\n`);
+            return;
+          }
+          
+          smtpCode = code;
+          currentStep++;
+          await humanDelay();
+          socket.write('QUIT\r\n');
+        } else if (currentStep === 4 || code === 221) {
+          const success = smtpCode === 250 || smtpCode === 251;
+          cleanup();
+          resolve({ success, code: smtpCode, response: responseData, timedOut: false });
+        } else if (code >= 400) {
+          cleanup();
           resolve({ success: false, code, response: lastLine, timedOut: false });
         }
+      } catch (e) {
+        cleanup('Execution Error');
       }
     });
 
-    socket.on('error', (err) => {
-      if (!resolved) {
-        resolved = true;
-        clearTimeout(timeout);
-        socket.destroy();
-        resolve({ success: false, code: 0, response: err.message, timedOut: false });
-      }
-    });
+    socket.connect(25, mxRecord);
   });
 };
 
@@ -313,6 +310,23 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     isFreeEmail = freeProviders.has(domain);
     const mxDomain = (primaryMx || '').toLowerCase();
     
+    // Check for Parked Domain Signature
+    let isParked = false;
+    try {
+      const aRecords = await resolver.resolve4(domain);
+      isParked = aRecords.some(ip => parkedIpPatterns.some(pattern => ip.startsWith(pattern)));
+    } catch (e) {
+      // Ignore DNS errors for A records
+    }
+
+    if (isParked) {
+      return {
+        email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Suspicious Domain: Parked / Under Construction',
+        subStatus: 'parked', confidenceScore: 0, bounceRisk: 'High', reputationImpact: 'Negative',
+        mxRecordFound: true, mxRecord: primaryMx, isCatchAll: false, isDisposable: false, isRoleBased: false, isFreeEmail: false, provider: 'none',
+        smtpValid: false, syntaxValid: true
+      };
+    }
     // Pattern-based fingerprinting for Enterprise Infrastructure
     const isGoogle = domain.includes('gmail.com') || mxDomain.includes('google.com') || mxDomain.includes('googlemail.com');
     const isMicrosoft = domain.includes('outlook') || domain.includes('hotmail') || mxDomain.includes('outlook.com') || mxDomain.includes('protection.outlook');

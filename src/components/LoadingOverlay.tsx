@@ -72,29 +72,49 @@ export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customTex
         </div>
 
         {logs && logs.length > 0 && (
-          <div className="mt-8 text-left bg-[#0A0A0A] border border-white/10 rounded-xl p-4 overflow-hidden relative shadow-2xl">
-            <div className="absolute top-0 left-0 right-0 h-6 bg-white/5 border-b border-white/5 flex items-center px-4">
-              <span className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">Live Engine Terminal</span>
+          <div className="mt-8 text-left bg-[#020202] border border-white/5 rounded-2xl overflow-hidden relative shadow-[0_0_50px_rgba(0,0,0,0.8)] group">
+            {/* Terminal Chrome */}
+            <div className="h-8 bg-zinc-900/50 border-b border-white/5 flex items-center justify-between px-5">
+              <div className="flex gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-red-500/20" />
+                <div className="w-2 h-2 rounded-full bg-amber-500/20" />
+                <div className="w-2 h-2 rounded-full bg-emerald-500/20" />
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-600 font-mono">LeadPure v10 Secure Kernel</span>
             </div>
-            <div className="mt-4 h-32 overflow-y-auto font-mono text-[9px] leading-relaxed flex flex-col justify-end space-y-1 scrollbar-hide">
-              {logs.map((log, idx) => {
-                const isSafe = log.includes('SAFE') || log.includes('SECURED');
-                const isDangerous = log.includes('DANGEROUS') || log.includes('REJECTED') || log.includes('FILTERED');
-                
-                return (
-                  <div 
-                    key={idx} 
-                    className={cn(
-                      "font-black uppercase tracking-wider",
-                      isSafe ? "bg-gradient-to-r from-[#02FEDC] to-[#5A5CFF] bg-clip-text text-transparent" :
-                      isDangerous ? "bg-gradient-to-r from-[#F502FD] to-[#5A5CFF] bg-clip-text text-transparent" :
-                      "text-slate-500"
-                    )}
-                  >
-                    {log}
-                  </div>
-                );
-              })}
+            
+            {/* Terminal Body */}
+            <div className="relative p-6">
+              {/* Scanline Effect */}
+              <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] bg-[length:100%_2px,3px_100%] z-10 opacity-20" />
+              
+              <div className="h-40 overflow-y-auto font-mono text-[10px] leading-relaxed flex flex-col justify-end space-y-2 scrollbar-hide relative z-0">
+                {logs.map((log, idx) => {
+                  const isSafe = log.includes('SAFE') || log.includes('SECURED');
+                  const isDangerous = log.includes('DANGEROUS') || log.includes('REJECTED') || log.includes('FILTERED');
+                  
+                  return (
+                    <motion.div 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      key={idx} 
+                      className="flex items-start gap-3"
+                    >
+                      <span className="text-slate-800 shrink-0 select-none">[{new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+                      <div 
+                        className={cn(
+                          "font-black uppercase tracking-wider transition-all duration-300",
+                          isSafe ? "bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-purple bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(2,254,220,0.3)]" :
+                          isDangerous ? "bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(245,2,253,0.3)]" :
+                          "text-slate-500"
+                        )}
+                      >
+                        {log}
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}

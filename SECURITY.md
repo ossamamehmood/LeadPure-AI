@@ -1,41 +1,30 @@
-# Security Policy
+# 🛡️ Security Policy
 
-## Supported Versions
+## Responsible Disclosure
 
-Only the latest version of LeadPure AI (currently v10.0 Enterprise) is supported with security updates.
+At LeadPure AI, the security of our users' data and our infrastructure is our highest priority. If you believe you have found a security vulnerability, we encourage you to report it to us immediately through the appropriate channels.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 10.0.x  | :white_check_mark: |
-| < 10.0  | :x:                |
+### 🚩 Reporting a Vulnerability
+Please do not open a public issue for security-related items. Instead, email our security team at **security@leadpure.ai**.
 
-## Reporting a Vulnerability
+We aim to:
+- Acknowledge receipt of your report within 24 hours.
+- Provide an estimated timeframe for a fix.
+- Notify you once the vulnerability has been patched.
 
-We take the security of LeadPure AI seriously. If you believe you have found a security vulnerability, please report it to us immediately.
+## 🛠️ Best Practices for Users
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+1.  **Lead Data Handling**: LeadPure AI processes data in-memory. Always ensure your CSV/Excel files are handled over encrypted (HTTPS) connections.
+2.  **API Security**: If deploying an API layer for LeadPure, always implement strict rate-limiting and JWT-based authentication.
+3.  **Local Execution**: When running locally, ensure your environment variables are secured and not committed to version control.
 
-Instead, please send an email to hello@ossamamehmood.com with the following details:
--   Type of issue (e.g., buffer overflow, SQL injection, cross-site scripting, etc.)
--   Full paths of source file(s) related to the manifestation of the issue
--   The location of the affected source code (tag/branch/commit or direct URL)
--   Any special configuration required to reproduce the issue
--   Step-by-step instructions to reproduce the issue
--   Proof-of-concept or exploit code (if possible)
--   Impact of the issue, including how an attacker might exploit the issue
+## 🔒 Engine Security
 
-We prefer all communications to be in English.
+The LeadPure v10 Kernel implements several security hardening measures:
+- **DNS Isolation**: Custom resolvers prevent local DNS poisoning.
+- **Socket Timeouts**: Strict 2.5s timeouts on all SMTP probes to prevent resource exhaustion attacks.
+- **Payload Scrubbing**: Automatic sanitization of all ingested CSV data to prevent CSV Injection attacks.
 
-## Our Response
+---
 
-After we receive your report:
--   We will acknowledge receipt of your report within 48 hours.
--   We will send a status update every 7 days until the issue is resolved.
--   We will provide an estimated timeframe for a fix.
--   We will notify you once the vulnerability has been patched.
-
-## Third-Party Dependencies
-
-LeadPure AI relies on several third-party libraries. We monitor these dependencies for known vulnerabilities using tools like `npm audit` and `Snyk`. 
-
-**Note on SheetJS (xlsx):** As of v10.0, we have moved to the official SheetJS CDN distribution to ensure protection against known Prototype Pollution and ReDoS vulnerabilities found in the legacy npm versions.
+*Thank you for helping keep LeadPure AI secure.*
