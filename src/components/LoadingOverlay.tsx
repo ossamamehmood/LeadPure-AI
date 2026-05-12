@@ -71,60 +71,75 @@ export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customTex
           />
         </div>
 
-        {logs && logs.length > 0 && (
-          <div className="mt-8 text-left bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[32px] overflow-hidden relative shadow-[0_40px_100px_rgba(0,0,0,0.6)] group ring-1 ring-white/5">
-            {/* Terminal Chrome - Modern Minimalist */}
-            <div className="h-12 bg-white/[0.03] border-b border-white/5 flex items-center justify-between px-8">
-              <div className="flex gap-2.5">
-                <div className="w-3 h-3 rounded-full bg-[#FF5F56] shadow-[0_0_10px_rgba(255,95,86,0.3)]" />
-                <div className="w-3 h-3 rounded-full bg-[#FFBD2E] shadow-[0_0_10px_rgba(255,189,46,0.3)]" />
-                <div className="w-3 h-3 rounded-full bg-[#27C93F] shadow-[0_0_10px_rgba(39,201,63,0.3)]" />
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
-                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500 font-mono">LeadPure v12 Enterprise Intelligence Kernel // Deterministic_Active_Probe</span>
-              </div>
-            </div>
-            
-            {/* Terminal Body */}
-            <div className="relative p-8 min-h-[220px]">
-              {/* Scanline & Grid Effect */}
-              <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[length:100%_4px,20px_20px,20px_20px] z-10 opacity-30" />
+        {logs && (
+          <div className="max-w-2xl w-full mx-auto mt-20 relative group">
+            {/* Terminal Container with Glassmorphism */}
+            <div className="relative rounded-[32px] overflow-hidden border border-white/10 bg-black/40 backdrop-blur-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.6)] transition-all duration-700 group-hover:border-white/20">
               
-              {/* Radial Glow */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[radial-gradient(circle,rgba(90,92,255,0.05)_0%,transparent_70%)] pointer-events-none" />
+              {/* Premium Terminal Header */}
+              <div className="px-8 py-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-[#FF5F57] shadow-[0_0_15px_rgba(255,95,87,0.4)]" />
+                    <div className="w-3 h-3 rounded-full bg-[#FEB12E] shadow-[0_0_15px_rgba(254,177,46,0.4)]" />
+                    <div className="w-3 h-3 rounded-full bg-[#28C840] shadow-[0_0_15px_rgba(40,200,64,0.4)]" />
+                  </div>
+                  <div className="h-4 w-px bg-white/10 mx-2" />
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink bg-clip-text text-transparent font-mono animate-gradient-x">
+                      LeadPure v12.0 // Deterministic_Active_Probe
+                    </span>
+                  </div>
+                </div>
+                <div className="px-3 py-1 rounded-lg bg-white/5 border border-white/10 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-brand-cyan animate-pulse shadow-[0_0_8px_rgba(2,254,220,0.5)]" />
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-mono">Kernel_Live</span>
+                </div>
+              </div>
+              
+              {/* Terminal Body */}
+              <div className="relative p-8 min-h-[260px] max-h-[340px] overflow-hidden">
+                {/* CRT Scanline & Grid Effect */}
+                <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.05)_50%),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[length:100%_2px,30px_30px,30px_30px] z-10 opacity-40" />
+                
+                {/* Interior Glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-[radial-gradient(circle,rgba(90,92,255,0.03)_0%,transparent_70%)] pointer-events-none" />
 
-              <div className="h-48 overflow-y-auto font-mono text-[11px] leading-relaxed flex flex-col justify-end space-y-3 scrollbar-hide relative z-20">
-                {logs.slice(-8).map((log, idx) => {
-                  const isSafe = log.includes('SAFE') || log.includes('SECURED');
-                  const isDangerous = log.includes('DANGEROUS') || log.includes('REJECTED') || log.includes('FILTERED');
-                  
-                  return (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10, filter: 'blur(5px)' }}
-                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                      key={idx} 
-                      className="flex items-center gap-4 group/log"
-                    >
-                      <span className="text-slate-700 shrink-0 select-none font-black opacity-40 group-hover/log:opacity-100 transition-opacity">
-                        {new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                      </span>
-                      <div className="w-1.5 h-px bg-white/10" />
-                      <div 
-                        className={cn(
-                          "font-black uppercase tracking-[0.1em] transition-all duration-300 drop-shadow-sm",
-                          isSafe ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent" :
-                          isDangerous ? "text-brand-pink" :
-                          "text-slate-400"
-                        )}
+                <div className="h-full overflow-y-auto font-mono text-[10px] sm:text-[11px] leading-relaxed flex flex-col space-y-3.5 scrollbar-hide relative z-20">
+                  {logs && logs.slice(-12).map((log, idx) => {
+                    const isSafe = log.includes('SAFE') || log.includes('SECURED');
+                    const isDangerous = log.includes('DANGEROUS') || log.includes('REJECTED') || log.includes('FILTERED');
+                    const isSystem = log.includes('[PROTOCOL]') || log.includes('[ENGINE]');
+                    
+                    return (
+                      <motion.div 
+                        initial={{ opacity: 0, x: -10, filter: 'blur(10px)' }}
+                        animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                        key={idx} 
+                        className="flex items-start gap-5 group/log"
                       >
-                        {log}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-                <div className="flex items-center gap-3">
-                  <span className="text-brand-blue animate-pulse">_</span>
+                        <span className="text-zinc-600 shrink-0 select-none font-black opacity-40 group-hover/log:opacity-100 transition-opacity whitespace-nowrap">
+                          {new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                        <div className="flex-1">
+                          <span 
+                            className={cn(
+                              "font-black tracking-wider uppercase drop-shadow-md",
+                              isSafe ? "text-[#02FEDC] shadow-[#02FEDC]/20" :
+                              isDangerous ? "text-[#F502FD] shadow-[#F502FD]/20" :
+                              isSystem ? "text-brand-blue" :
+                              "text-slate-400"
+                            )}
+                          >
+                            {log}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                  <div className="flex items-center gap-3 pt-2">
+                    <span className="text-brand-cyan animate-pulse font-black">_</span>
+                  </div>
                 </div>
               </div>
             </div>

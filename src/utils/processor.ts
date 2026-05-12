@@ -267,9 +267,9 @@ export const processContacts = async (
     }
   });
 
-  // Stage 2: Batch Processing
-  const BATCH_SIZE = 40;
-  const CONCURRENT_BATCHES = 2;
+  // Stage 2: Batch Processing (Optimized for High-Frequency Updates)
+  const BATCH_SIZE = 10; 
+  const CONCURRENT_BATCHES = 4;
   const batches = [];
   for (let i = 0; i < uniqueItemsToVerify.length; i += BATCH_SIZE) {
     batches.push(uniqueItemsToVerify.slice(i, i + BATCH_SIZE));

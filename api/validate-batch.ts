@@ -25,8 +25,8 @@ export default async function handler(req: Request | any, res: Response | any) {
     };
 
     const startTime = Date.now();
-    const TIMEOUT_MS = 9000;
-    const MAX_CONCURRENT = 10; // Slightly lower for higher stability
+    const TIMEOUT_MS = 9500; // Increased for extra safety
+    const MAX_CONCURRENT = 15; // Higher concurrency for smaller batches
     const domainLastHit = new Map<string, number>();
 
     // DETERMINISM_LOCK: We process in the EXACT order provided to guarantee identical timing patterns
@@ -46,7 +46,7 @@ export default async function handler(req: Request | any, res: Response | any) {
 
         const domain = cleanEmail.split('@')[1];
         const lastHit = domainLastHit.get(domain) || 0;
-        const waitTime = Math.max(0, 80 - (Date.now() - lastHit)); // More conservative 80ms for stability
+        const waitTime = Math.max(0, 25 - (Date.now() - lastHit)); // Faster 25ms stagger
         if (waitTime > 0) await new Promise(res => setTimeout(res, waitTime));
         domainLastHit.set(domain, Date.now());
 
