@@ -7,6 +7,11 @@ export default async function handler(req: Request | any, res: Response | any) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  // Enterprise Security Headers
+  res.setHeader('X-LeadPure-Version', 'v10.5.5');
+  res.setHeader('X-LeadPure-Kernel', 'Elite-SMTP-v10.5');
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+
   try {
     // Safely parse body
     const body = req.body || {};

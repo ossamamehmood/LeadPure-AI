@@ -27,7 +27,7 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
         <div className="hidden md:flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
           <span className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5 text-slate-400">
             <span className="w-1.5 h-1.5 rounded-full gradient-bg shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
-            v10.0 Enterprise Release
+            v10.5.5 Enterprise Release
           </span>
         </div>
       </div>

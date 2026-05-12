@@ -18,8 +18,15 @@ export const cleanText = (text: string | any, applyTitleCase: boolean = true): s
     if (normalizationMap[lower]) return normalizationMap[lower];
 
     cleaned = lower.replace(/\w\S*/g, (txt) => {
+      // Handle double-barreled names and special suffixes
       if (txt.includes('-')) {
         return txt.replace(/(?:^|-)[a-z]/g, match => match.toUpperCase());
+      }
+      // Handle Irish/Scottish names (O', Mc, Mac)
+      if (/^(O'|Mc|Mac)/i.test(txt)) {
+        if (txt.toLowerCase().startsWith("mc")) return "Mc" + txt.charAt(2).toUpperCase() + txt.slice(3);
+        if (txt.toLowerCase().startsWith("mac")) return "Mac" + txt.charAt(3).toUpperCase() + txt.slice(4);
+        if (txt.toLowerCase().startsWith("o'")) return "O'" + txt.charAt(2).toUpperCase() + txt.slice(3);
       }
       return txt.charAt(0).toUpperCase() + txt.slice(1);
     });

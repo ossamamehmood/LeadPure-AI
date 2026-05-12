@@ -76,11 +76,11 @@ const freeProviders = new Set([
   'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 
   'aol.com', 'icloud.com', 'msn.com', 'live.com', 'ymail.com',
   'mac.com', 'me.com', 'protonmail.com', 'pm.me', 'zoho.com', 
-  'mail.com', 'gmx.com', 'yandex.com', 'yandex.ru', 'mail.ru'
+  'mail.com', 'gmx.com', 'yandex.com', 'yandex.ru', 'mail.ru', 'tutanota.com', 'fastmail.com'
 ]);
 
-const toxicTlds = new Set(['.top', '.xyz', '.work', '.biz', '.buzz', '.loan', '.icu', '.gdn', '.monster', '.bid', '.date', '.party', '.win']);
-const trustTlds = new Set(['.com', '.org', '.net', '.edu', '.gov', '.io', '.ai', '.co', '.de', '.uk', '.ca', '.fr', '.au', '.ch']);
+const toxicTlds = new Set(['.top', '.xyz', '.work', '.biz', '.buzz', '.loan', '.icu', '.gdn', '.monster', '.bid', '.date', '.party', '.win', '.cricket', '.download', '.science']);
+const trustTlds = new Set(['.com', '.org', '.net', '.edu', '.gov', '.io', '.ai', '.co', '.de', '.uk', '.ca', '.fr', '.au', '.ch', '.jp', '.sg', '.in']);
 
 // ----------------- DOMAIN & EMAIL CACHING -----------------
 interface DomainCacheEntry {

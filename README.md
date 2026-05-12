@@ -1,4 +1,4 @@
-# LeadPure AI v10.0 Enterprise
+# LeadPure AI v10.5.5 Enterprise
 
 > **Mission-Critical Lead Validation & Deliverability Infrastructure.**
 > Engineered for 0% bounce-rate precision and high-fidelity cold outreach protection.
@@ -60,9 +60,10 @@ If you find this project useful, consider supporting my work or reaching out for
 
 | Platform | Link |
 | :--- | :--- |
-| **Website** | [ossamamehmood.com](https://ossamamehmood.com) |
-| **Email** | [hello@ossamamehmood.com](mailto:hello@ossamamehmood.com) |
-| **Patreon** | [Support me on Patreon](https://patreon.com/ossamamehmood) |
+| **🌐 Website** | [ossamamehmood.com](https://ossamamehmood.com) |
+| **📧 Email** | [hello@ossamamehmood.com](mailto:hello@ossamamehmood.com) |
+| **☕ Support Me** | [Patreon](https://patreon.com/ossamamehmood) |
+| **💼 Custom Integration** | [Contact Me](mailto:hello@ossamamehmood.com) |
 
 ---
 
@@ -81,5 +82,8 @@ npm run dev
 
 ---
 
-## Built & Published
+## ⚖️ License
+Enterprise Proprietary. Built with ⚡ by [Ossama Mehmood](https://ossamamehmood.com)
+
+## ⚖️ Built & Published
 Built with ⚡ by [Ossama Mehmood](https://ossamamehmood.com)
