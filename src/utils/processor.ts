@@ -324,14 +324,25 @@ export const processContacts = async (
     if (onProgress) onProgress(Math.min(95, Math.round(((i + CONCURRENT_BATCHES) / batches.length) * 100)));
   }
 
-  // Stage 3: Final Elite Recovery
+  // Stage 3: Final Elite Recovery (Parallelized Acceleration)
   const retryLeads = uniqueItemsToVerify.filter(item => item.__needsRetry);
   if (retryLeads.length > 0 && !signal?.aborted) {
-    const RETRY_BATCH_SIZE = 10;
+    const RETRY_BATCH_SIZE = 15;
+    const RETRY_CONCURRENCY = 3;
+    const retryBatches = [];
     for (let i = 0; i < retryLeads.length; i += RETRY_BATCH_SIZE) {
+      retryBatches.push(retryLeads.slice(i, i + RETRY_BATCH_SIZE));
+    }
+
+    for (let i = 0; i < retryBatches.length; i += RETRY_CONCURRENCY) {
       if (signal?.aborted) break;
-      const chunk = retryLeads.slice(i, i + RETRY_BATCH_SIZE);
-      await processBatch(chunk);
+      const concurrentChunk = retryBatches.slice(i, i + RETRY_CONCURRENCY);
+      await Promise.all(concurrentChunk.map(chunk => processBatch(chunk)));
+      
+      if (onProgress) {
+        const stage3Progress = 95 + Math.min(4, Math.round((i / retryBatches.length) * 5));
+        onProgress(stage3Progress, `[RECOVERY] High-Resolution Probe: ${i * RETRY_BATCH_SIZE}/${retryLeads.length} resolved.`);
+      }
     }
   }
 
@@ -377,6 +388,7 @@ export const processContacts = async (
     }
   });
 
+  if (onProgress) onProgress(100, `[PROTOCOL] Verification Engine Cycle Complete.`);
   return {
     valid: finalValid,
     eliminated: finalEliminated,
