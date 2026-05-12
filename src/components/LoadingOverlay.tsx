@@ -8,9 +8,10 @@ interface LoadingOverlayProps {
   onCancel?: () => void;
   customText?: string;
   customDescription?: string;
+  logs?: string[];
 }
 
-export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customText, customDescription }: LoadingOverlayProps) {
+export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customText, customDescription, logs }: LoadingOverlayProps) {
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -68,6 +69,21 @@ export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customTex
             transition={{ duration: 0.5 }}
           />
         </div>
+
+        {logs && logs.length > 0 && (
+          <div className="mt-8 text-left bg-[#0A0A0A] border border-white/10 rounded-xl p-4 overflow-hidden relative shadow-2xl">
+            <div className="absolute top-0 left-0 right-0 h-6 bg-white/5 border-b border-white/5 flex items-center px-4">
+              <span className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">Live Engine Terminal</span>
+            </div>
+            <div className="mt-4 h-32 overflow-y-auto font-mono text-[9px] leading-relaxed flex flex-col justify-end space-y-1">
+              {logs.map((log, idx) => (
+                <div key={idx} className={log.includes('SAFE') || log.includes('SECURED') ? 'text-brand-blue' : log.includes('DANGEROUS') || log.includes('REJECTED') ? 'text-brand-pink' : 'text-slate-400'}>
+                  {log}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   );

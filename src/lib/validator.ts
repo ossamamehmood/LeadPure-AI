@@ -174,6 +174,7 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
 
     // Human-like delay to prevent tarpitting
     const humanDelay = async () => new Promise(res => setTimeout(res, Math.floor(Math.random() * 50) + 20));
+    let retried = false;
 
     socket.on('data', async (data) => {
       const response = data.toString();
@@ -196,7 +197,16 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
         await humanDelay();
         socket.write(`RCPT TO:<${email}>\r\n`);
       } else if (currentStep === 3) {
+        // Greylisting Micro-Retry (v10.0 Enterprise)
+        if (code >= 400 && code < 500 && !retried) {
+          retried = true;
+          await new Promise(res => setTimeout(res, 800)); // 800ms backoff
+          socket.write(`RCPT TO:<${email}>\r\n`);
+          return; // Stay at step 3 to catch the retry response
+        }
+        
         smtpCode = code;
+        currentStep++; // Advance to step 4 so QUIT response is caught properly
         await humanDelay();
         socket.write('QUIT\r\n');
       } else if (currentStep === 4 || code === 221) {

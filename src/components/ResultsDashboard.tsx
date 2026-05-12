@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShieldCheck, Search, Database, Fingerprint, Activity, Zap, Cpu } from 'lucide-react';
+import { ShieldCheck, Search, Database, Fingerprint, Activity, Zap, Cpu, Download } from 'lucide-react';
 import { Virtuoso } from 'react-virtuoso';
 import { cn } from '../lib/utils';
 import { GlossyCard } from './ui/GlossyCard';
@@ -12,7 +12,7 @@ interface ResultsDashboardProps {
   mappings: any;
   onPreview: (data: any[], title: string) => void;
   onDownloadValid: () => void;
-  onDownloadEliminated: () => void;
+  onDownloadEliminated: (tier?: 'all' | 'risky' | 'dangerous') => void;
   stats?: any;
 }
 
@@ -288,18 +288,39 @@ export function ResultsDashboard({
               <Database className="w-4 h-4" />
               Preview
             </button>
-            <button 
-              onClick={activeTab === 'valid' ? onDownloadValid : onDownloadEliminated}
-              className={cn(
-                "px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-14 border",
-                activeTab === 'valid' 
-                  ? "bg-brand-blue/10 border-brand-blue/20 text-brand-blue hover:bg-brand-blue/20" 
-                  : "bg-brand-pink/10 border-brand-pink/20 text-brand-pink hover:bg-brand-pink/20"
-              )}
-            >
-              <Zap className="w-4 h-4" />
-              Export
-            </button>
+            {activeTab === 'valid' ? (
+              <button 
+                onClick={onDownloadValid}
+                className="px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-14 border bg-brand-blue/10 border-brand-blue/20 text-brand-blue hover:bg-brand-blue/20"
+              >
+                <Zap className="w-4 h-4" />
+                Export Valid
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => onDownloadEliminated('risky')}
+                  className="px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-14 border bg-amber-400/10 border-amber-400/20 text-amber-400 hover:bg-amber-400/20"
+                >
+                  <Zap className="w-4 h-4" />
+                  Risky
+                </button>
+                <button 
+                  onClick={() => onDownloadEliminated('dangerous')}
+                  className="px-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-14 border bg-brand-pink/10 border-brand-pink/20 text-brand-pink hover:bg-brand-pink/20"
+                >
+                  <Zap className="w-4 h-4" />
+                  Dangerous
+                </button>
+                <button 
+                  onClick={() => onDownloadEliminated('all')}
+                  className="px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-14 border bg-white/5 border-white/10 text-slate-400 hover:bg-white/10"
+                >
+                  <Download className="w-4 h-4" />
+                  Export All
+                </button>
+              </div>
+            )}
           </div>
         </div>
         

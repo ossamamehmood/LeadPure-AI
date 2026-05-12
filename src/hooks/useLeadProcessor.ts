@@ -8,6 +8,7 @@ export function useLeadProcessor() {
   const [estimatedSeconds, setEstimatedSeconds] = useState<number | null>(null);
   const [processedData, setProcessedData] = useState<ProcessedContact[]>([]);
   const [eliminatedData, setEliminatedData] = useState<any[]>([]);
+  const [logs, setLogs] = useState<string[]>([]);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -19,6 +20,7 @@ export function useLeadProcessor() {
     setIsProcessing(true);
     setProgress(0);
     setEstimatedSeconds(null);
+    setLogs([]);
     
     abortControllerRef.current = new AbortController();
     const startTime = Date.now();
@@ -28,8 +30,14 @@ export function useLeadProcessor() {
         data, 
         mappings, 
         rules, 
-        (p) => {
+        (p, logMsg) => {
           setProgress(p);
+          if (logMsg) {
+            setLogs(prev => {
+              const newLogs = [...prev, logMsg];
+              return newLogs.slice(-20); // Keep last 20 logs in memory
+            });
+          }
           if (p > 2) {
             const elapsed = (Date.now() - startTime) / 1000;
             const totalEstimated = elapsed / (p / 100);
@@ -78,6 +86,7 @@ export function useLeadProcessor() {
     cancelProcessing,
     resetProcessor,
     setProcessedData,
-    setEliminatedData
+    setEliminatedData,
+    logs
   };
 } 

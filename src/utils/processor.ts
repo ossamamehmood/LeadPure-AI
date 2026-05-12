@@ -142,7 +142,7 @@ export const processContacts = async (
   data: any[],
   mappings: any,
   rules: any,
-  onProgress?: (progress: number) => void,
+  onProgress?: (progress: number, logMessage?: string) => void,
   signal?: AbortSignal
 ): Promise<{ valid: any[]; eliminated: any[]; stats: any }> => {
   const valid: any[] = [];
@@ -286,6 +286,10 @@ export const processContacts = async (
             subStatus: verificationResult.subStatus,
             status: status
           });
+          
+          if (onProgress && idx === results.length - 1) {
+             onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] FILTERED: ${item[mappings.emailKey]} -> ${status.toUpperCase()} (${verificationResult.verificationReason})`);
+          }
         } else {
           stats.verifiedLeads++;
           
@@ -316,6 +320,10 @@ export const processContacts = async (
             originalIndex: startIndex + idx,
             __originalData: updatedItem
           } as ProcessedContact);
+
+          if (onProgress && idx === results.length - 1) {
+             onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] SECURED: ${updatedItem[mappings.emailKey]} -> ${status.toUpperCase()} (${verificationResult.verificationReason})`);
+          }
         }
       });
 

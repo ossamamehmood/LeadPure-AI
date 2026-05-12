@@ -181,21 +181,31 @@ export default function App() {
     }
   };
 
-  const handleDownloadEliminated = () => {
+  const handleDownloadEliminated = (tier: 'all' | 'risky' | 'dangerous' = 'all') => {
     const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
     const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
     
-    const exportData = processor.eliminatedData.map(item => ({
+    const filteredData = tier === 'all' 
+      ? processor.eliminatedData 
+      : processor.eliminatedData.filter(item => item.status === tier);
+
+    const exportData = filteredData.map(item => ({
       ...(item.__originalData || item),
-      elimination_reason: item.verificationReason || item.reason || 'Security Protocol'
+      elimination_reason: item.verificationReason || item.reason || 'Security Protocol',
+      risk_tier: item.status || 'dangerous'
     }));
+
+    if (exportData.length === 0) {
+      toast(`NO ${tier.toUpperCase()} LEADS FOUND TO EXPORT`, 'info');
+      return;
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Filtered Leads');
+    XLSX.utils.book_append_sheet(workbook, worksheet, `${tier === 'all' ? 'Filtered' : tier.charAt(0).toUpperCase() + tier.slice(1)} Leads`);
     
-    XLSX.writeFile(workbook, `${baseName}_Filtered${extension}`);
-    toast('EXPORT COMPLETE: FILTERED NODES ARCHIVED', 'info');
+    XLSX.writeFile(workbook, `${baseName}_${tier === 'all' ? 'Filtered' : tier.charAt(0).toUpperCase() + tier.slice(1)}${extension}`);
+    toast(`EXPORT COMPLETE: ${tier.toUpperCase()} NODES ARCHIVED`, 'info');
   };
 
   const handleDownload = () => {
@@ -344,7 +354,12 @@ export default function App() {
           <LoadingOverlay progress={10} estimatedSeconds={1} customText="PARSING DATA FILE..." customDescription="Extracting and normalizing identities off-thread..." />
         )}
         {appState === 'processing' && (
-          <LoadingOverlay progress={processor.progress} estimatedSeconds={processor.estimatedSeconds} onCancel={processor.cancelProcessing} />
+          <LoadingOverlay 
+            progress={processor.progress} 
+            estimatedSeconds={processor.estimatedSeconds} 
+            onCancel={processor.cancelProcessing} 
+            logs={processor.logs}
+          />
         )}
       </AnimatePresence>
 
