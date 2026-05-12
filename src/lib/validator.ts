@@ -171,7 +171,7 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
 
     const timeout = setTimeout(() => {
       cleanup('Connection Timeout', true);
-    }, 2500);
+    }, 5000); // Boosted to 5s for Enterprise Stability
 
     const cleanup = (reason = '', timedOut = false) => {
       if (resolved) return;
@@ -184,12 +184,12 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
       }
     };
 
-    socket.setTimeout(2500);
+    socket.setTimeout(5000);
     socket.on('timeout', () => cleanup('TCP Socket Timeout', true));
     socket.on('error', (err) => cleanup(err.message));
 
-    // Human-like delay to prevent tarpitting
-    const humanDelay = async () => new Promise(res => setTimeout(res, Math.floor(Math.random() * 50) + 20));
+    // High-precision timing (No Jitter for Determinism)
+    const engineDelay = async () => new Promise(res => setTimeout(res, 20));
 
     socket.connect(25, mxRecord, () => {
       // Step 0: Wait for 220
@@ -210,23 +210,23 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
           socket.write(`EHLO leadpure.ai\r\n`);
         } else if (currentStep === 1 && code === 250) {
           currentStep++;
-          await humanDelay();
+          await engineDelay();
           socket.write(`MAIL FROM:<${senderEmail}>\r\n`);
         } else if (currentStep === 2 && code === 250) {
           currentStep++;
-          await humanDelay();
+          await engineDelay();
           socket.write(`RCPT TO:<${email}>\r\n`);
         } else if (currentStep === 3) {
           if (code >= 400 && code < 500 && !retried) {
             retried = true;
-            await new Promise(res => setTimeout(res, 800));
+            await new Promise(res => setTimeout(res, 1000)); // Precise 1s backoff
             socket.write(`RCPT TO:<${email}>\r\n`);
             return;
           }
           
           smtpCode = code;
           currentStep++;
-          await humanDelay();
+          await engineDelay();
           socket.write('QUIT\r\n');
         } else if (currentStep === 4 || code === 221) {
           const success = smtpCode === 250 || smtpCode === 251;
@@ -434,7 +434,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       const randomPrefix = `verify_${Math.random().toString(36).substring(2, 10)}`;
       const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '');
       
-      if (catchAllCheck.success || hasCatchAllSignature) {
+      if (catchAllCheck.success || catchAllCheck.timedOut || hasCatchAllSignature) {
         isCatchAll = true;
       }
     }

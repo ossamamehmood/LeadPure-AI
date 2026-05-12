@@ -207,9 +207,9 @@ export const processContacts = async (
 
   // Stage 2: Concurrent Batch Processing to Backend Engine
   const total = preProcessedData.length;
-  // Increase batch size to 50 and use 3 concurrent Vercel instances to drop processing time by 90%
-  const BATCH_SIZE = 50; 
-  const CONCURRENT_BATCHES = 3;
+  // Reduced batch size and concurrency for absolute precision and port stability
+  const BATCH_SIZE = 40; 
+  const CONCURRENT_BATCHES = 2;
   
   const batches = [];
   for (let i = 0; i < total; i += BATCH_SIZE) {
