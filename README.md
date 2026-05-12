@@ -1,15 +1,15 @@
-# ⚡ LeadPure AI v10.0 Enterprise
+# LeadPure AI v10.0 Enterprise
 
 > **Mission-Critical Lead Validation & Deliverability Infrastructure.**
 > Engineered for 0% bounce-rate precision and high-fidelity cold outreach protection.
 
 ---
 
-## 🚀 Engine Architecture
+## Engine Architecture
 
 LeadPure AI v10.0 is built on a **Weighted Multi-Factor Validation Matrix**. Unlike traditional binary SMTP checkers, our engine analyzes deep infrastructure signals to guarantee lead deliverability without triggering firewall suppression.
 
-### 🛡️ 10-Layer Validation Protocol
+### 10-Layer Validation Protocol
 1.  **Strict RFC Syntax Analysis**: 100% compliance with email formatting standards.
 2.  **MX Infrastructure Fingerprinting**: Detection of Google Workspace, Microsoft 365, and Enterprise Gateways.
 3.  **DNS Security Audit**: Real-time SPF, DMARC, and TXT record verification.
@@ -23,7 +23,7 @@ LeadPure AI v10.0 is built on a **Weighted Multi-Factor Validation Matrix**. Unl
 
 ---
 
-## 💎 Features
+## Features
 
 *   **Cyberpunk Terminal UI**: Real-time, high-fidelity monitoring of the validation kernel.
 *   **Weighted Quality Matrix**: Transparent confidence scores based on domain authority and provider trust.
@@ -33,7 +33,7 @@ LeadPure AI v10.0 is built on a **Weighted Multi-Factor Validation Matrix**. Unl
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 | Layer | Technology |
 | :--- | :--- |
@@ -45,7 +45,7 @@ LeadPure AI v10.0 is built on a **Weighted Multi-Factor Validation Matrix**. Unl
 
 ---
 
-## 🔒 Security & Compliance
+## Security & Compliance
 
 LeadPure AI is designed with a **Security-First** philosophy:
 *   **Zero Persistence**: No lead data is stored on our servers; everything is processed in-memory.
@@ -54,19 +54,19 @@ LeadPure AI is designed with a **Security-First** philosophy:
 
 ---
 
-## 💖 Support & Contact
+## Support & Contact
 
 If you find this project useful, consider supporting my work or reaching out for custom enterprise integrations.
 
 | Platform | Link |
 | :--- | :--- |
-| **🌐 Website** | [ossamamehmood.com](https://ossamamehmood.com) |
-| **📧 Email** | [hello@ossamamehmood.com](mailto:hello@ossamamehmood.com) |
-| **🅿️ Patreon** | [Support me on Patreon](https://patreon.com/ossamamehmood) |
+| **Website** | [ossamamehmood.com](https://ossamamehmood.com) |
+| **Email** | [hello@ossamamehmood.com](mailto:hello@ossamamehmood.com) |
+| **Patreon** | [Support me on Patreon](https://patreon.com/ossamamehmood) |
 
 ---
 
-## 🛠️ Installation
+## Installation
 
 ```bash
 # Clone the repository
@@ -81,5 +81,5 @@ npm run dev
 
 ---
 
-## ⚖️ Built & Published
+## Built & Published
 Built with ⚡ by [Ossama Mehmood](https://ossamamehmood.com)
