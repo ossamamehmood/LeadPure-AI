@@ -188,7 +188,7 @@ export function ResultsDashboard({
           <div className="flex items-baseline gap-2">
             <p className={cn(
               "text-5xl font-black font-mono tracking-tighter italic transition-colors duration-500",
-              avgConfidence >= 98 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent" : "text-app-text"
+              avgConfidence >= 98 ? "text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" : "text-app-text"
             )}>
               {avgConfidence}<span className="text-2xl">%</span>
             </p>

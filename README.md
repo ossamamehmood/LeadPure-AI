@@ -54,7 +54,19 @@ LeadPure AI is designed with a **Security-First** philosophy:
 
 ---
 
-## 📖 Installation
+## 💖 Support & Contact
+
+If you find this project useful, consider supporting my work or reaching out for custom enterprise integrations.
+
+| Platform | Link |
+| :--- | :--- |
+| **🌐 Website** | [ossamamehmood.com](https://ossamamehmood.com) |
+| **📧 Email** | [hello@ossamamehmood.com](mailto:hello@ossamamehmood.com) |
+| **🅿️ Patreon** | [Support me on Patreon](https://patreon.com/ossamamehmood) |
+
+---
+
+## 🛠️ Installation
 
 ```bash
 # Clone the repository
@@ -70,4 +82,4 @@ npm run dev
 ---
 
 ## ⚖️ License
-Enterprise Proprietary. Built with ⚡ by the LeadPure Engineering Team.
+Enterprise Proprietary. Built with ⚡ by [Ossama Mehmood](https://ossamamehmood.com)

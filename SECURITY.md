@@ -5,7 +5,7 @@
 At LeadPure AI, the security of our users' data and our infrastructure is our highest priority. If you believe you have found a security vulnerability, we encourage you to report it to us immediately through the appropriate channels.
 
 ### 🚩 Reporting a Vulnerability
-Please do not open a public issue for security-related items. Instead, email our security team at **security@leadpure.ai**.
+Please do not open a public issue for security-related items. Instead, email our security team at **hello@ossamamehmood.com**.
 
 We aim to:
 - Acknowledge receipt of your report within 24 hours.
