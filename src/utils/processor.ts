@@ -148,6 +148,46 @@ export const autoCorrectEmail = (email: string): string => {
 /**
  * Process the entire list with strict filtration via the Backend Enterprise Engine
  */
+/**
+ * Persistent Client-Side Verification Cache (v12.5 Elite Stability)
+ * Stores definitive results to ensure 100% consistency across runs.
+ */
+const PERSISTENT_CACHE_KEY = 'LP_VERIFICATION_CACHE_V2.5';
+
+const getPersistentCache = (): Record<string, any> => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(PERSISTENT_CACHE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveToPersistentCache = (email: string, result: any) => {
+  if (typeof window === 'undefined') return;
+  try {
+    // Only cache definitive results (Safe or Rejected)
+    if (result.verificationStatus === 'unknown' || result.subStatus === 'timeout') return;
+    
+    const cache = getPersistentCache();
+    cache[email.toLowerCase()] = {
+      ...result,
+      cachedAt: Date.now()
+    };
+    
+    // Prune old entries if cache is too large
+    const keys = Object.keys(cache);
+    if (keys.length > 20000) {
+      delete cache[keys[0]];
+    }
+    
+    localStorage.setItem(PERSISTENT_CACHE_KEY, JSON.stringify(cache));
+  } catch (err) {
+    console.warn('[CACHE] Persistence failed:', err);
+  }
+};
+
 export const processContacts = async (
   data: any[],
   mappings: any,
@@ -157,8 +197,9 @@ export const processContacts = async (
 ): Promise<{ valid: any[]; eliminated: any[]; stats: any }> => {
   const valid: any[] = [];
   const eliminated: any[] = [];
+  const persistentCache = getPersistentCache();
   
-  console.log(`[PROCESSOR_V10.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
+  console.log(`[PROCESSOR_V12.5.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
   
   const stats = {
     totalInput: data.length,
@@ -178,6 +219,7 @@ export const processContacts = async (
 
   // Stage 1: Local Normalization & Deduplication
   const seenEmails = new Set<string>();
+  let originalIdxCounter = 0;
   const preProcessedData = data.filter((item) => {
     if (!item || typeof item !== 'object') {
       stats.sanitizedRows++;
@@ -198,15 +240,52 @@ export const processContacts = async (
       eliminated.push({ ...item, reason: 'Deterministic Protocol: Duplicate Identity Suppressed' });
       return false;
     }
+
+    // ELITE_STABILITY: Check Persistent Cache First
+    if (persistentCache[rawEmail]) {
+      item.__cachedResult = persistentCache[rawEmail];
+    }
     
     seenEmails.add(rawEmail);
+    item.__originalIndex = originalIdxCounter++;
     return true;
   });
 
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
   // Stage 2: Concurrent Batch Processing to Backend Engine
-  const total = preProcessedData.length;
+  // We filter out any items that were already found in the persistent cache
+  const dataToVerify = preProcessedData.filter(item => !item.__cachedResult);
+  const total = dataToVerify.length;
+
+  // Process cached items immediately to the results array
+  preProcessedData.forEach(item => {
+    if (item.__cachedResult) {
+       const verificationResult = item.__cachedResult;
+       const status = verificationResult.verificationStatus;
+       const isSafe = status === 'safe' || status === 'verified';
+
+       if (isSafe) {
+         stats.verifiedLeads++;
+         const updatedItem = { ...item };
+         // Apply enhancements to cached items too
+         if (mappings.firstNameKey) updatedItem[mappings.firstNameKey] = cleanText(item[mappings.firstNameKey], rules.strictTitleCase);
+         if (mappings.lastNameKey) updatedItem[mappings.lastNameKey] = cleanText(item[mappings.lastNameKey], rules.strictTitleCase);
+         if (mappings.nameKey) updatedItem[mappings.nameKey] = cleanText(item[mappings.nameKey], rules.strictTitleCase);
+         
+         valid.push({
+           ...verificationResult,
+           ...updatedItem,
+           status: status,
+           __cached: true
+         });
+       } else {
+         eliminated.push({ ...item, status, reason: verificationResult.verificationReason, __cached: true });
+       }
+    }
+  });
+
+  console.log(`[PROCESSOR] CACHE_HITS: ${preProcessedData.length - dataToVerify.length} leads restored from persistent lock.`);
   // Reduced batch size and concurrency for absolute precision and port stability
   const BATCH_SIZE = 40; 
   const CONCURRENT_BATCHES = 2;
@@ -215,7 +294,7 @@ export const processContacts = async (
   for (let i = 0; i < total; i += BATCH_SIZE) {
     batches.push({
       startIndex: i,
-      items: preProcessedData.slice(i, i + BATCH_SIZE)
+      items: dataToVerify.slice(i, i + BATCH_SIZE)
     });
   }
 
@@ -280,6 +359,9 @@ export const processContacts = async (
         }
 
         const isSafe = status === 'safe' || status === 'verified';
+
+        // PERSISTENT LOCK: Save definitive result to local cache
+        saveToPersistentCache(String(item[mappings.emailKey]), verificationResult);
 
         // STRICT 100% QUALITY MATRIX ENFORCEMENT: Only 'safe' leads allowed for 0% bounce rate goal.
         // 'usable', 'risky', and 'dangerous' leads are now eliminated to ensure maximum deliverability.
@@ -455,7 +537,7 @@ export const processContacts = async (
   }
 
   // Final Sort and Stats locking
-  valid.sort((a, b) => a.originalIndex - b.originalIndex);
+  valid.sort((a, b) => (a.__originalIndex || 0) - (b.__originalIndex || 0));
   
   const finalResult = {
     valid,
