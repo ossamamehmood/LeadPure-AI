@@ -15,7 +15,7 @@ We take the security of LeadPure AI seriously. If you believe you have found a s
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please send an email to security@leadpure.ai with the following details:
+Instead, please send an email to hello@ossamamehmood.com with the following details:
 -   Type of issue (e.g., buffer overflow, SQL injection, cross-site scripting, etc.)
 -   Full paths of source file(s) related to the manifestation of the issue
 -   The location of the affected source code (tag/branch/commit or direct URL)
