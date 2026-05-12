@@ -373,7 +373,13 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   const skipSmtp = isFreeEmail;
   
   if (!skipSmtp && primaryMx) {
-    const smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
+    let smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
+    
+    // Enterprise Greylisting Handling (v10.0) - Retry on temporary 4xx delays
+    if (smtpCheck.code >= 400 && smtpCheck.code < 500) {
+      await new Promise(res => setTimeout(res, 3000)); // 3 second delay
+      smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
+    }
     
     if (smtpCheck.timedOut || smtpCheck.code === 0) {
       smtpValid = false;
