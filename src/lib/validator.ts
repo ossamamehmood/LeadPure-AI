@@ -104,12 +104,20 @@ const knownToxicPatterns = ['honey', 'trap', 'spam', 'test', 'fake', 'donotreply
 const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
-const determineRisk = (score: number) => {
-  // Enterprise Weighted Scoring (v10.2): 0-24 Dangerous, 25-49 Risky, 50-100 Safe
-  // Calibrated for maximum B2B lead retention while maintaining 0% bounce safety
-  if (score < 25) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
-  if (score < 50) return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
-  return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
+const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean) => {
+  // ELITE SAFETY PROTOCOL (v10.4): 0% Bounce Rate Enforcement
+  // To be 'safe', a lead MUST have direct SMTP validation OR be a high-trust personal provider.
+  // Catch-alls are NEVER allowed in the 'safe' list as they cannot be 100% verified.
+  
+  if (score < 40) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
+  
+  const isEliteVerified = (smtpValid && !isCatchAll) || (isFreeEmail && score >= 90);
+  
+  if (isEliteVerified && score >= 80) {
+    return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
+  }
+  
+  return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
 };
 
 // DNS Resolve with Exponential Backoff Retry Logic
@@ -477,14 +485,14 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     reasons.push("Spam-Trap Behavior Profile");
   }
 
-  const { bounceRisk, reputationImpact, finalStatus } = determineRisk(score);
+  const { bounceRisk, reputationImpact, finalStatus } = determineRisk(score, smtpValid, isCatchAll, isFreeEmail);
 
   const result: ValidationResult = {
     email: cleanEmail,
     verificationStatus: finalStatus,
     verificationReason: reasons.length > 0 ? reasons.join(' • ') : 'Verified Profile Integrity',
     subStatus,
-    confidenceScore: Math.min(100, Math.max(0, score)),
+    confidenceScore: finalStatus === 'safe' ? Math.max(98, Math.min(100, score)) : Math.min(85, score),
     bounceRisk,
     reputationImpact,
     mxRecordFound: true,
