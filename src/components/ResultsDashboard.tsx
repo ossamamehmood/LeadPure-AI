@@ -54,24 +54,27 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
       <div className="px-12 py-4 w-[15%]">
         <div className={cn(
           "inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border",
-          (contact.bounceRisk === 'Safe' || contact.bounceRisk === 'Low') ? "text-brand-blue bg-brand-blue/5 border-brand-blue/20" :
-          contact.bounceRisk === 'Medium' ? "text-amber-400 bg-amber-400/5 border-amber-400/20" :
+          (contact.verificationStatus === 'safe' || contact.verificationStatus === 'verified') ? "text-brand-blue bg-brand-blue/5 border-brand-blue/20" :
+          contact.verificationStatus === 'usable' ? "text-blue-400 bg-blue-400/5 border-blue-400/20" :
+          contact.verificationStatus === 'risky' ? "text-amber-400 bg-amber-400/5 border-amber-400/20" :
           "text-brand-pink bg-brand-pink/5 border-brand-pink/20"
         )}>
           <div className={cn(
             "w-1.5 h-1.5 rounded-full",
-            (contact.bounceRisk === 'Safe' || contact.bounceRisk === 'Low') ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_5px_rgba(90,92,255,0.6)]" :
-            contact.bounceRisk === 'Medium' ? "bg-brand-blue" :
+            (contact.verificationStatus === 'safe' || contact.verificationStatus === 'verified') ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_5px_rgba(90,92,255,0.6)]" :
+            contact.verificationStatus === 'usable' ? "bg-blue-400" :
+            contact.verificationStatus === 'risky' ? "bg-amber-400" :
             "bg-brand-pink"
           )} />
-          {contact.bounceRisk || 'SAFE'}
+          {contact.verificationStatus || 'SAFE'}
         </div>
       </div>
       <div className="px-12 py-4 w-[30%] overflow-hidden">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
-            (contact.confidenceScore || 0) >= 99 ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/20' : 
-            (contact.confidenceScore || 0) > 95 ? 'bg-amber-400/10 text-amber-400' : 'bg-brand-pink/10 text-brand-pink'
+            (contact.confidenceScore || 0) >= 86 ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/20' : 
+            (contact.confidenceScore || 0) >= 61 ? 'bg-blue-400/10 text-blue-400' : 
+            (contact.confidenceScore || 0) >= 31 ? 'bg-amber-400/10 text-amber-400' : 'bg-brand-pink/10 text-brand-pink'
           }`}>
             {contact.confidenceScore}% Confidence
           </span>

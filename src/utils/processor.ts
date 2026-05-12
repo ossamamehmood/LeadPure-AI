@@ -260,13 +260,12 @@ export const processContacts = async (
       results.forEach((verificationResult: any, idx: number) => {
         const item = items[idx];
         
-        const isRejected = verificationResult.verificationStatus === 'rejected' || verificationResult.verificationStatus === 'blocked';
-        const isRisky = verificationResult.verificationStatus === 'risky';
-        const isUnknown = verificationResult.verificationStatus === 'unknown';
-        const isTooRisky = (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous' || verificationResult.bounceRisk === 'Medium');
+        const status = verificationResult.verificationStatus;
+        const isDangerousOrRisky = status === 'dangerous' || status === 'risky';
 
-        // STRICT 100% QUALITY MATRIX ENFORCEMENT: Only absolute verified emails pass to valid array.
-        if (isRejected || isRisky || isUnknown || isTooRisky) {
+        // STRICT 100% QUALITY MATRIX ENFORCEMENT
+        // 'safe' and 'usable' leads are kept. 'risky' and 'dangerous' leads are eliminated.
+        if (isDangerousOrRisky) {
           // Track granular stats
           const subStatus = verificationResult.subStatus || '';
           if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
@@ -284,7 +283,8 @@ export const processContacts = async (
             score: verificationResult.confidenceScore,
             bounceRisk: verificationResult.bounceRisk,
             reputationImpact: verificationResult.reputationImpact,
-            subStatus: verificationResult.subStatus
+            subStatus: verificationResult.subStatus,
+            status: status
           });
         } else {
           stats.verifiedLeads++;

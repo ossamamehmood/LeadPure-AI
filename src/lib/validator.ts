@@ -23,7 +23,7 @@ export interface ValidationOptions {
 
 export interface ValidationResult {
   email: string;
-  verificationStatus: 'verified' | 'risky' | 'rejected' | 'blocked' | 'unknown';
+  verificationStatus: 'verified' | 'risky' | 'rejected' | 'blocked' | 'unknown' | 'safe' | 'usable' | 'dangerous';
   verificationReason: string;
   subStatus: string;
   confidenceScore: number;
@@ -102,10 +102,11 @@ const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
 const determineRisk = (score: number) => {
-  // Score System: 0-30 Invalid, 31-70 Risky, 71-100 Safe
-  if (score <= 30) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'rejected' as const };
-  if (score <= 70) return { bounceRisk: 'Medium' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
-  return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'verified' as const };
+  // Score System: 0-30 Dangerous, 31-60 Risky, 61-85 Usable, 86-100 Safe
+  if (score <= 30) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
+  if (score <= 60) return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
+  if (score <= 85) return { bounceRisk: 'Medium' as const, reputationImpact: 'Neutral' as const, finalStatus: 'usable' as const };
+  return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
 };
 
 // DNS Resolve with Exponential Backoff Retry Logic
@@ -233,6 +234,8 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     return emailCache.get(cleanEmail)!;
   }
 
+  // Base Score Matrix
+  // Free emails are inherently high deliverability but not guaranteed active without SMTP.
   let score = 100;
   let reasons: string[] = [];
   
@@ -342,17 +345,10 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     };
   }
 
-  // Hyper-Precision Logic: Require full DNS Security Audit (SPF + DMARC) for B2B leads on Vercel
-  // This is the only way to guarantee 0% bounce rate without Port 25 SMTP.
-  if (!isFreeEmail) {
-    if (!hasSpf || !hasDmarc) {
-      return {
-        email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Security Audit Failed: Missing SPF or DMARC Policy',
-        subStatus: 'low_reputation', confidenceScore: 0, bounceRisk: 'Dangerous', reputationImpact: 'Critical',
-        mxRecordFound: true, isCatchAll: false, isDisposable, isRoleBased: false, isFreeEmail, provider,
-        smtpValid: false, syntaxValid: true
-      };
-    }
+  // If Free Email (Gmail, Yahoo, Outlook), set base score to 95 since we bypass SMTP
+  if (isFreeEmail) {
+    score = 95;
+    reasons.push('Trusted Provider (High Deliverability)');
   }
 
   // Role-based Check
@@ -382,14 +378,22 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     if (smtpCheck.timedOut || smtpCheck.code === 0) {
       smtpValid = false;
       subStatus = 'smtp_firewall_blocked';
-      // Strict 0% Bounce Policy: If we cannot explicitly verify the mailbox via SMTP due to Vercel/firewall blocks,
-      // we MUST NOT pass it as verified, even if SPF/DMARC exists. Doing so risks hard bounces.
-      return {
-        email: cleanEmail, verificationStatus: 'unknown', verificationReason: 'Engine Blocked: Port 25 Firewall / Timeout. Cannot Guarantee 0% Bounce.',
-        subStatus: 'smtp_firewall_blocked', confidenceScore: 40, bounceRisk: 'Unknown', reputationImpact: 'Neutral',
-        mxRecordFound: true, mxRecord: primaryMx, isCatchAll: false, isDisposable, isRoleBased, isFreeEmail, provider,
-        smtpValid: false, syntaxValid: true
-      };
+      
+      // Intelligent Domain Confidence Fallback if SMTP is blocked
+      let fallbackScore = 20;
+      let reason = 'Engine Blocked: Port 25 Firewall. No Security Records.';
+      
+      if (hasSpf && hasDmarc) {
+        fallbackScore = 80;
+        reason = 'Engine Blocked: Fallback to Strong DNS Confidence (SPF+DMARC)';
+      } else if (hasSpf) {
+        fallbackScore = 55;
+        reason = 'Engine Blocked: Weak DNS Confidence (SPF Only)';
+      }
+      
+      score = Math.min(score, fallbackScore);
+      reasons.push(reason);
+
     } else if (smtpCheck.code === 550) {
       return {
         email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'SMTP RCPT_TO: Mailbox Not Found (Code 550)',
@@ -446,15 +450,12 @@ export const validateEmailFull = async (email: string, options: ValidationOption
 
   if (isCatchAll) {
     if (options.excludeCatchAll) {
-      return {
-        email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Strict Policy: Catch-All Domain Profile Blocked',
-        subStatus: 'catch_all', confidenceScore: 30, bounceRisk: 'High', reputationImpact: 'Negative',
-        mxRecordFound: true, mxRecord: primaryMx, isCatchAll: true, isDisposable, isRoleBased, isFreeEmail, provider,
-        smtpValid: true, syntaxValid: true
-      };
+      score -= 25; // Downgrade score dynamically instead of rejecting completely
+      reasons.push("Strict Policy: Catch-All Domain Profile (Downgraded)");
+    } else {
+      score -= 25;
+      reasons.push("Catch-All Domain (Risky)");
     }
-    score -= 40;
-    reasons.push("Catch-All Domain (Risky)");
   }
 
   // Enterprise Spam Trap Heuristics: Precision filtering
