@@ -11,8 +11,8 @@ interface RulesSectionProps {
 
 export function RulesSection({ rules, onToggle }: RulesSectionProps) {
   return (
-    <div className="max-w-5xl mx-auto w-full">
-      <GlossyCard className="p-8 md:p-14 rounded-[48px] shadow-2xl relative overflow-hidden border-white/5">
+    <div className="max-w-5xl mx-auto w-full px-2 sm:px-0">
+      <GlossyCard className="p-6 md:p-14 rounded-[32px] md:rounded-[48px] shadow-2xl relative overflow-hidden border-white/5">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-blue/5 blur-[120px] rounded-full -mr-64 -mt-64 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-brand-blue/5 blur-[100px] rounded-full -ml-32 -mb-32 pointer-events-none" />
         
@@ -20,7 +20,7 @@ export function RulesSection({ rules, onToggle }: RulesSectionProps) {
           <div className="flex items-center gap-6">
             <div className="w-1.5 h-10 bg-gradient-to-b from-brand-cyan via-brand-blue to-brand-pink rounded-full shadow-[0_0_15px_rgba(90,92,255,0.4)]" />
             <div>
-              <h2 className="text-4xl font-black text-app-text uppercase italic tracking-tighter leading-none transition-colors duration-500">Security Protocols</h2>
+              <h2 className="text-2xl md:text-4xl font-black text-app-text uppercase italic tracking-tighter leading-none transition-colors duration-500">Security Protocols</h2>
               <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.5em] mt-3 italic flex items-center gap-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-brand-pink animate-pulse" />
                 Zero-Bounce Neutralization ACTIVE
@@ -81,7 +81,7 @@ export function RulesSection({ rules, onToggle }: RulesSectionProps) {
           />
         </div>
 
-        <div className="mt-16 p-8 bg-app-card rounded-[32px] border border-app-border relative z-10 backdrop-blur-sm transition-colors duration-500 overflow-hidden">
+        <div className="mt-12 md:mt-16 p-6 md:p-8 bg-app-card rounded-[24px] md:rounded-[32px] border border-app-border relative z-10 backdrop-blur-sm transition-colors duration-500 overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-brand-pink/5 blur-2xl rounded-full -mr-16 -mt-16" />
           <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
             <div className="bg-brand-pink/10 p-4 rounded-2xl shrink-0 h-fit border border-brand-pink/20">

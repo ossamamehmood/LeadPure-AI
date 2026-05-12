@@ -57,18 +57,18 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
               >
                 <GlossyCard 
                   glow="blue" 
-                  className="group hover:border-brand-blue/30 transition-all cursor-pointer p-10 rounded-[48px] border-white/5 bg-app-card relative overflow-hidden"
+                  className="group hover:border-brand-blue/30 transition-all cursor-pointer p-6 md:p-10 rounded-[32px] md:rounded-[48px] border-white/5 bg-app-card relative overflow-hidden"
                   onClick={() => loadItem(item)}
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-brand-blue/5 blur-3xl pointer-events-none group-hover:bg-brand-blue/10 transition-colors" />
                   
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 relative z-10">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 md:gap-10 relative z-10">
                     <div className="flex items-center gap-6">
                       <div className="w-16 h-16 rounded-[24px] bg-white/[0.03] flex items-center justify-center group-hover:scale-110 group-hover:bg-brand-blue/10 transition-all border border-white/5 shadow-inner">
                         <FileText className="w-7 h-7 text-brand-blue drop-shadow-[0_0_8px_rgba(90,92,255,0.4)]" />
                       </div>
                       <div className="space-y-1.5">
-                        <h4 className="text-white font-black text-lg uppercase tracking-wider line-clamp-1 group-hover:text-brand-blue transition-colors font-mono">
+                        <h4 className="text-white font-black text-base md:text-lg uppercase tracking-wider line-clamp-1 group-hover:text-brand-blue transition-colors font-mono">
                           {item.fileName}
                         </h4>
                         <div className="flex items-center gap-3">
@@ -83,14 +83,14 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                       </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row items-center gap-10 lg:gap-16">
+                    <div className="flex flex-col md:flex-row items-center gap-8 md:gap-10 lg:gap-16">
                       <div className="text-center md:text-right space-y-1">
                         <div className="flex items-baseline gap-2 justify-center md:justify-end">
-                          <span className="text-4xl font-black gradient-text font-mono tracking-tighter italic">
+                          <span className="text-3xl md:text-4xl font-black gradient-text font-mono tracking-tighter italic">
                             {item.validRows}
                           </span>
                           <span className="text-slate-600 font-black text-sm italic">/</span>
-                          <span className="text-slate-500 font-bold text-xl font-mono tracking-tighter">
+                          <span className="text-slate-500 font-bold text-lg md:text-xl font-mono tracking-tighter">
                             {item.totalRows}
                           </span>
                         </div>

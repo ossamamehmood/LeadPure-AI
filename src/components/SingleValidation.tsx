@@ -60,8 +60,8 @@ export function SingleValidation() {
           <Zap className="w-8 h-8 text-brand-blue transition-transform group-hover:scale-110 duration-500" />
         </div>
         <div>
-          <h2 className="text-3xl font-black text-app-text uppercase italic tracking-tighter leading-none transition-colors duration-500">Neural Identity Scan</h2>
-          <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-3 italic flex items-center gap-3">
+          <h2 className="text-2xl md:text-3xl font-black text-app-text uppercase italic tracking-tighter leading-none transition-colors duration-500">Neural Identity Scan</h2>
+          <p className="text-[9px] md:text-[10px] text-slate-500 font-black uppercase tracking-widest mt-3 italic flex items-center gap-2 md:gap-3">
             <span className="w-2 h-2 rounded-full gradient-bg animate-pulse shadow-[0_0_8px_#5A5CFF]" />
             Direct Validation Protocol Active
           </p>
@@ -157,8 +157,8 @@ export function SingleValidation() {
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
               >
-                <div className="grid grid-cols-2 gap-6">
-                  <GlossyCard className="p-8 border-none overflow-hidden relative group">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+                  <GlossyCard className="p-6 md:p-8 border-none overflow-hidden relative group">
                     <div className={`absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 opacity-30 transition-all ${
                       result.verificationStatus === 'verified' ? 'bg-brand-blue' : 
                       result.verificationStatus === 'risky' ? 'bg-amber-400' : 'bg-brand-pink'
@@ -169,7 +169,7 @@ export function SingleValidation() {
                     </div>
                   </GlossyCard>
 
-                  <GlossyCard className="p-8 border-none">
+                  <GlossyCard className="p-6 md:p-8 border-none">
                     <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest italic mb-2">Confidence Score</p>
                     <div className="flex items-baseline gap-2">
                        <span className="text-4xl font-black text-app-text font-mono tracking-tighter leading-none transition-colors duration-500">{result.confidenceScore}</span>
@@ -178,7 +178,7 @@ export function SingleValidation() {
                   </GlossyCard>
                 </div>
 
-                <GlossyCard glow="gradient" className="p-8 flex items-center justify-between border-app-border hover:border-brand-blue/30 transition-all">
+                <GlossyCard glow="gradient" className="p-6 md:p-8 flex flex-col sm:flex-row items-center justify-between border-app-border hover:border-brand-blue/30 transition-all gap-6">
                   <div className="flex items-center gap-6">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border ${getStatusBg(result.verificationStatus)}`}>
                       {result.verificationStatus === 'verified' ? <ShieldCheck className="w-7 h-7 text-brand-blue" /> : <ShieldAlert className="w-7 h-7 text-amber-400" />}
@@ -265,7 +265,7 @@ export function SingleValidation() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <div className="flex items-center gap-3 px-6 py-4 bg-app-bg/40 rounded-2xl border border-app-border">
                     <div className={`w-2 h-2 rounded-full ${result.isDisposable ? 'bg-brand-pink shadow-[0_0_10px_rgba(255,51,102,0.4)]' : 'bg-slate-800'}`} />
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Disposable</span>
