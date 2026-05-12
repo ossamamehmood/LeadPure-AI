@@ -1,4 +1,4 @@
-# ⚡ LeadPure AI v11.5.0 Enterprise (Elite Intelligence)
+# ⚡ LeadPure AI v11 Enterprise (Elite Intelligence)
 
 > **Mission-Critical Lead Validation & Deliverability Infrastructure.**
 > Engineered for 0% bounce-rate precision and high-fidelity cold outreach protection.
