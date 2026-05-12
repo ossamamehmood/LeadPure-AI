@@ -267,17 +267,17 @@ export const processContacts = async (
     }
   });
 
-  // Stage 2: Batch Processing (Optimized for High-Frequency Updates)
-  const BATCH_SIZE = 10; 
-  const CONCURRENT_BATCHES = 4;
+  // Stage 2: Stable Batch Processing
+  const BATCH_SIZE = 25; 
+  const CONCURRENT_BATCHES = 2;
   const batches = [];
   for (let i = 0; i < uniqueItemsToVerify.length; i += BATCH_SIZE) {
     batches.push(uniqueItemsToVerify.slice(i, i + BATCH_SIZE));
   }
 
-  if (onProgress) onProgress(1, `[PROTOCOL] Preparing ${total} identity probes...`);
+  if (onProgress) onProgress(1);
 
-  const processBatch = async (chunk: typeof workItems, batchIdx: number) => {
+  const processBatch = async (chunk: typeof workItems) => {
     if (signal?.aborted) return;
     const emails = chunk.map(item => item.email);
     
@@ -297,7 +297,6 @@ export const processContacts = async (
           
           if (res.verificationStatus === 'unknown' || res.subStatus === 'timeout') {
             item.__needsRetry = true;
-            if (onProgress) onProgress(null as any, `[LATENCY] ${item.email.slice(0, 5)}... timed out. Queued for Recovery.`);
             return;
           }
 
@@ -305,17 +304,14 @@ export const processContacts = async (
           if (isSafe) {
             stats.verifiedLeads++;
             validResults.set(item.id, res);
-            if (onProgress) onProgress(null as any, `[SECURED] ${item.email} is SAFE.`);
           } else {
             eliminatedResults.set(item.id, { ...res, reason: res.verificationReason });
-            if (onProgress) onProgress(null as any, `[FILTERED] ${item.email} is ${res.verificationStatus.toUpperCase()}.`);
           }
         });
       } else {
         throw new Error(`HTTP ${response.status}`);
       }
     } catch (err) {
-      if (onProgress) onProgress(null as any, `[ERROR] Batch ${batchIdx + 1} failed. Triggering Stage-3 Recovery...`);
       chunk.forEach(item => { item.__needsRetry = true; });
     }
   };
@@ -323,17 +319,16 @@ export const processContacts = async (
   for (let i = 0; i < batches.length; i += CONCURRENT_BATCHES) {
     if (signal?.aborted) break;
     const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
-    await Promise.all(concurrentChunk.map((b, idx) => processBatch(b, (i / BATCH_SIZE) + idx)));
+    await Promise.all(concurrentChunk.map(b => processBatch(b)));
     const progressVal = Math.min(95, Math.round(((i + CONCURRENT_BATCHES) / batches.length) * 100));
-    if (onProgress) onProgress(progressVal, `[ENGINE] Stage-2: ${Math.min(total, (i + CONCURRENT_BATCHES) * BATCH_SIZE)}/${total} identities processed.`);
+    if (onProgress) onProgress(progressVal);
   }
 
-  // Stage 3: Final Elite Recovery (Parallelized Acceleration)
+  // Stage 3: Final Recovery
   const retryLeads = uniqueItemsToVerify.filter(item => item.__needsRetry);
   if (retryLeads.length > 0 && !signal?.aborted) {
-    if (onProgress) onProgress(95, `[RECOVERY] Starting High-Resolution Probe for ${retryLeads.length} leads...`);
-    const RETRY_BATCH_SIZE = 15;
-    const RETRY_CONCURRENCY = 3;
+    const RETRY_BATCH_SIZE = 10;
+    const RETRY_CONCURRENCY = 2;
     const retryBatches = [];
     for (let i = 0; i < retryLeads.length; i += RETRY_BATCH_SIZE) {
       retryBatches.push(retryLeads.slice(i, i + RETRY_BATCH_SIZE));
@@ -342,12 +337,8 @@ export const processContacts = async (
     for (let i = 0; i < retryBatches.length; i += RETRY_CONCURRENCY) {
       if (signal?.aborted) break;
       const concurrentChunk = retryBatches.slice(i, i + RETRY_CONCURRENCY);
-      await Promise.all(concurrentChunk.map((chunk, idx) => processBatch(chunk, i + idx)));
-      
-      if (onProgress) {
-        const stage3Progress = 95 + Math.min(4, Math.round((i / retryBatches.length) * 5));
-        onProgress(stage3Progress, `[RECOVERY] Identity resolved: ${Math.min(retryLeads.length, (i + RETRY_CONCURRENCY) * RETRY_BATCH_SIZE)}/${retryLeads.length}.`);
-      }
+      await Promise.all(concurrentChunk.map(chunk => processBatch(chunk)));
+      if (onProgress) onProgress(95 + Math.min(4, Math.round((i / retryBatches.length) * 5)));
     }
   }
 
