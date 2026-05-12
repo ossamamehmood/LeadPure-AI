@@ -440,7 +440,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     }
   }
 
-  if (!cachedDomain) {
+  if (!cachedDomain && mxRecordFound) {
     domainCache.set(domain, {
       mxRecordFound,
       mxRecord: primaryMx,
@@ -520,8 +520,14 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     syntaxValid: true
   };
 
-  emailCache.set(cleanEmail, result);
-  if (emailCache.size > 20000) emailCache.clear();
+  // ELITE CACHE POLICY: Only persist definitive results.
+  // Never cache 'unknown' or 'timeout' results to ensure consistency across runs.
+  const isDefinitive = result.verificationStatus !== 'unknown' && result.subStatus !== 'timeout' && result.subStatus !== 'engine_error';
+  
+  if (isDefinitive) {
+    emailCache.set(cleanEmail, result);
+    if (emailCache.size > 20000) emailCache.clear();
+  }
 
   return result;
 };

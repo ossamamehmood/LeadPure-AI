@@ -44,7 +44,7 @@ export default async function handler(req: Request | any, res: Response | any) {
       const chunkResults = await Promise.all(
         chunk.map(async (email: string) => {
           let attempts = 0;
-          const MAX_ATTEMPTS = 2;
+          const MAX_ATTEMPTS = 3;
           let lastResult: ValidationResult | null = null;
 
           while (attempts < MAX_ATTEMPTS) {
