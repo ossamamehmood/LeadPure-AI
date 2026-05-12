@@ -17,15 +17,12 @@ export const cleanText = (text: string | any, applyTitleCase: boolean = true): s
     };
     if (normalizationMap[lower]) return normalizationMap[lower];
 
-    cleaned = cleaned.toLowerCase().split(' ')
-      .map(word => {
-        if (word.length === 0) return '';
-        if (word.includes('-')) {
-          return word.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('-');
-        }
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      })
-      .join(' ');
+    cleaned = lower.replace(/\w\S*/g, (txt) => {
+      if (txt.includes('-')) {
+        return txt.replace(/(?:^|-)[a-z]/g, match => match.toUpperCase());
+      }
+      return txt.charAt(0).toUpperCase() + txt.slice(1);
+    });
   }
   
   return cleaned;
@@ -34,10 +31,15 @@ export const cleanText = (text: string | any, applyTitleCase: boolean = true): s
 /**
  * Attempt to format a phone number with country code - Always ensuring + sign
  */
+const phoneCache = new Map<string, string>();
+
 export const formatPhone = (phone: string, country?: string, forcePlus: boolean = true): string => {
   let raw = String(phone).trim();
   let cleaned = raw.replace(/\D/g, '');
   if (!cleaned) return '';
+
+  const cacheKey = `${raw}-${country || ''}-${forcePlus}`;
+  if (phoneCache.has(cacheKey)) return phoneCache.get(cacheKey)!;
 
   let formatted = '';
   if (raw.startsWith('+')) {
@@ -65,6 +67,9 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
     formatted = '+' + formatted.replace(/\D/g, '');
   }
 
+  phoneCache.set(cacheKey, formatted);
+  if (phoneCache.size > 10000) phoneCache.clear(); // Prevents memory leak in browser memory
+
   return formatted;
 };
 
@@ -81,31 +86,30 @@ export const autoCorrectEmail = (email: string): string => {
   if (!cleaned) return '';
 
   // 2. TLD Typo Corrections
-  const tldTypos: Record<string, string> = {
-    '.cm': '.com',
-    '.con': '.com',
-    '.cpm': '.com',
-    '.copm': '.com',
-    '.coom': '.com',
-    '.comm': '.com',
-    '.com.com': '.com',
-    '.net.net': '.net',
-    '.org.org': '.org',
-    '.gmial.com': '.gmail.com',
-    '.gmal.com': '.gmail.com',
-    '.gamil.com': '.gmail.com',
-    '.gmail.co': '.gmail.com',
-    '.yahho.com': '.yahoo.com',
-    '.yaho.com': '.yahoo.com',
-    '.hotmial.com': '.hotmail.com',
-    '.hotmal.com': '.hotmail.com',
-    '.outlok.com': '.outlook.com'
-  };
-
-  for (const [typo, fix] of Object.entries(tldTypos)) {
-    if (cleaned.endsWith(typo)) {
-      cleaned = cleaned.slice(0, -typo.length) + fix;
-      break;
+  // 2. TLD Typo Corrections via fast Regex match
+  const typoRegex = /\.(cm|con|cpm|copm|coom|comm|com\.com)$/;
+  if (typoRegex.test(cleaned)) {
+    cleaned = cleaned.replace(typoRegex, '.com');
+  } else if (cleaned.endsWith('.net.net')) {
+    cleaned = cleaned.replace('.net.net', '.net');
+  } else if (cleaned.endsWith('.org.org')) {
+    cleaned = cleaned.replace('.org.org', '.org');
+  } else {
+    // Specific domain typos
+    const domainTypos: Record<string, string> = {
+      'gmial.com': 'gmail.com', 'gmal.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gmail.co': 'gmail.com',
+      'yahho.com': 'yahoo.com', 'yaho.com': 'yahoo.com',
+      'hotmial.com': 'hotmail.com', 'hotmal.com': 'hotmail.com',
+      'outlok.com': 'outlook.com'
+    };
+    
+    // Instead of iterating through all entries, extract domain and check directly if possible
+    const parts = cleaned.split('@');
+    if (parts.length > 1) {
+      const domain = parts[parts.length - 1];
+      if (domainTypos[domain]) {
+        cleaned = parts.slice(0, -1).join('@') + '@' + domainTypos[domain];
+      }
     }
   }
 

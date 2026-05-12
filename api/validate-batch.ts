@@ -39,11 +39,12 @@ export default async function handler(req: Request | any, res: Response | any) {
       const chunkResults = await Promise.all(
         chunk.map(async (email: string) => {
           try {
+            let timerId: NodeJS.Timeout;
             const validationPromise = validateEmailFull(email, mergedOptions);
             const timeoutPromise = new Promise<ValidationResult>((resolve) => {
               const timeElapsed = Date.now() - startTime;
               const remainingTime = Math.max(100, TIMEOUT_MS - timeElapsed);
-              setTimeout(() => {
+              timerId = setTimeout(() => {
                 resolve({
                   email,
                   verificationStatus: 'unknown',
@@ -64,7 +65,9 @@ export default async function handler(req: Request | any, res: Response | any) {
               }, remainingTime);
             });
 
-            return await Promise.race([validationPromise, timeoutPromise]);
+            const result = await Promise.race([validationPromise, timeoutPromise]);
+            clearTimeout(timerId!);
+            return result;
           } catch (internalErr: any) {
             return {
               email,

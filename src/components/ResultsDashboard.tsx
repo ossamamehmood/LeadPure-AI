@@ -104,18 +104,22 @@ export function ResultsDashboard({
 
   const currentData = activeTab === 'valid' ? processedData : eliminatedData;
 
+  const searchIndex = useMemo(() => {
+    return currentData.map(item => {
+      const email = String(item[mappings.emailKey] || '');
+      const first = String(item[mappings.firstNameKey] || '');
+      const last = String(item[mappings.lastNameKey] || '');
+      const name = String(item[mappings.nameKey] || '');
+      return `${email} ${first} ${last} ${name}`.toLowerCase();
+    });
+  }, [currentData, mappings]);
+
   const filteredData = useMemo(() => {
     if (!deferredSearchTerm) return currentData;
     
     const searchStr = deferredSearchTerm.toLowerCase();
-    return currentData.filter(item => {
-      const email = String(item[mappings.emailKey] || '').toLowerCase();
-      const first = String(item[mappings.firstNameKey] || '').toLowerCase();
-      const last = String(item[mappings.lastNameKey] || '').toLowerCase();
-      const name = String(item[mappings.nameKey] || '').toLowerCase();
-      return email.includes(searchStr) || first.includes(searchStr) || last.includes(searchStr) || name.includes(searchStr);
-    });
-  }, [activeTab, processedData, eliminatedData, deferredSearchTerm, mappings]);
+    return currentData.filter((_, index) => searchIndex[index].includes(searchStr));
+  }, [currentData, deferredSearchTerm, searchIndex]);
 
   const avgConfidence = Math.round((processedData || []).reduce((acc, curr) => acc + (curr.confidenceScore || 0), 0) / ((processedData || []).length || 1));
   const dangerousCount = (eliminatedData || []).filter(item => item.bounceRisk === 'Dangerous' || item.reputationImpact === 'Critical').length;

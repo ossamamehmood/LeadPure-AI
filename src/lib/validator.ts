@@ -79,7 +79,7 @@ const freeProviders = new Set([
   'mail.com', 'gmx.com', 'yandex.com', 'yandex.ru', 'mail.ru'
 ]);
 
-// ----------------- DOMAIN CACHING -----------------
+// ----------------- DOMAIN & EMAIL CACHING -----------------
 interface DomainCacheEntry {
   mxRecordFound: boolean;
   mxRecord: string | undefined;
@@ -92,7 +92,13 @@ interface DomainCacheEntry {
   timestamp: number;
 }
 const domainCache = new Map<string, DomainCacheEntry>();
+const emailCache = new Map<string, ValidationResult>();
 const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
+// ----------------- STATIC ENGINE PATTERNS -----------------
+const syntaxRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+const knownToxicPatterns = ['honey', 'trap', 'spam', 'test', 'fake', 'donotreply'];
+const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
 const determineRisk = (score: number) => {
@@ -215,12 +221,16 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
 
 export const validateEmailFull = async (email: string, options: ValidationOptions): Promise<ValidationResult> => {
   let cleanEmail = email.toLowerCase().trim().replace(/[\s"'\r\n]/g, '');
+  
+  if (emailCache.has(cleanEmail)) {
+    return emailCache.get(cleanEmail)!;
+  }
+
   let score = 100;
   let reasons: string[] = [];
   
   // 1. Strict RFC 5322 Syntax Check (v10.0 Enterprise)
   // Ensures no trailing dots, leading dots, or consecutive dots.
-  const syntaxRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   const hasConsecutiveDots = cleanEmail.includes('..');
   const hasInvalidDots = cleanEmail.startsWith('.') || cleanEmail.includes('.@') || cleanEmail.endsWith('.');
   
@@ -435,8 +445,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   }
 
   // Enterprise Spam Trap Heuristics: Precision filtering
-  const knownToxicPatterns = ['honey', 'trap', 'spam', 'test', 'fake', 'donotreply'];
-  const isSuspiciousAlphaNum = /^[a-z]{1,2}[0-9]{5,}$/.test(localPart); // Extreme numeric randomness like "ab123456" instead of standard "john1990"
+  const isSuspiciousAlphaNum = suspicousAlphaNumRegex.test(localPart); // Extreme numeric randomness like "ab123456" instead of standard "john1990"
   
   const hasToxicPattern = knownToxicPatterns.some(p => localPart.includes(p));
 
@@ -455,7 +464,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
 
   const { bounceRisk, reputationImpact, finalStatus } = determineRisk(score);
 
-  return {
+  const result: ValidationResult = {
     email: cleanEmail,
     verificationStatus: finalStatus,
     verificationReason: reasons.length > 0 ? reasons.join(' • ') : 'Verified Profile Integrity',
@@ -473,4 +482,9 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     smtpValid,
     syntaxValid: true
   };
+
+  emailCache.set(cleanEmail, result);
+  if (emailCache.size > 20000) emailCache.clear();
+
+  return result;
 };
