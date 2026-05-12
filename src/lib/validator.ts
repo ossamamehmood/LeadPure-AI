@@ -382,8 +382,14 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     if (smtpCheck.timedOut || smtpCheck.code === 0) {
       smtpValid = false;
       subStatus = 'smtp_firewall_blocked';
-      // No penalty: Since SPF + DMARC are now mandatory for B2B, a 100 score is guaranteed.
-      reasons.push('Verified via Enterprise DNS Audit (High-Trust Profile)');
+      // Strict 0% Bounce Policy: If we cannot explicitly verify the mailbox via SMTP due to Vercel/firewall blocks,
+      // we MUST NOT pass it as verified, even if SPF/DMARC exists. Doing so risks hard bounces.
+      return {
+        email: cleanEmail, verificationStatus: 'unknown', verificationReason: 'Engine Blocked: Port 25 Firewall / Timeout. Cannot Guarantee 0% Bounce.',
+        subStatus: 'smtp_firewall_blocked', confidenceScore: 40, bounceRisk: 'Unknown', reputationImpact: 'Neutral',
+        mxRecordFound: true, mxRecord: primaryMx, isCatchAll: false, isDisposable, isRoleBased, isFreeEmail, provider,
+        smtpValid: false, syntaxValid: true
+      };
     } else if (smtpCheck.code === 550) {
       return {
         email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'SMTP RCPT_TO: Mailbox Not Found (Code 550)',
