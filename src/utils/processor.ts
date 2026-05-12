@@ -281,9 +281,10 @@ export const processContacts = async (
     if (signal?.aborted) return;
     const emails = chunk.map(item => item.email);
     
-    // FAIL_SAFE: Enforce a strict 12s timeout
+    // FAIL_SAFE: Enforce a strict timeout (Shortened for Stage-3)
+    const isStage3 = uniqueItemsToVerify.filter(item => item.__needsRetry).length > 0;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000); 
+    const timeoutId = setTimeout(() => controller.abort(), isStage3 ? 7000 : 12000); 
 
     try {
       const response = await fetch('/api/validate-batch', {
@@ -331,7 +332,7 @@ export const processContacts = async (
     if (onProgress) onProgress(progressVal);
   }
 
-  // Stage 3: Final Recovery
+  // Stage 3: Final Recovery (With Stall Detection)
   const retryLeads = uniqueItemsToVerify.filter(item => item.__needsRetry);
   if (retryLeads.length > 0 && !signal?.aborted) {
     const RETRY_BATCH_SIZE = 10;
@@ -341,11 +342,22 @@ export const processContacts = async (
       retryBatches.push(retryLeads.slice(i, i + RETRY_BATCH_SIZE));
     }
 
+    let consecutiveFailures = 0;
     for (let i = 0; i < retryBatches.length; i += RETRY_CONCURRENCY) {
-      if (signal?.aborted) break;
+      if (signal?.aborted || consecutiveFailures >= 2) break;
       const concurrentChunk = retryBatches.slice(i, i + RETRY_CONCURRENCY);
-      await Promise.all(concurrentChunk.map(chunk => processBatch(chunk)));
-      if (onProgress) onProgress(95 + Math.min(4, Math.round((i / retryBatches.length) * 5)));
+      
+      try {
+        await Promise.all(concurrentChunk.map(chunk => processBatch(chunk)));
+        consecutiveFailures = 0; // Reset on success
+      } catch (e) {
+        consecutiveFailures++;
+      }
+      
+      if (onProgress) {
+        const progress = 95 + Math.floor((i / retryBatches.length) * 4);
+        onProgress(progress);
+      }
     }
   }
 

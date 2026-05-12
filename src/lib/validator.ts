@@ -572,7 +572,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   // We cache even unknown/timeouts, but the processor will attempt a second pass.
   emailCache.set(cleanEmail, result);
   
-  if (emailCache.size > 30000) emailCache.clear();
+  if (emailCache.size > 5000) emailCache.clear();
 
   return result;
 };
