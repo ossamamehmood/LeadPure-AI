@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { RefreshCw } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 interface LoadingOverlayProps {
   progress: number;
