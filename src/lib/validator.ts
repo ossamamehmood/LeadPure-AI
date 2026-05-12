@@ -345,9 +345,9 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     };
   }
 
-  // If Free Email (Gmail, Yahoo, Outlook), set base score to 95 since we bypass SMTP
+  // If Free Email (Gmail, Yahoo, Outlook), set base score to 100 for perfect Deliverable list
   if (isFreeEmail) {
-    score = 95;
+    score = 100;
     reasons.push('Trusted Provider (High Deliverability)');
   }
 
