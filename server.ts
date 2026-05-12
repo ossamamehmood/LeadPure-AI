@@ -10,10 +10,9 @@ const app = express();
 const PORT = 3000;
 
 import batchHandler from './api/validate-batch';
-import jobsRouter from './api/jobs';
 
 export async function createServer() {
-  app.use(express.json({ limit: '50mb' }));
+  app.use(express.json());
 
   // API Routes
   app.get("/api/health", (req, res) => {
@@ -26,9 +25,6 @@ export async function createServer() {
 
   // Local Development Route - Mount the native Vercel handler in Express
   app.post("/api/validate-batch", batchHandler);
-  
-  // Background Job Engine Routes
-  app.use("/api/jobs", jobsRouter);
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

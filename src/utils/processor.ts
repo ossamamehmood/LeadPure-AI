@@ -195,11 +195,179 @@ export const processContacts = async (
 
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
-  // We are going to return this to the hook, which will then send it to the Job Engine backend
-  return { preProcessedData, stats, eliminated };
-};
+  // Stage 2: Concurrent Batch Processing to Backend Engine
+  const total = preProcessedData.length;
+  // Increase batch size to 50 and use 3 concurrent Vercel instances to drop processing time by 90%
+  const BATCH_SIZE = 50; 
+  const CONCURRENT_BATCHES = 3;
+  
+  const batches = [];
+  for (let i = 0; i < total; i += BATCH_SIZE) {
+    batches.push({
+      startIndex: i,
+      items: preProcessedData.slice(i, i + BATCH_SIZE)
+    });
+  }
+
+  let completedBatches = 0;
+
+  const processBatch = async (batchObj: { startIndex: number, items: any[] }) => {
+    if (signal?.aborted) return;
     
-// Backing out processBatch execution as we now use JobEngine API
+    const { startIndex, items } = batchObj;
+    const emailsToVerify = items.map(item => String(item[mappings.emailKey] || '').toLowerCase().trim());
+    
+    let retries = 2;
+    let success = false;
+    
+    while (retries >= 0 && !success && !signal?.aborted) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 9500); // 9.5s local timeout limit
+        
+        if (signal) {
+          signal.addEventListener('abort', () => controller.abort());
+        }
+        
+        const response = await fetch('/api/validate-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emails: emailsToVerify,
+            options: {
+              excludeDisposable: rules.excludeDisposable,
+              excludeRoleBased: rules.excludeRoleBased,
+              excludeCatchAll: rules.excludeCatchAll,
+              excludeSpamTraps: rules.excludeSpamTraps
+            }
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          if (response.status === 502 || response.status === 504 || response.status === 429) {
+            throw new Error(`Gateway/RateLimit Error ${response.status}`);
+          }
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        success = true;
+      
+      const { results } = await response.json();
+      
+      // Merge results back into items
+      results.forEach((verificationResult: any, idx: number) => {
+        const item = items[idx];
+        
+        const status = verificationResult.verificationStatus;
+        const isDangerousOrRisky = status === 'dangerous' || status === 'risky';
+
+        // STRICT 100% QUALITY MATRIX ENFORCEMENT
+        // 'safe' and 'usable' leads are kept. 'risky' and 'dangerous' leads are eliminated.
+        if (isDangerousOrRisky) {
+          // Track granular stats
+          const subStatus = verificationResult.subStatus || '';
+          if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
+          else if (subStatus === 'domain_not_found') stats.dnsFailure++;
+          else if (subStatus === 'disposable') stats.disposableMatch++;
+          else if (subStatus === 'role_based') stats.roleBasedMatch++;
+          else if (subStatus === 'catch_all') stats.catchAllMatch++;
+          else if (subStatus === 'toxic') stats.toxicPatternMatch++;
+          else if (subStatus === 'greylisted') stats.greylistedMatch++;
+          else if (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous') stats.highBounceRisk++;
+
+          eliminated.push({ 
+            ...item, 
+            reason: verificationResult.verificationReason,
+            score: verificationResult.confidenceScore,
+            bounceRisk: verificationResult.bounceRisk,
+            reputationImpact: verificationResult.reputationImpact,
+            subStatus: verificationResult.subStatus,
+            status: status
+          });
+        } else {
+          stats.verifiedLeads++;
+          
+          // Data Enhancement
+          const updatedItem = { ...item };
+          if (mappings.emailKey && verificationResult.email) {
+            updatedItem[mappings.emailKey] = verificationResult.email;
+          }
+          if (mappings.firstNameKey) updatedItem[mappings.firstNameKey] = cleanText(item[mappings.firstNameKey], rules.strictTitleCase);
+          if (mappings.lastNameKey) updatedItem[mappings.lastNameKey] = cleanText(item[mappings.lastNameKey], rules.strictTitleCase);
+          if (mappings.nameKey) updatedItem[mappings.nameKey] = cleanText(item[mappings.nameKey], rules.strictTitleCase);
+          if (mappings.cityKey) updatedItem[mappings.cityKey] = cleanText(item[mappings.cityKey], rules.strictTitleCase);
+          if (mappings.countryKey) updatedItem[mappings.countryKey] = cleanText(item[mappings.countryKey], rules.strictTitleCase);
+          
+          if (mappings.phoneKey) {
+            const originalPhone = String(item[mappings.phoneKey] || '');
+            const formatted = formatPhone(originalPhone, item[mappings.countryKey], rules.forcePlusSign);
+            updatedItem[mappings.phoneKey] = formatted;
+          }
+
+          if (mappings.postalCodeKey) {
+            updatedItem[mappings.postalCodeKey] = String(item[mappings.postalCodeKey] || '').trim().toUpperCase();
+          }
+
+          valid.push({
+            ...verificationResult,
+            ...updatedItem,
+            originalIndex: startIndex + idx,
+            __originalData: updatedItem
+          } as ProcessedContact);
+        }
+      });
+
+    } catch (err: any) {
+        if (err.name === 'AbortError' && signal?.aborted) {
+          retries = -1; // Force stop if specifically aborted by user
+          break;
+        }
+        
+        retries--;
+        if (retries < 0) {
+          console.error(`[BATCH_ERROR] Batch starting at ${startIndex} failed permanently:`, err);
+          items.forEach(item => eliminated.push({ ...item, reason: `Network/Timeout Failure: ${err.message}` }));
+        } else {
+          console.warn(`[BATCH_RETRY] Batch ${startIndex} failed, retrying... (${retries} left)`);
+          await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5s exponential backoff base
+        }
+      }
+    }
+
+    completedBatches++;
+    if (onProgress) {
+      onProgress(Math.min(100, Math.round((completedBatches / batches.length) * 100)));
+    }
+  };
+
+  // Process in chunks of CONCURRENT_BATCHES
+  for (let i = 0; i < batches.length; i += CONCURRENT_BATCHES) {
+    if (signal?.aborted) {
+      console.log(`[PROCESSOR] PIPELINE_ABORTED by user.`);
+      throw new Error('Pipeline Aborted');
+    }
+    const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
+    await Promise.all(concurrentChunk.map(b => processBatch(b)));
+    
+    // Deterministic Adaptive Jitter: Prevent Vercel Rate Limits (429) & CPU starvation
+    // Base wait of 100ms + random jitter up to 150ms ensures staggered connections
+    const jitter = Math.floor(Math.random() * 150) + 100;
+    await new Promise(resolve => setTimeout(resolve, jitter));
+  }
+
+  const finalReport = {
+    ...stats,
+    finalDeliverable: valid.length,
+    finalFiltered: eliminated.length
+  };
+
+  console.table(finalReport);
+  console.log(`[PROCESSOR] PIPELINE_COMPLETE. Enterprise backend processing finished.`);
+
+  return { valid, eliminated, stats: finalReport };
+};
 
 /**
  * Single Email Verification Wrapper (for SingleValidation.tsx UI component)

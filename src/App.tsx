@@ -154,7 +154,7 @@ export default function App() {
     setAppState('processing');
     console.log(`[ENGINE] STARTING_SESSION: Roles[${validationRules.excludeRoleBased}] Disposable[${validationRules.excludeDisposable}] CatchAll[${validationRules.excludeCatchAll}]`);
     try {
-      const { valid, eliminated, stats } = await processor.runProcessor(fileData, mappings, validationRules, fileName);
+      const { valid, eliminated, stats } = await processor.runProcessor(fileData, mappings, validationRules);
       setProcessingStats(stats);
       
       saveToHistory({
@@ -344,7 +344,7 @@ export default function App() {
           <LoadingOverlay progress={10} estimatedSeconds={1} customText="PARSING DATA FILE..." customDescription="Extracting and normalizing identities off-thread..." />
         )}
         {appState === 'processing' && (
-          <LoadingOverlay progress={processor.progress} estimatedSeconds={processor.estimatedSeconds} onCancel={processor.cancelProcessing} logs={processor.logs} />
+          <LoadingOverlay progress={processor.progress} estimatedSeconds={processor.estimatedSeconds} onCancel={processor.cancelProcessing} />
         )}
       </AnimatePresence>
 
