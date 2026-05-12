@@ -18,10 +18,10 @@
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-glow: glow 2s ease-in-out infinite alternate;
 
-  --color-app-bg: var(--bg-color, #030303);
+  --color-app-bg: var(--bg-color, #020202);
   --color-app-text: var(--text-color, #F8FAFC);
-  --color-app-border: var(--border-color, rgba(255, 255, 255, 0.05));
-  --color-app-card: var(--card-color, rgba(10, 10, 10, 0.7));
+  --color-app-border: var(--border-color, rgba(255, 255, 255, 0.03));
+  --color-app-card: var(--card-color, rgba(5, 5, 5, 0.6));
 }
 
 @keyframes float {
@@ -108,11 +108,11 @@ body {
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(circle at 10% 20%, rgba(90, 92, 255, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, rgba(157, 0, 255, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(245, 2, 253, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 0% 0%, rgba(90, 92, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(245, 2, 253, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(2, 254, 220, 0.02) 0%, transparent 70%);
   z-index: -1;
-  transition: background 0.3s ease-in-out;
+  transition: background 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-theme='light'] .mesh-background {
@@ -145,21 +145,18 @@ a.brand-link {
 }
 
 .glossy-card {
-  @apply relative border border-app-border backdrop-blur-3xl bg-app-card overflow-hidden;
-  background-image: 
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.03), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.01), transparent 30%);
+  @apply relative border border-white/[0.03] backdrop-blur-3xl bg-[#050505]/60 overflow-hidden;
   box-shadow: 
-    0 8px 32px 0 rgba(0, 0, 0, 0.4),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.5s ease-in-out, border-color 0.5s ease-in-out;
+    0 4px 24px -1px rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
+  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .glossy-card:hover {
-  @apply border-app-border/40 bg-app-card/90 -translate-y-1;
+  @apply border-white/10 bg-[#080808]/80 -translate-y-2;
   box-shadow: 
-    0 24px 64px -12px rgba(0, 0, 0, 0.6),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    0 30px 60px -12px rgba(0, 0, 0, 0.7),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.1);
 }
 
 .glossy-card::after {

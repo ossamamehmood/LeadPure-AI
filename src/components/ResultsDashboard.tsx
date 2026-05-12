@@ -136,85 +136,106 @@ export function ResultsDashboard({
   return (
     <div className="max-w-6xl mx-auto w-full space-y-12 pb-20">
       {/* Infrastructure Status Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 px-2">
-        <GlossyCard glow="gradient" className="p-7 rounded-[32px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-brand-blue/30 transition-all">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-blue/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="flex justify-between items-start mb-5">
-            <p className="gradient-text text-[10px] font-black uppercase tracking-[0.2em] italic">Validated Safe</p>
-            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
-              <Activity className="w-4 h-4 text-brand-blue" />
+      <motion.div 
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: { opacity: 0 },
+          show: {
+            opacity: 1,
+            transition: {
+              staggerChildren: 0.1
+            }
+          }
+        }}
+        className="grid grid-cols-1 md:grid-cols-4 gap-8 px-2"
+      >
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+          <GlossyCard glow="gradient" className="p-7 rounded-[40px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-brand-blue/30 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-blue/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex justify-between items-start mb-5">
+              <p className="gradient-text text-[10px] font-black uppercase tracking-[0.2em] italic">Validated Safe</p>
+              <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
+                <Activity className="w-4 h-4 text-brand-blue" />
+              </div>
             </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <p className="text-5xl font-black text-app-text font-mono tracking-tighter transition-colors duration-500">{(processedData || []).length}</p>
-            <span className="text-slate-600 font-bold text-xs uppercase tracking-widest">Leads</span>
-          </div>
-          <div className="flex items-center gap-2 mt-4 bg-white/[0.03] w-fit px-3 py-1.5 rounded-full border border-white/5">
-             <div className="w-1.5 h-1.5 rounded-full gradient-bg animate-pulse shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
-             <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest italic leading-none">Deliverability Locked</p>
-          </div>
-        </GlossyCard>
+            <div className="flex items-baseline gap-2">
+              <p className="text-5xl font-black text-app-text font-mono tracking-tighter transition-colors duration-500">{(processedData || []).length}</p>
+              <span className="text-slate-600 font-bold text-xs uppercase tracking-widest">Leads</span>
+            </div>
+            <div className="flex items-center gap-2 mt-4 bg-white/[0.03] w-fit px-3 py-1.5 rounded-full border border-white/5">
+              <div className="w-1.5 h-1.5 rounded-full gradient-bg animate-pulse shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
+              <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest italic leading-none">Deliverability Locked</p>
+            </div>
+          </GlossyCard>
+        </motion.div>
 
-        <GlossyCard glow="pink" className="p-7 rounded-[32px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-brand-pink/30 transition-all">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-pink/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="flex justify-between items-start mb-5">
-            <p className="text-brand-pink text-[10px] font-black uppercase tracking-[0.2em] italic">Risks Neutralized</p>
-            <div className="w-8 h-8 rounded-xl bg-brand-pink/10 flex items-center justify-center border border-brand-pink/20">
-              <Zap className="w-4 h-4 text-brand-pink" />
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+          <GlossyCard glow="pink" className="p-7 rounded-[40px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-brand-pink/30 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-pink/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex justify-between items-start mb-5">
+              <p className="text-brand-pink text-[10px] font-black uppercase tracking-[0.2em] italic">Risks Neutralized</p>
+              <div className="w-8 h-8 rounded-xl bg-brand-pink/10 flex items-center justify-center border border-brand-pink/20">
+                <Zap className="w-4 h-4 text-brand-pink" />
+              </div>
             </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <p className="text-5xl font-black text-app-text font-mono tracking-tighter transition-colors duration-500">{(eliminatedData || []).length}</p>
-            <span className="text-slate-600 font-bold text-xs uppercase tracking-widest">Blocks</span>
-          </div>
-          <div className="space-y-1 mt-4">
-            <p className="text-[9px] text-slate-600 uppercase font-black tracking-widest italic leading-none border-l border-brand-pink/30 pl-2">
-              Filtered {catchAllCount} Catch-All & {disposableCount} Disposable Addresses
-            </p>
-            <p className="text-[9px] text-brand-pink/80 uppercase font-black tracking-widest italic leading-none border-l border-brand-pink/30 pl-2">
-              Prevented {dangerousCount} Critical Bounces
-            </p>
-          </div>
-        </GlossyCard>
+            <div className="flex items-baseline gap-2">
+              <p className="text-5xl font-black text-app-text font-mono tracking-tighter transition-colors duration-500">{(eliminatedData || []).length}</p>
+              <span className="text-slate-600 font-bold text-xs uppercase tracking-widest">Blocks</span>
+            </div>
+            <div className="space-y-1 mt-4">
+              <p className="text-[9px] text-slate-600 uppercase font-black tracking-widest italic leading-none border-l border-brand-pink/30 pl-2">
+                Filtered {catchAllCount} Catch-All & {disposableCount} Disposable
+              </p>
+              <p className="text-[9px] text-brand-pink/80 uppercase font-black tracking-widest italic leading-none border-l border-brand-pink/30 pl-2">
+                Prevented {dangerousCount} Critical Bounces
+              </p>
+            </div>
+          </GlossyCard>
+        </motion.div>
 
-        <GlossyCard className="p-7 rounded-[32px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-brand-blue/30 transition-all">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-brand-blue/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="flex justify-between items-start mb-5">
-            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic">Quality Matrix</p>
-            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
-              <Fingerprint className="w-4 h-4 text-brand-blue" />
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+          <GlossyCard className="p-7 rounded-[40px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-brand-blue/30 transition-all">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-blue/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="flex justify-between items-start mb-5">
+              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic">Quality Matrix</p>
+              <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
+                <Fingerprint className="w-4 h-4 text-brand-blue" />
+              </div>
             </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <p className={cn(
-              "text-5xl font-black font-mono tracking-tighter italic transition-colors duration-500",
-              avgConfidence >= 98 ? "text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" : "text-app-text"
-            )}>
-              {avgConfidence}<span className="text-2xl">%</span>
-            </p>
-          </div>
-          <div className="text-[10px] text-slate-600 mt-6 uppercase font-black tracking-[0.2em] italic leading-none flex items-center gap-2">
-            <div className="w-1 h-1 rounded-full bg-slate-800" />
-            Global Accuracy Grade
-          </div>
-        </GlossyCard>
+            <div className="flex items-baseline gap-2">
+              <p className={cn(
+                "text-5xl font-black font-mono tracking-tighter italic transition-colors duration-500",
+                avgConfidence >= 98 ? "text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" : "text-app-text"
+              )}>
+                {avgConfidence}<span className="text-2xl">%</span>
+              </p>
+            </div>
+            <div className="text-[10px] text-slate-600 mt-6 uppercase font-black tracking-[0.2em] italic leading-none flex items-center gap-2">
+              <div className="w-1 h-1 rounded-full bg-slate-800" />
+              Global Accuracy Grade
+            </div>
+          </GlossyCard>
+        </motion.div>
 
-        <GlossyCard className="p-7 rounded-[32px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-white/10 transition-all">
-          <div className="flex justify-between items-start mb-5">
-            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic">Engine Status</p>
-            <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-              <Cpu className="w-4 h-4 text-slate-500" />
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+          <GlossyCard className="p-7 rounded-[40px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-white/10 transition-all">
+            <div className="flex justify-between items-start mb-5">
+              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic">Engine Status</p>
+              <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
+                <Cpu className="w-4 h-4 text-slate-500" />
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3 mt-1">
-            <p className="text-4xl font-black text-app-text tracking-tighter uppercase italic transition-colors duration-500">Protected</p>
-          </div>
-          <div className="mt-6 flex items-center justify-between">
-            <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">SMTP Mode</p>
-            <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[8px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30 shadow-[0_0_10px_rgba(90,92,255,0.1)]">v10.0 Release</div>
-          </div>
-        </GlossyCard>
-      </div>
+            <div className="flex items-center gap-3 mt-1">
+              <p className="text-4xl font-black text-app-text tracking-tighter uppercase italic transition-colors duration-500">Protected</p>
+            </div>
+            <div className="mt-6 flex items-center justify-between">
+              <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">SMTP Mode</p>
+              <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[8px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30 shadow-[0_0_10px_rgba(90,92,255,0.1)]">v10.0 Release</div>
+            </div>
+          </GlossyCard>
+        </motion.div>
+      </motion.div>
 
       <div className="bg-app-card rounded-[48px] border border-app-border shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden">
         {/* Table Controls */}

@@ -294,39 +294,70 @@ export default function App() {
           <div className="max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">
               {appState === 'upload' && (
-                <div key="upload-state" className="space-y-20 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+                <motion.div 
+                  key="upload-state"
+                  initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="space-y-20"
+                >
                   <SingleValidation />
                   <LeadUpload onDrop={onDrop} />
-                </div>
+                </motion.div>
               )}
               {appState === 'mapping' && (
-                <div key="mapping-state" className="animate-in fade-in scale-in-95 duration-300">
+                <motion.div 
+                  key="mapping-state"
+                  initial={{ opacity: 0, scale: 1.02 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                >
                   <MappingSection 
                     fileName={fileName} totalLeads={fileData.length} headers={headers} 
                     mappings={mappings} setMappings={setMappings} 
                     onStartProcessing={handleStartProcessing} isProcessing={processor.isProcessing} 
                     onPreview={() => openPreview(fileData, 'Original Data Preview')}
                   />
-                </div>
+                </motion.div>
               )}
               {appState === 'rules' && (
-                <div key="rules-state" className="animate-in fade-in slide-in-from-left-4 duration-300">
+                <motion.div 
+                  key="rules-state"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                >
                   <RulesSection 
                     rules={validationRules} 
                     onToggle={(key) => setValidationRules(p => ({ ...p, [key]: !p[key]}))} 
                   />
-                </div>
+                </motion.div>
               )}
               {appState === 'history' && (
-                <div key="history-state" className="animate-in fade-in slide-in-from-right-4 duration-500">
+                <motion.div 
+                  key="history-state"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                >
                   <HistorySection 
                     history={history} loadItem={loadHistoryItem} 
                     downloadItem={downloadHistoryItem} clearHistory={clearHistory} 
                   />
-                </div>
+                </motion.div>
               )}
               {appState === 'results' && (
-                <div key="results-state" className="animate-in fade-in slide-in-from-top-4 duration-500">
+                <motion.div 
+                  key="results-state"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -30 }}
+                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                >
                   <ResultsDashboard 
                     processedData={processor.processedData} 
                     eliminatedData={processor.eliminatedData} 
@@ -336,8 +367,9 @@ export default function App() {
                     onDownloadValid={handleDownload}
                     stats={processingStats}
                   />
-                </div>
+                </motion.div>
               )}
+            </AnimatePresence>
             </AnimatePresence>
             
             <div className="mt-20">
