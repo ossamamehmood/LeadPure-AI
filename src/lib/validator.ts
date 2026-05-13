@@ -112,7 +112,7 @@ const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
 const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean, provider: string) => {
-  // ELITE SAFETY PROTOCOL (v12.0): Probabilistic Deliverability
+  // ELITE SAFETY PROTOCOL (v11.0): Probabilistic Deliverability
   // A lead is 'safe' if it has:
   // 1. Successful SMTP handshake + Not a Catch-all
   // 2. High-trust Free Provider (Gmail/Outlook) + High Score
@@ -536,11 +536,14 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     syntaxValid: true
   };
 
-  // SESSION LOCK POLICY: Persist all results to ensure UI consistency.
-  // We cache even unknown/timeouts, but the processor will attempt a second pass.
-  emailCache.set(cleanEmail, result);
+  // ELITE CACHE POLICY: Only persist definitive results.
+  // Never cache 'unknown' or 'timeout' results to ensure consistency across runs.
+  const isDefinitive = result.verificationStatus !== 'unknown' && result.subStatus !== 'timeout' && result.subStatus !== 'engine_error';
   
-  if (emailCache.size > 30000) emailCache.clear();
+  if (isDefinitive) {
+    emailCache.set(cleanEmail, result);
+    if (emailCache.size > 20000) emailCache.clear();
+  }
 
   return result;
 };

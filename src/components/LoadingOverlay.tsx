@@ -80,7 +80,7 @@ export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customTex
                 <div className="w-2 h-2 rounded-full bg-amber-500/20" />
                 <div className="w-2 h-2 rounded-full bg-emerald-500/20" />
               </div>
-              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-600 font-mono">LeadPure v12.0 Intelligence Kernel</span>
+              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-600 font-mono">LeadPure v11.5.0 Intelligence Kernel</span>
             </div>
             
             {/* Terminal Body */}

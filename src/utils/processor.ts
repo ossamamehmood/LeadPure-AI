@@ -84,7 +84,7 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
 };
 
 /**
- * Advanced Email Auto-Correction (v12.0 Engine)
+ * Advanced Email Auto-Correction (v10.0 Engine)
  * Strips spaces, fixes missing @ signs, and corrects common TLD typos.
  */
 export const autoCorrectEmail = (email: string): string => {
@@ -95,6 +95,7 @@ export const autoCorrectEmail = (email: string): string => {
   
   if (!cleaned) return '';
 
+  // 2. TLD Typo Corrections
   // 2. TLD Typo Corrections via fast Regex match
   const typoRegex = /\.(cm|con|cpm|copm|coom|comm|com\.com)$/;
   if (typoRegex.test(cleaned)) {
@@ -177,7 +178,7 @@ export const processContacts = async (
 
   // Stage 1: Local Normalization & Deduplication
   const seenEmails = new Set<string>();
-  const preProcessedData = data.map((item, idx) => ({ ...item, __originalIndex: idx })).filter((item) => {
+  const preProcessedData = data.filter((item) => {
     if (!item || typeof item !== 'object') {
       stats.sanitizedRows++;
       return false;
@@ -268,22 +269,15 @@ export const processContacts = async (
       // Merge results back into items
       results.forEach((verificationResult: any, idx: number) => {
         const item = items[idx];
+        
         const status = verificationResult.verificationStatus;
-        const subStatus = verificationResult.subStatus || '';
-
-        // If result is unknown/timeout, we mark it for the SECOND PASS unless we're already retrying at the API level
-        if (status === 'unknown' || subStatus === 'timeout') {
-          item.__needsSecondPass = true;
-          item.__lastVerification = verificationResult;
-          return;
-        }
-
         const isSafe = status === 'safe' || status === 'verified';
 
         // STRICT 100% QUALITY MATRIX ENFORCEMENT: Only 'safe' leads allowed for 0% bounce rate goal.
         // 'usable', 'risky', and 'dangerous' leads are now eliminated to ensure maximum deliverability.
         if (!isSafe) {
           // Track granular stats
+          const subStatus = verificationResult.subStatus || '';
           if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
           else if (subStatus === 'domain_not_found') stats.dnsFailure++;
           else if (subStatus === 'disposable') stats.disposableMatch++;
@@ -333,7 +327,7 @@ export const processContacts = async (
           valid.push({
             ...verificationResult,
             ...updatedItem,
-            originalIndex: item.__originalIndex,
+            originalIndex: startIndex + idx,
             __originalData: updatedItem
           } as ProcessedContact);
 
@@ -381,95 +375,16 @@ export const processContacts = async (
     await new Promise(resolve => setTimeout(resolve, jitter));
   }
 
-  // Stage 3: Elite Second Pass (Re-verify Uncertain Leads)
-  const uncertainLeads = preProcessedData.filter(item => item.__needsSecondPass);
-  
-  if (uncertainLeads.length > 0 && !signal?.aborted) {
-    console.log(`[PROCESSOR] STAGE_3_ELITE_PASS: Re-verifying ${uncertainLeads.length} uncertain leads...`);
-    
-    // Extreme stability: 1 concurrent batch of 10 leads
-    const SECOND_PASS_BATCH_SIZE = 10;
-    for (let i = 0; i < uncertainLeads.length; i += SECOND_PASS_BATCH_SIZE) {
-      if (signal?.aborted) break;
-      
-      const chunk = uncertainLeads.slice(i, i + SECOND_PASS_BATCH_SIZE);
-      const emailsToVerify = chunk.map(item => String(item[mappings.emailKey] || '').toLowerCase().trim());
-      
-      try {
-        const response = await fetch('/api/validate-batch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            emails: emailsToVerify,
-            options: {
-              excludeDisposable: rules.excludeDisposable,
-              excludeRoleBased: rules.excludeRoleBased,
-              excludeCatchAll: rules.excludeCatchAll,
-              excludeSpamTraps: rules.excludeSpamTraps
-            }
-          })
-        });
-
-        if (response.ok) {
-          const { results } = await response.json();
-          results.forEach((verificationResult: any, idx: number) => {
-            const item = chunk[idx];
-            const status = verificationResult.verificationStatus;
-            const isSafe = status === 'safe' || status === 'verified';
-
-            if (isSafe) {
-              stats.verifiedLeads++;
-              const updatedItem = { ...item };
-              
-              // Data Enhancement (Sync with First Pass)
-              if (mappings.firstNameKey) updatedItem[mappings.firstNameKey] = cleanText(item[mappings.firstNameKey], rules.strictTitleCase);
-              if (mappings.lastNameKey) updatedItem[mappings.lastNameKey] = cleanText(item[mappings.lastNameKey], rules.strictTitleCase);
-              if (mappings.nameKey) updatedItem[mappings.nameKey] = cleanText(item[mappings.nameKey], rules.strictTitleCase);
-              if (mappings.phoneKey) {
-                updatedItem[mappings.phoneKey] = formatPhone(String(item[mappings.phoneKey] || ''), item[mappings.countryKey], rules.forcePlusSign);
-              }
-
-              valid.push({
-                ...verificationResult,
-                ...updatedItem,
-                originalIndex: item.__originalIndex,
-                __originalData: updatedItem
-              } as ProcessedContact);
-
-              if (onProgress) {
-                onProgress(100, `[SYS] ELITE_PASS_SECURED: ${updatedItem[mappings.emailKey]}`);
-              }
-            } else {
-              eliminated.push({ ...item, status, reason: verificationResult.verificationReason });
-              if (onProgress) {
-                onProgress(100, `[SYS] ELITE_PASS_REJECTED: ${item[mappings.emailKey]}`);
-              }
-            }
-          });
-        }
-      } catch (err) {
-        // If second pass still fails, we have to eliminate them to guarantee 0% bounce
-        chunk.forEach(item => eliminated.push({ ...item, status: 'unknown', reason: 'Permanent Network Uncertainty' }));
-      }
-    }
-  }
-
-  // Final Sort and Stats locking
-  valid.sort((a, b) => a.originalIndex - b.originalIndex);
-  
-  const finalResult = {
-    valid,
-    eliminated,
-    stats: {
-      ...stats,
-      totalProcessed: total,
-      timestamp: new Date().toISOString()
-    }
+  const finalReport = {
+    ...stats,
+    finalDeliverable: valid.length,
+    finalFiltered: eliminated.length
   };
 
+  console.table(finalReport);
   console.log(`[PROCESSOR] PIPELINE_COMPLETE. Enterprise backend processing finished.`);
 
-  return finalResult;
+  return { valid, eliminated, stats: finalReport };
 };
 
 /**

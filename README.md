@@ -1,4 +1,4 @@
-# ⚡ LeadPure AI v12.0 Enterprise (Elite Intelligence)
+# ⚡ LeadPure AI v11 Enterprise (Elite Intelligence)
 
 > **Mission-Critical Lead Validation & Deliverability Infrastructure.**
 > Engineered for 0% bounce-rate precision and high-fidelity cold outreach protection.
@@ -7,7 +7,7 @@
 
 ## Engine Architecture
 
-LeadPure AI v12.0 is built on a **Weighted Multi-Factor Validation Matrix**. Unlike traditional binary SMTP checkers, our engine analyzes deep infrastructure signals to guarantee lead deliverability without triggering firewall suppression.
+LeadPure AI v11.5.0 is built on a **Weighted Multi-Factor Validation Matrix**. Unlike traditional binary SMTP checkers, our engine analyzes deep infrastructure signals to guarantee lead deliverability without triggering firewall suppression.
 
 ### 10-Layer Validation Protocol
 1.  **Strict RFC Syntax Analysis**: 100% compliance with email formatting standards.

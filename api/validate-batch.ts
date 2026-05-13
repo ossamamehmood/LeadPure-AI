@@ -36,7 +36,7 @@ export default async function handler(req: Request | any, res: Response | any) {
     const TIMEOUT_MS = 9000;
 
     const results: ValidationResult[] = [];
-    const MAX_CONCURRENT = 15; // Hardened for absolute consistency
+    const MAX_CONCURRENT = 20; // Slightly reduced for higher per-probe stability
     
     // Concurrency Throttle
     for (let i = 0; i < emails.length; i += MAX_CONCURRENT) {

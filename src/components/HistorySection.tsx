@@ -97,7 +97,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                         <p className="text-[9px] text-slate-600 uppercase font-black tracking-[0.3em] italic">Secure Nodes Archived</p>
                       </div>
 
-                      <div className="flex items-center gap-4 w-full md:w-auto px-1 md:pr-4">
+                      <div className="flex items-center gap-4 w-full md:w-auto px-1">
                         <button 
                           onClick={(e) => { e.stopPropagation(); downloadItem(item); }}
                           className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/[0.03] text-slate-400 hover:text-white hover:bg-brand-blue/20 transition-all border border-white/5 hover:border-brand-blue/30 group/btn"
