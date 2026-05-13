@@ -84,7 +84,7 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
 };
 
 /**
- * Advanced Email Auto-Correction (v10.0 Engine)
+ * Advanced Email Auto-Correction (v12.0 Engine)
  * Strips spaces, fixes missing @ signs, and corrects common TLD typos.
  */
 export const autoCorrectEmail = (email: string): string => {
@@ -95,7 +95,6 @@ export const autoCorrectEmail = (email: string): string => {
   
   if (!cleaned) return '';
 
-  // 2. TLD Typo Corrections
   // 2. TLD Typo Corrections via fast Regex match
   const typoRegex = /\.(cm|con|cpm|copm|coom|comm|com\.com)$/;
   if (typoRegex.test(cleaned)) {

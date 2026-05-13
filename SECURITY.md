@@ -1,4 +1,4 @@
-# 🛡️ Security Policy
+# 🛡️ LeadPure AI v12.0 Enterprise Security Protocols
 
 ## Responsible Disclosure
 
