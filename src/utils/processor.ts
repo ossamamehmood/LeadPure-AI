@@ -178,12 +178,15 @@ export const processContacts = async (
 
   // Stage 1: Local Normalization & Deduplication
   const seenEmails = new Set<string>();
+  const seenPhones = new Set<string>();
+  
   const preProcessedData = data.filter((item) => {
     if (!item || typeof item !== 'object') {
       stats.sanitizedRows++;
       return false;
     }
 
+    // Email Deduplication
     const emailKey = mappings.emailKey;
     let rawEmail = String(item[emailKey] || '').toLowerCase().trim();
     rawEmail = autoCorrectEmail(rawEmail);
@@ -195,8 +198,23 @@ export const processContacts = async (
 
     if (seenEmails.has(rawEmail)) {
       stats.duplicateEntries++;
-      eliminated.push({ ...item, reason: 'Deterministic Protocol: Duplicate Identity Suppressed' });
+      eliminated.push({ ...item, reason: 'Deterministic Protocol: Duplicate Email Suppressed' });
       return false;
+    }
+
+    // Phone Deduplication
+    const phoneKey = mappings.phoneKey;
+    if (phoneKey) {
+      const rawPhone = String(item[phoneKey] || '').trim();
+      if (rawPhone) {
+        const normalizedPhone = formatPhone(rawPhone, item[mappings.countryKey], rules.forcePlusSign);
+        if (normalizedPhone && seenPhones.has(normalizedPhone)) {
+          stats.duplicateEntries++;
+          eliminated.push({ ...item, reason: 'Deterministic Protocol: Duplicate Phone Suppressed' });
+          return false;
+        }
+        if (normalizedPhone) seenPhones.add(normalizedPhone);
+      }
     }
     
     seenEmails.add(rawEmail);
