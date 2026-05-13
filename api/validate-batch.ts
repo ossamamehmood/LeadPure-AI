@@ -3,6 +3,7 @@ import { validateEmailFull, ValidationOptions, ValidationResult } from '../src/l
 // DETERMINISTIC_BACKEND_CACHE: Ensures consistency across Incognito and re-runs
 const globalBackendCache = new Map<string, { result: ValidationResult, timestamp: number }>();
 const CACHE_EXPIRY = 1000 * 60 * 60; // 1 Hour TTL for deterministic locking
+const CACHE_VERSION = 'LP_V3_NITRO'; // Forced logic reset
 
 // Vercel Native Serverless Handler
 export default async function handler(req: Request | any, res: Response | any) {
@@ -26,7 +27,7 @@ export default async function handler(req: Request | any, res: Response | any) {
 
     const startTime = Date.now();
     const TIMEOUT_MS = 9000;
-    const MAX_CONCURRENT = 20; // High-speed nitro concurrency
+    const MAX_CONCURRENT = 80; // High-speed nitro concurrency boosted 4x
     const domainLastHit = new Map<string, number>();
 
     // DETERMINISM_LOCK: We process in the EXACT order provided to guarantee identical timing patterns
@@ -37,8 +38,8 @@ export default async function handler(req: Request | any, res: Response | any) {
       await Promise.all(chunk.map(async (email: string) => {
         const cleanEmail = email.toLowerCase().trim();
         
-        // 1. Check Global Deterministic Cache
-        const cached = globalBackendCache.get(cleanEmail);
+        // 1. Check Global Deterministic Cache (Version Locked)
+        const cached = globalBackendCache.get(`${CACHE_VERSION}:${cleanEmail}`);
         if (cached && (Date.now() - cached.timestamp < CACHE_EXPIRY)) {
           resultsMap.set(email, cached.result);
           return;
@@ -61,7 +62,10 @@ export default async function handler(req: Request | any, res: Response | any) {
           
           // ABSOLUTE_DETERMINISM: Cache EVERY result (including timeouts) for 1 hour
           // This ensures that for a 1-hour window, the result is locked.
-          globalBackendCache.set(cleanEmail, { result, timestamp: Date.now() });
+          globalBackendCache.set(`${CACHE_VERSION}:${cleanEmail}`, {
+            result,
+            timestamp: Date.now()
+          });
           
           resultsMap.set(email, result);
         } catch (err) {

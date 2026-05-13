@@ -152,12 +152,12 @@ export const autoCorrectEmail = (email: string): string => {
  * Persistent Client-Side Verification Cache (v12.5 Elite Stability)
  * Stores definitive results to ensure 100% consistency across runs.
  */
-const PERSISTENT_CACHE_KEY = 'LP_VERIFICATION_CACHE_V2.5';
+const STORAGE_KEY = 'LP_VERIFICATION_CACHE_V3.0'; // Logic reset
 
 const getPersistentCache = (): Record<string, any> => {
   if (typeof window === 'undefined') return {};
   try {
-    const raw = localStorage.getItem(PERSISTENT_CACHE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
@@ -267,9 +267,9 @@ export const processContacts = async (
     }
   });
 
-  // Stage 2: High-Granularity Processing
-  const BATCH_SIZE = 25; 
-  const CONCURRENT_BATCHES = 2;
+  // Stage 2: Nitro Batch Processing (v12.18)
+  const BATCH_SIZE = 80; 
+  const CONCURRENT_BATCHES = 4;
   const batches = [];
   for (let i = 0; i < uniqueItemsToVerify.length; i += BATCH_SIZE) {
     batches.push(uniqueItemsToVerify.slice(i, i + BATCH_SIZE));
