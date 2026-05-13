@@ -36,7 +36,7 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
       <div className="md:px-10 py-3 md:py-4 w-full md:w-[20%] flex flex-row md:flex-col items-center md:items-start justify-between md:justify-center gap-3 md:gap-2">
         <span className={cn(
           "text-[10px] md:text-[11px] font-black font-mono tracking-tighter whitespace-nowrap",
-          (contact.confidenceScore || 0) >= 99 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] bg-clip-text text-transparent" : 
+          (contact.confidenceScore || 0) >= 99 ? "bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink bg-clip-text text-transparent" : 
           (contact.confidenceScore || 0) > 95 ? "text-brand-blue" : "text-brand-pink"
         )}>
           {contact.confidenceScore || 0}% Accuracy
@@ -46,7 +46,7 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
             style={{ width: `${contact.confidenceScore || 0}%` }}
             className={cn(
               "h-full rounded-full transition-all duration-1000",
-              (contact.confidenceScore || 0) > 90 ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_10px_rgba(90,92,255,0.4)]" : 
+              (contact.confidenceScore || 0) > 90 ? "bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-lg" : 
               (contact.confidenceScore || 0) > 75 ? "bg-brand-blue" : "bg-brand-pink"
             )}
           />
@@ -63,7 +63,7 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
         )}>
           <div className={cn(
             "w-1.5 h-1.5 rounded-full",
-            (contact.verificationStatus === 'safe' || contact.verificationStatus === 'verified') ? "bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_5px_rgba(90,92,255,0.6)]" :
+            (contact.verificationStatus === 'safe' || contact.verificationStatus === 'verified') ? "bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-sm" :
             contact.verificationStatus === 'usable' ? "bg-blue-400" :
             contact.verificationStatus === 'risky' ? "bg-amber-400" :
             "bg-brand-pink"
@@ -167,7 +167,7 @@ export function ResultsDashboard({
               <span className="text-slate-600 font-bold text-xs uppercase tracking-widest">Leads</span>
             </div>
             <div className="flex items-center gap-2 mt-4 bg-white/[0.03] w-fit px-3 py-1.5 rounded-full border border-white/5">
-              <div className="w-1.5 h-1.5 rounded-full gradient-bg animate-pulse shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
+              <div className="w-1.5 h-1.5 rounded-full gradient-bg animate-pulse shadow-sm" />
               <p className="text-[9px] text-slate-400 uppercase font-black tracking-widest italic leading-none">Deliverability Locked</p>
             </div>
           </GlossyCard>
@@ -209,7 +209,7 @@ export function ResultsDashboard({
             <div className="flex items-baseline gap-2">
               <p className={cn(
                 "text-5xl font-black font-mono tracking-tighter italic transition-colors duration-500",
-                avgConfidence >= 98 ? "text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" : "text-app-text"
+                avgConfidence >= 98 ? "text-white shadow-sm" : "text-app-text"
               )}>
                 {avgConfidence}<span className="text-2xl">%</span>
               </p>
@@ -234,13 +234,13 @@ export function ResultsDashboard({
             </div>
             <div className="mt-6 flex items-center justify-between">
               <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">SMTP Mode</p>
-              <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[8px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30 shadow-[0_0_10px_rgba(90,92,255,0.1)]">v11.5.0 Intelligence</div>
+              <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[8px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30 shadow-sm">v11.5.0 Intelligence</div>
             </div>
           </GlossyCard>
         </motion.div>
       </motion.div>
 
-      <div className="bg-app-card rounded-[48px] border border-app-border shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden">
+      <div className="bg-app-card rounded-[48px] border border-app-border shadow-2xl overflow-hidden">
         {/* Table Controls */}
         <div className="px-6 md:px-10 py-8 md:py-12 flex flex-col lg:flex-row justify-between items-center bg-transparent backdrop-blur-xl gap-8">
           <div className="flex flex-col sm:flex-row gap-6 sm:gap-12 w-full lg:w-auto">
@@ -255,7 +255,7 @@ export function ResultsDashboard({
               }}
               className={cn(
                 "pb-4 text-[12px] font-black uppercase tracking-[0.4em] transition-all relative font-mono group active:scale-95 inline-block",
-                activeTab === 'valid' ? "text-app-text-bright opacity-100" : "text-slate-500 hover:text-slate-300"
+                activeTab === 'valid' ? "text-app-text opacity-100" : "text-slate-500 hover:text-slate-300"
               )}
             >
               <span className={cn(
@@ -267,7 +267,7 @@ export function ResultsDashboard({
               {activeTab === 'valid' && (
                 <motion.div 
                   layoutId="tab" 
-                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-[0_0_20px_rgba(90,92,255,0.6)]" 
+                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-lg" 
                   initial={false}
                 />
               )}
@@ -290,7 +290,7 @@ export function ResultsDashboard({
               {activeTab === 'eliminated' && (
                 <motion.div 
                   layoutId="tab" 
-                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-pink shadow-[0_0_20px_#F502FD]" 
+                  className="absolute bottom-0 left-0 right-0 h-[3px] bg-brand-pink shadow-lg" 
                   initial={false}
                 />
               )}
@@ -398,7 +398,7 @@ export function ResultsDashboard({
         <div className="px-12 py-10 bg-app-bg/60 border-t border-app-border flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-8">
             <div className="flex items-center gap-4">
-              <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] shadow-[0_0_12px_rgba(90,92,255,0.5)] animate-pulse" />
+              <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-lg animate-pulse" />
               <p className="text-[11px] text-slate-400 font-black uppercase tracking-[0.5em] italic leading-none">
                 Protocol: Active Node
               </p>
@@ -411,16 +411,16 @@ export function ResultsDashboard({
             </div>
           </div>
           <div className="flex items-center gap-8">
-             <div className="flex items-center gap-3 text-slate-600 group">
+            <div className="flex items-center gap-3 text-slate-600 group">
                 <Cpu className="w-4 h-4 group-hover:text-brand-blue transition-colors" />
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] italic">Edge Verification Engine</span>
-             </div>
-             <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-brand-blue/40 transition-colors cursor-help">
-               <ShieldCheck className="w-5 h-5 text-slate-700" />
-             </div>
+            </div>
+            <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:border-brand-blue/40 transition-colors cursor-help">
+              <ShieldCheck className="w-5 h-5 text-slate-700" />
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
-}
+}

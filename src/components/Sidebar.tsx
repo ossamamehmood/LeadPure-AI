@@ -15,7 +15,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
   return (
     <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/40 backdrop-blur-3xl hidden lg:flex shrink-0 z-50">
       <div className="p-8 flex items-center gap-4 group cursor-pointer">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white font-black text-xs shadow-[0_0_20px_rgba(90,92,255,0.4)] transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white font-black text-xs shadow-lg transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
           <Zap className="w-5 h-5 fill-white" />
         </div>
         <span className="text-app-text font-black text-2xl tracking-tighter uppercase italic select-none">Lead<span className="gradient-text">Pure</span></span>
@@ -25,7 +25,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
         <div className="p-4 rounded-2xl bg-app-bg/10 border border-app-border">
           <div className="flex items-center justify-between mb-2">
              <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Security Nodes</span>
-             <span className="w-2 h-2 rounded-full gradient-bg animate-pulse shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
+             <span className="w-2 h-2 rounded-full gradient-bg animate-pulse shadow-sm" />
           </div>
           <div className="text-[10px] font-bold text-slate-300">SYSTEM STABLE</div>
         </div>
@@ -47,7 +47,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
               : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
           )}
         >
-          {isUploadActive && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-[0_4px_12px_rgba(90,92,255,0.4)]" />}
+          {isUploadActive && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-lg" />}
           <Upload className={cn("w-4 h-4 transition-transform group-hover:-translate-y-0.5", isUploadActive ? "text-white" : "text-slate-600")} />
           Ingestion Node
         </button>
@@ -66,7 +66,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
               : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
           )}
         >
-          {currentTab === 'rules' && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-[0_4px_12px_rgba(90,92,255,0.4)]" />}
+          {currentTab === 'rules' && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-lg" />}
           <Settings2 className={cn("w-4 h-4 transition-transform group-hover:rotate-45", currentTab === 'rules' ? "text-white" : "text-slate-600")} />
           Validation Engine
         </button>
@@ -85,7 +85,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
               : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
           )}
         >
-          {currentTab === 'history' && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-[0_4px_12px_rgba(90,92,255,0.4)]" />}
+          {currentTab === 'history' && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-lg" />}
           <Clock className={cn("w-4 h-4 transition-transform group-hover:scale-110", currentTab === 'history' ? "text-white" : "text-slate-600")} />
           Audit Archives
         </button>
@@ -104,10 +104,10 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
             </div>
           </div>
           <div className="w-full bg-app-bg h-1.5 rounded-full mt-4 overflow-hidden border border-app-border">
-            <div className="gradient-bg h-full w-[100%] shadow-[0_0_15px_rgba(90,92,255,0.5)] animate-pulse"></div>
+            <div className="gradient-bg h-full w-[100%] shadow-lg animate-pulse"></div>
           </div>
         </GlossyCard>
       </div>
     </aside>
   );
-} 
+}

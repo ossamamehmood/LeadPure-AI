@@ -12,11 +12,13 @@ interface HeaderProps {
 }
 
 export function Header({ appState, isProcessing, onDownload, onReset, theme, onToggleTheme }: HeaderProps) {
+  const isResults = appState === 'results';
+  
   return (
     <header className="h-24 border-b border-app-border flex items-center justify-between px-10 bg-app-bg/40 backdrop-blur-3xl shrink-0 sticky top-0 z-50">
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-3 group cursor-pointer">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white shadow-[0_0_15px_rgba(90,92,255,0.3)] transition-transform group-hover:rotate-12">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12">
             <Zap className="w-4 h-4 fill-white" />
           </div>
           <h1 className="text-2xl font-black text-app-text tracking-tighter flex items-center gap-2 uppercase italic select-none">
@@ -26,17 +28,17 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
         <div className="h-6 w-px bg-app-border hidden md:block" />
         <div className="hidden md:flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
           <span className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5 text-slate-400">
-            <span className="w-1.5 h-1.5 rounded-full gradient-bg shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
+            <span className="w-1.5 h-1.5 rounded-full gradient-bg" />
             v11.5.0 Enterprise Release (Elite Intelligence)
           </span>
         </div>
       </div>
 
       <div className="flex items-center gap-6">
-        {appState === 'results' && (
+        {isResults && (
           <button 
             onClick={onDownload}
-            className="px-8 py-3 gradient-bg text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center gap-3 shadow-xl shadow-brand-blue/30 hover:shadow-[0_0_20px_rgba(90,92,255,0.6)] active:scale-95 group animate-shine"
+            className="px-8 py-3 gradient-bg text-white rounded-full font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center gap-3 shadow-xl shadow-brand-blue/30 hover:shadow-brand-blue/50 active:scale-95 group animate-shine"
           >
             <Download className="w-4 h-4 group-hover:scale-110 transition-transform" />
             Deploy Cleaned List
@@ -66,10 +68,10 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
             className="p-3.5 bg-white/[0.03] hover:bg-white/[0.08] rounded-2xl text-slate-500 hover:text-white transition-all border border-white/5 hover:border-white/10 active:scale-90"
             title="Purge Session"
           >
-            <RefreshCw className={cn("w-5 h-5", isProcessing && "animate-spin text-brand-blue shadow-[0_0_12px_rgba(90,92,255,0.3)]")} />
+            <RefreshCw className={cn("w-5 h-5", isProcessing && "animate-spin text-brand-blue")} />
           </button>
         </div>
       </div>
     </header>
   );
-}
+}

@@ -1,30 +1,29 @@
-# 🛡️ Security Policy
+# LeadPure AI Security Protocol (v11.5.1)
 
-## Responsible Disclosure
+## 1. Zero-Trust Data Architecture
+LeadPure AI operates on a **stateless, client-side first** security model. Unlike traditional SaaS tools that store your leads on their servers, LeadPure AI processes data in your browser's secure sandbox.
 
-At LeadPure AI, the security of our users' data and our infrastructure is our highest priority. If you believe you have found a security vulnerability, we encourage you to report it to us immediately through the appropriate channels.
+- **Zero Persistence**: No lead data is ever stored in a database. Once the session is closed, the data is purged from memory.
+- **Local Sovereignty**: Your data remains on your machine. We only transmit anonymized, cryptographic hashes of email domains for infrastructure lookups.
 
-### 🚩 Reporting a Vulnerability
-Please do not open a public issue for security-related items. Instead, email our security team at **hello@ossamamehmood.com**.
+## 2. Deliverability Intelligence Kernel (v11.5.0)
+The heart of our security is the **v11.5.0 Intelligence Kernel**, designed to protect your SMTP reputation at all costs.
 
-We aim to:
-- Acknowledge receipt of your report within 24 hours.
-- Provide an estimated timeframe for a fix.
-- Notify you once the vulnerability has been patched.
+### Validation Layers:
+1. **Infrastructure Audit**: Real-time handshake with MX servers to verify existence without sending mail.
+2. **Reputation Scoring**: Weighted risk assessment of the target domain's historical deliverability.
+3. **Bot & Trap Neutralization**: Aggressive filtering of known spam-traps and bot-operated mailboxes.
+4. **Catch-All Logic**: Probabilistic assessment of "Accept-All" domains to prevent invisible bounces.
 
-## 🛠️ Best Practices for Users
+## 3. Threat Mitigation
+- **Port Exhaustion Protection**: Managed socket concurrency to prevent local network instability.
+- **Anti-Tarpitting**: Intelligent timeouts that recognize and wait for enterprise "tarpit" delays (Mimecast, Proofpoint).
+- **CSRF & XSS Hardening**: Strict JSX parsing and sanitized state management.
 
-1.  **Lead Data Handling**: LeadPure AI processes data in-memory. Always ensure your CSV/Excel files are handled over encrypted (HTTPS) connections.
-2.  **API Security**: If deploying an API layer for LeadPure, always implement strict rate-limiting and JWT-based authentication.
-3.  **Local Execution**: When running locally, ensure your environment variables are secured and not committed to version control.
-
-## 🔒 Engine Security
-
-The LeadPure v10 Kernel implements several security hardening measures:
-- **DNS Isolation**: Custom resolvers prevent local DNS poisoning.
-- **Socket Timeouts**: Strict 2.5s timeouts on all SMTP probes to prevent resource exhaustion attacks.
-- **Payload Scrubbing**: Automatic sanitization of all ingested CSV data to prevent CSV Injection attacks.
+## 4. Compliance & Standards
+- **E.164 Compliance**: Automatic phone number normalization for international telecommunication standards.
+- **GDPR Ready**: By design, we do not store PII (Personally Identifiable Information).
+- **Audit Trails**: Local historical records for deliverability transparency.
 
 ---
-
-*Thank you for helping keep LeadPure AI secure.*
+*LeadPure AI is an elite security tool. Use responsibly to maintain the integrity of the global email ecosystem.*

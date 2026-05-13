@@ -18,7 +18,7 @@ export function RulesSection({ rules, onToggle }: RulesSectionProps) {
         
         <div className="relative z-10 mb-16">
           <div className="flex items-center gap-6">
-            <div className="w-1.5 h-10 bg-gradient-to-b from-brand-cyan via-brand-blue to-brand-pink rounded-full shadow-[0_0_15px_rgba(90,92,255,0.4)]" />
+            <div className="w-1.5 h-10 bg-gradient-to-b from-brand-cyan via-brand-blue to-brand-pink rounded-full shadow-lg" />
             <div>
               <h2 className="text-2xl md:text-4xl font-black text-app-text uppercase italic tracking-tighter leading-none transition-colors duration-500">Security Protocols</h2>
               <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.5em] mt-3 italic flex items-center gap-3">
@@ -98,4 +98,4 @@ export function RulesSection({ rules, onToggle }: RulesSectionProps) {
       </GlossyCard>
     </div>
   );
-} 
+}
