@@ -31,14 +31,14 @@ export function useLeadProcessor() {
         mappings, 
         rules, 
         (p, logMsg) => {
-          if (typeof p === 'number') setProgress(p);
+          setProgress(p);
           if (logMsg) {
             setLogs(prev => {
               const newLogs = [...prev, logMsg];
               return newLogs.slice(-20); // Keep last 20 logs in memory
             });
           }
-          if (typeof p === 'number' && p > 2) {
+          if (p > 2) {
             const elapsed = (Date.now() - startTime) / 1000;
             const totalEstimated = elapsed / (p / 100);
             setEstimatedSeconds(Math.max(0, Math.round(totalEstimated - elapsed)));

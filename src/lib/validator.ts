@@ -106,31 +106,32 @@ const parkedIpPatterns = [
   '103.224.182.', // Trellian
   '208.73.210.', // Overseas
   '64.190.63.', // Sedo
-  '34.102.136.', // Google Cloud Parked
-  '209.99.64.', // DomainControl
-  '50.63.202.', // GoDaddy Parking
-  '199.59.243.', // NameDrive
-  '103.224.192.' // Bodis
+  '34.102.136.' // Google Cloud Parked
 ];
 const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
-// ELITE SAFETY PROTOCOL (v12.21): Senior Architect Direct-Validation Model
-const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean, provider: string, hasSpf: boolean, hasDmarc: boolean) => {
-  // A lead is safe if the SMTP server EXPLICITLY accepted it OR it has high-trust infrastructure
+const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean, provider: string) => {
+  // ELITE SAFETY PROTOCOL (v11.0): Probabilistic Deliverability
+  // A lead is 'safe' if it has:
+  // 1. Successful SMTP handshake + Not a Catch-all
+  // 2. High-trust Free Provider (Gmail/Outlook) + High Score
+  // 3. High-trust Enterprise Infrastructure (Google/MSFT/Mimecast) + High Score + Successful Syntax
+  
   const isHighTrustProvider = provider === 'google' || provider === 'microsoft' || provider === 'enterprise_gateway';
   
-  if (score < 30) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
+  if (score < 45) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
   
-  // DIRECT_VALIDATION: If SMTP passed OR infrastructure is perfect, it is safe.
-  if (smtpValid || (isHighTrustProvider && (hasSpf || hasDmarc) && score >= 40)) {
-    return { 
-      bounceRisk: isCatchAll ? 'Medium' : 'Safe', 
-      reputationImpact: 'Positive', 
-      finalStatus: 'safe' 
-    };
+  // Deliverability Safety Margin Logic
+  const hasDirectProof = smtpValid && !isCatchAll;
+  const hasInfrastructureTrust = (isFreeEmail || isHighTrustProvider) && score >= 85;
+  
+  const isEliteVerified = hasDirectProof || hasInfrastructureTrust;
+  
+  if (isEliteVerified && score >= 80) {
+    return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
   }
-
+  
   return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
 };
 
@@ -167,7 +168,7 @@ const checkDmarc = async (domain: string): Promise<boolean> => {
 };
 
 // 1. Core SMTP Handshake Logic
-const performSmtpCheck = async (email: string, mxRecord: string, timeoutMs = 4500, senderEmail = 'verify@leadpure.ai'): Promise<{ success: boolean, code: number, response: string, timedOut: boolean }> => {
+const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = 'verify@leadpure.ai'): Promise<{ success: boolean, code: number, response: string, timedOut: boolean }> => {
   return new Promise((resolve) => {
     const socket = new net.Socket();
     let resolved = false;
@@ -178,7 +179,7 @@ const performSmtpCheck = async (email: string, mxRecord: string, timeoutMs = 450
 
     const timeout = setTimeout(() => {
       cleanup('Connection Timeout', true);
-    }, timeoutMs); 
+    }, 5000); // Boosted to 5s for Enterprise Stability
 
     const cleanup = (reason = '', timedOut = false) => {
       if (resolved) return;
@@ -213,7 +214,7 @@ const performSmtpCheck = async (email: string, mxRecord: string, timeoutMs = 450
       try {
         if (currentStep === 0 && code === 220) {
           currentStep++;
-          await engineDelay();
+          await humanDelay();
           socket.write(`EHLO leadpure.ai\r\n`);
         } else if (currentStep === 1 && code === 250) {
           currentStep++;
@@ -315,43 +316,16 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   } else {
     // Determine provider intelligence with robust fingerprinting
     isFreeEmail = freeProviders.has(domain);
+    const mxDomain = (primaryMx || '').toLowerCase();
     
-    try {
-      const mxRecords = await resolveMxWithRetry(domain);
-      mxRecordFound = mxRecords && mxRecords.length > 0;
-      if (mxRecordFound) {
-        // Elite Multi-MX Selection
-        const sortedMx = mxRecords.sort((a, b) => a.priority - b.priority);
-        primaryMx = sortedMx[0].exchange;
-        const mxDomain = primaryMx.toLowerCase();
-        
-        // Pattern-based fingerprinting
-        const isGoogle = domain.includes('gmail.com') || mxDomain.includes('google.com') || mxDomain.includes('googlemail.com');
-        const isMicrosoft = domain.includes('outlook') || domain.includes('hotmail') || mxDomain.includes('outlook.com') || mxDomain.includes('protection.outlook');
-        const isGateway = mxDomain.includes('mimecast.com') || 
-                          mxDomain.includes('pphosted.com') || 
-                          mxDomain.includes('barracudanetworks.com') || 
-                          mxDomain.includes('sophos.com') || 
-                          mxDomain.includes('mcsv.net') ||
-                          mxDomain.includes('trendmicro.com') ||
-                          mxDomain.includes('appriver.com') ||
-                          mxDomain.includes('fireeye.com') ||
-                          mxDomain.includes('messagelabs.com');
-
-        if (isGoogle) provider = 'google';
-        else if (isMicrosoft) provider = 'microsoft';
-        else if (isGateway) provider = 'enterprise_gateway';
-      }
-    } catch (e) {
-      mxRecordFound = false;
-    }
-
     // Check for Parked Domain Signature
     let isParked = false;
     try {
       const aRecords = await resolver.resolve4(domain);
-      isParked = aRecords.some(ip => ip && parkedIpPatterns.some(pattern => String(ip).startsWith(pattern)));
-    } catch (e) {}
+      isParked = aRecords.some(ip => parkedIpPatterns.some(pattern => ip.startsWith(pattern)));
+    } catch (e) {
+      // Ignore DNS errors for A records
+    }
 
     if (isParked) {
       return {
@@ -361,26 +335,40 @@ export const validateEmailFull = async (email: string, options: ValidationOption
         smtpValid: false, syntaxValid: true
       };
     }
+    // Pattern-based fingerprinting for Enterprise Infrastructure
+    const isGoogle = domain.includes('gmail.com') || mxDomain.includes('google.com') || mxDomain.includes('googlemail.com');
+    const isMicrosoft = domain.includes('outlook') || domain.includes('hotmail') || mxDomain.includes('outlook.com') || mxDomain.includes('protection.outlook');
+    const isGateway = mxDomain.includes('mimecast.com') || 
+                      mxDomain.includes('pphosted.com') || 
+                      mxDomain.includes('barracudanetworks.com') || 
+                      mxDomain.includes('sophos.com') || 
+                      mxDomain.includes('mcsv.net') ||
+                      mxDomain.includes('trendmicro.com') ||
+                      mxDomain.includes('appriver.com') ||
+                      mxDomain.includes('fireeye.com') ||
+                      mxDomain.includes('messagelabs.com');
+
+    if (isGoogle) provider = 'google';
+    else if (isMicrosoft) provider = 'microsoft';
+    else if (isGateway) provider = 'enterprise_gateway';
 
     // Disposable Check
     isDisposable = disposableDomains.has(domain);
 
     if (mxRecordFound) {
+      // Parallelize DNS queries
       const [spfResult, dmarcResult] = await Promise.all([
         checkSpf(domain),
         checkDmarc(domain)
       ]);
       hasSpf = spfResult;
       hasDmarc = dmarcResult;
-      
-      if (hasSpf) score += 10;
-      if (hasDmarc) score += 10;
     }
   }
 
   // --- WEIGHTED POINT ACCUMULATION (v10.3 Advanced) ---
   if (mxRecordFound) {
-    score += 50; // Increased base trust
+    score += 40; // Core infrastructure foundation
     reasons.push("MX Infrastructure Active");
   } else {
     return {
@@ -431,23 +419,10 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     score += 25;
     reasons.push("High-Trust Free Provider Signal");
   } else if (primaryMx) {
-    // ELITE_SMTP_REDUNDANCY: Try primary and fall back to secondary MX if needed
-    let smtpCheck = await performSmtpCheck(cleanEmail, primaryMx, 3500); // 3.5s base
-    
-    // If primary fails with a timeout or transient error, try secondary MX records if we have them
-    if (!smtpCheck.success && (smtpCheck.timedOut || smtpCheck.code === 0 || smtpCheck.code >= 400)) {
-      try {
-        const mxRecords = await resolveMxWithRetry(domain);
-        if (mxRecords.length > 1) {
-          const secondaryMx = mxRecords.sort((a, b) => a.priority - b.priority)[1].exchange;
-          const retryCheck = await performSmtpCheck(cleanEmail, secondaryMx, 3000); // 3.0s fallback
-          if (retryCheck.success) smtpCheck = retryCheck;
-        }
-      } catch (e) {}
-    }
+    const smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
     
     if (smtpCheck.success) {
-      score += 30; // Strong deliverability proof
+      score += 25;
       reasons.push("SMTP Verification Success");
       smtpValid = true;
     } else if (smtpCheck.code === 550) {
@@ -464,16 +439,19 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     }
 
     if (smtpValid && !isFreeEmail) {
-      // Catch-all Detection Logic (Optimized v12.4)
+      // Catch-all Detection Logic (Optimized v10.1)
       const mxLower = (primaryMx || '').toLowerCase();
-      const catchAllSignatures = ['mimecast.com', 'pphosted.com', 'barracudanetworks.com', 'sophos.com', 'outlook.com', 'google.com'];
+      const catchAllSignatures = [
+        'mimecast.com', 'pphosted.com', 'outlook.com', 'google.com', 
+        'barracudanetworks.com', 'sophos.com', 'mcsv.net'
+      ];
       
-      if (catchAllSignatures.some(sig => mxLower.includes(sig))) {
+      const hasCatchAllSignature = catchAllSignatures.some(sig => mxLower.includes(sig));
+      const randomPrefix = `verify_${Math.random().toString(36).substring(2, 10)}`;
+      const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '');
+      
+      if (catchAllCheck.success || catchAllCheck.timedOut || hasCatchAllSignature) {
         isCatchAll = true;
-      } else {
-        const randomPrefix = `v_${Math.random().toString(36).substring(2, 6)}`;
-        const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '', 1500);
-        if (catchAllCheck.success) isCatchAll = true;
       }
     }
   }
@@ -537,7 +515,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     reasons.push("Spam-Trap Behavior Profile");
   }
 
-  const { bounceRisk, reputationImpact, finalStatus } = determineRisk(score, smtpValid, isCatchAll, isFreeEmail, provider, hasSpf, hasDmarc);
+  const { bounceRisk, reputationImpact, finalStatus } = determineRisk(score, smtpValid, isCatchAll, isFreeEmail, provider);
 
   const result: ValidationResult = {
     email: cleanEmail,
@@ -561,8 +539,8 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   // SESSION LOCK POLICY: Persist all results to ensure UI consistency.
   // We cache even unknown/timeouts, but the processor will attempt a second pass.
   emailCache.set(cleanEmail, result);
-  if (emailCache.size > 2000) emailCache.clear();
-  if (domainCache.size > 1000) domainCache.clear();
+  
+  if (emailCache.size > 30000) emailCache.clear();
 
   return result;
 };

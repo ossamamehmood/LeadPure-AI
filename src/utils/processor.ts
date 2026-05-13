@@ -148,41 +148,6 @@ export const autoCorrectEmail = (email: string): string => {
 /**
  * Process the entire list with strict filtration via the Backend Enterprise Engine
  */
-/**
- * Persistent Client-Side Verification Cache (v12.5 Elite Stability)
- * Stores definitive results to ensure 100% consistency across runs.
- */
-const STORAGE_KEY = 'LP_VERIFICATION_CACHE_V3.0'; // Logic reset
-
-const getPersistentCache = (): Record<string, any> => {
-  if (typeof window === 'undefined') return {};
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
-};
-
-const saveToPersistentCache = (email: string, result: any) => {
-  if (typeof window === 'undefined') return;
-  try {
-    const cache = getPersistentCache();
-    // DETERMINISTIC_LOCK: Cache EVERYTHING to ensure 100% consistency across runs
-    cache[email.toLowerCase()] = {
-      ...result,
-      cachedAt: Date.now()
-    };
-    
-    const keys = Object.keys(cache);
-    if (keys.length > 30000) delete cache[keys[0]]; // Increased cache depth
-    
-    localStorage.setItem(PERSISTENT_CACHE_KEY, JSON.stringify(cache));
-  } catch (err) {
-    console.warn('[CACHE] Persistence failed:', err);
-  }
-};
-
 export const processContacts = async (
   data: any[],
   mappings: any,
@@ -190,13 +155,11 @@ export const processContacts = async (
   onProgress?: (progress: number, logMessage?: string) => void,
   signal?: AbortSignal
 ): Promise<{ valid: any[]; eliminated: any[]; stats: any }> => {
-  const persistentCache = getPersistentCache();
+  const valid: any[] = [];
+  const eliminated: any[] = [];
   
-  // Create a deep-freeze reference map to prevent ANY data mixing
-  const originalRowsMap = new Map<number, any>();
-  const workItems: { id: number, email: string, isDuplicate: boolean, cachedResult?: any }[] = [];
-  const seenEmails = new Map<string, number>();
-
+  console.log(`[PROCESSOR_V10.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
+  
   const stats = {
     totalInput: data.length,
     sanitizedRows: 0,
@@ -213,206 +176,300 @@ export const processContacts = async (
     verifiedLeads: 0
   };
 
-  // Stage 1: Immutable Identity Mapping
-  data.forEach((row, index) => {
-    if (!row || typeof row !== 'object') {
+  // Stage 1: Local Normalization & Deduplication
+  const seenEmails = new Set<string>();
+  const preProcessedData = data.filter((item) => {
+    if (!item || typeof item !== 'object') {
       stats.sanitizedRows++;
-      return;
+      return false;
     }
 
     const emailKey = mappings.emailKey;
-    let rawEmail = String(row[emailKey] || '').toLowerCase().trim();
+    let rawEmail = String(item[emailKey] || '').toLowerCase().trim();
     rawEmail = autoCorrectEmail(rawEmail);
 
     if (!rawEmail) {
       stats.emptyIdentities++;
-      return;
+      return false;
     }
-
-    // Store original row in the immutable map
-    originalRowsMap.set(index, row);
 
     if (seenEmails.has(rawEmail)) {
       stats.duplicateEntries++;
-      workItems.push({ id: index, email: rawEmail, isDuplicate: true });
-      return;
+      eliminated.push({ ...item, reason: 'Deterministic Protocol: Duplicate Identity Suppressed' });
+      return false;
     }
-
-    seenEmails.set(rawEmail, index);
     
-    // Check Cache
-    const cached = persistentCache[rawEmail];
-    workItems.push({ id: index, email: rawEmail, isDuplicate: false, cachedResult: cached });
+    seenEmails.add(rawEmail);
+    return true;
   });
 
-  const uniqueItemsToVerify = workItems.filter(item => !item.isDuplicate && !item.cachedResult);
-  const total = uniqueItemsToVerify.length;
+  console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
+
+  // Stage 2: Concurrent Batch Processing to Backend Engine
+  const total = preProcessedData.length;
+  // Reduced batch size and concurrency for absolute precision and port stability
+  const BATCH_SIZE = 40; 
+  const CONCURRENT_BATCHES = 2;
   
-  const validResults = new Map<number, any>();
-  const eliminatedResults = new Map<number, any>();
-
-  // Process Cached Items
-  workItems.forEach(item => {
-    if (item.cachedResult) {
-      const res = item.cachedResult;
-      const isSafe = res.verificationStatus === 'safe' || res.verificationStatus === 'verified';
-      if (isSafe) {
-        stats.verifiedLeads++;
-        validResults.set(item.id, res);
-      } else {
-        eliminatedResults.set(item.id, { ...res, reason: res.verificationReason });
-      }
-    } else if (item.isDuplicate) {
-      eliminatedResults.set(item.id, { verificationStatus: 'rejected', reason: 'Deterministic Protocol: Duplicate Identity Suppressed' });
-    }
-  });
-
-  // Stage 2: Nitro Batch Processing (v12.18)
-  const BATCH_SIZE = 80; 
-  const CONCURRENT_BATCHES = 4;
   const batches = [];
-  for (let i = 0; i < uniqueItemsToVerify.length; i += BATCH_SIZE) {
-    batches.push(uniqueItemsToVerify.slice(i, i + BATCH_SIZE));
+  for (let i = 0; i < total; i += BATCH_SIZE) {
+    batches.push({
+      startIndex: i,
+      items: preProcessedData.slice(i, i + BATCH_SIZE)
+    });
   }
 
-  if (onProgress) onProgress(1);
+  let completedBatches = 0;
 
-  const processBatch = async (chunk: typeof workItems) => {
+  const processBatch = async (batchObj: { startIndex: number, items: any[] }) => {
     if (signal?.aborted) return;
-    const emails = chunk.map(item => item.email);
     
-    // FAIL_SAFE: Enforce a strict timeout (Shortened for Stage-3)
-    const isStage3 = uniqueItemsToVerify.filter(item => item.__needsRetry).length > 0;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), isStage3 ? 7000 : 12000); 
-
-    try {
-      const response = await fetch('/api/validate-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emails, options: rules }),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const { results } = await response.json();
-        results.forEach((res: any, idx: number) => {
-          const item = chunk[idx];
-          if (!res) return;
-          const isSafe = res.verificationStatus === 'safe' || res.verificationStatus === 'verified';
-          if (res.verificationStatus === 'unknown' || res.subStatus === 'timeout') {
-            item.__needsRetry = true;
-            return;
-          }
-          saveToPersistentCache(item.email, res);
-          if (isSafe) {
-            stats.verifiedLeads++;
-            validResults.set(item.id, res);
-          } else {
-            eliminatedResults.set(item.id, { ...res, reason: res.verificationReason });
-          }
+    const { startIndex, items } = batchObj;
+    const emailsToVerify = items.map(item => String(item[mappings.emailKey] || '').toLowerCase().trim());
+    
+    let retries = 2;
+    let success = false;
+    
+    while (retries >= 0 && !success && !signal?.aborted) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 9500); // 9.5s local timeout limit
+        
+        if (signal) {
+          signal.addEventListener('abort', () => controller.abort());
+        }
+        
+        const response = await fetch('/api/validate-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emails: emailsToVerify,
+            options: {
+              excludeDisposable: rules.excludeDisposable,
+              excludeRoleBased: rules.excludeRoleBased,
+              excludeCatchAll: rules.excludeCatchAll,
+              excludeSpamTraps: rules.excludeSpamTraps
+            }
+          }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          if (response.status === 502 || response.status === 504 || response.status === 429) {
+            throw new Error(`Gateway/RateLimit Error ${response.status}`);
+          }
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        success = true;
+      
+      const { results } = await response.json();
+      
+      // Merge results back into items
+      results.forEach((verificationResult: any, idx: number) => {
+        const item = items[idx];
+        const status = verificationResult.verificationStatus;
+        const subStatus = verificationResult.subStatus || '';
+
+        // If result is unknown/timeout, we mark it for the SECOND PASS unless we're already retrying at the API level
+        if (status === 'unknown' || subStatus === 'timeout') {
+          item.__needsSecondPass = true;
+          item.__lastVerification = verificationResult;
+          return;
+        }
+
+        const isSafe = status === 'safe' || status === 'verified';
+
+        // STRICT 100% QUALITY MATRIX ENFORCEMENT: Only 'safe' leads allowed for 0% bounce rate goal.
+        // 'usable', 'risky', and 'dangerous' leads are now eliminated to ensure maximum deliverability.
+        if (!isSafe) {
+          // Track granular stats
+          if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
+          else if (subStatus === 'domain_not_found') stats.dnsFailure++;
+          else if (subStatus === 'disposable') stats.disposableMatch++;
+          else if (subStatus === 'role_based') stats.roleBasedMatch++;
+          else if (subStatus === 'catch_all') stats.catchAllMatch++;
+          else if (subStatus === 'toxic') stats.toxicPatternMatch++;
+          else if (subStatus === 'greylisted') stats.greylistedMatch++;
+          else if (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous') stats.highBounceRisk++;
+
+          eliminated.push({ 
+            ...item, 
+            reason: verificationResult.verificationReason,
+            score: verificationResult.confidenceScore,
+            bounceRisk: verificationResult.bounceRisk,
+            reputationImpact: verificationResult.reputationImpact,
+            subStatus: verificationResult.subStatus,
+            status: status
+          });
+          
+          if (onProgress && idx === results.length - 1) {
+             onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] FILTERED: ${item[mappings.emailKey]} -> ${status.toUpperCase()} (${verificationResult.verificationReason})`);
+          }
+        } else {
+          stats.verifiedLeads++;
+          
+          // Data Enhancement
+          const updatedItem = { ...item };
+          if (mappings.emailKey && verificationResult.email) {
+            updatedItem[mappings.emailKey] = verificationResult.email;
+          }
+          if (mappings.firstNameKey) updatedItem[mappings.firstNameKey] = cleanText(item[mappings.firstNameKey], rules.strictTitleCase);
+          if (mappings.lastNameKey) updatedItem[mappings.lastNameKey] = cleanText(item[mappings.lastNameKey], rules.strictTitleCase);
+          if (mappings.nameKey) updatedItem[mappings.nameKey] = cleanText(item[mappings.nameKey], rules.strictTitleCase);
+          if (mappings.cityKey) updatedItem[mappings.cityKey] = cleanText(item[mappings.cityKey], rules.strictTitleCase);
+          if (mappings.countryKey) updatedItem[mappings.countryKey] = cleanText(item[mappings.countryKey], rules.strictTitleCase);
+          
+          if (mappings.phoneKey) {
+            const originalPhone = String(item[mappings.phoneKey] || '');
+            const formatted = formatPhone(originalPhone, item[mappings.countryKey], rules.forcePlusSign);
+            updatedItem[mappings.phoneKey] = formatted;
+          }
+
+          if (mappings.postalCodeKey) {
+            updatedItem[mappings.postalCodeKey] = String(item[mappings.postalCodeKey] || '').trim().toUpperCase();
+          }
+
+          valid.push({
+            ...verificationResult,
+            ...updatedItem,
+            originalIndex: startIndex + idx,
+            __originalData: updatedItem
+          } as ProcessedContact);
+
+          if (onProgress && idx === results.length - 1) {
+             onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] SECURED: ${updatedItem[mappings.emailKey]} -> ${status.toUpperCase()} (${verificationResult.verificationReason})`);
+          }
+        }
+      });
+
+    } catch (err: any) {
+        if (err.name === 'AbortError' && signal?.aborted) {
+          retries = -1; // Force stop if specifically aborted by user
+          break;
+        }
+        
+        retries--;
+        if (retries < 0) {
+          console.error(`[BATCH_ERROR] Batch starting at ${startIndex} failed permanently:`, err);
+          items.forEach(item => eliminated.push({ ...item, reason: `Network/Timeout Failure: ${err.message}` }));
+        } else {
+          console.warn(`[BATCH_RETRY] Batch ${startIndex} failed, retrying... (${retries} left)`);
+          await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5s exponential backoff base
+        }
       }
-    } catch (err) {
-      chunk.forEach(item => { item.__needsRetry = true; });
-    } finally {
-      clearTimeout(timeoutId);
+    }
+
+    completedBatches++;
+    if (onProgress) {
+      onProgress(Math.min(100, Math.round((completedBatches / batches.length) * 100)));
     }
   };
 
+  // Process in chunks of CONCURRENT_BATCHES
   for (let i = 0; i < batches.length; i += CONCURRENT_BATCHES) {
-    if (signal?.aborted) break;
+    if (signal?.aborted) {
+      console.log(`[PROCESSOR] PIPELINE_ABORTED by user.`);
+      throw new Error('Pipeline Aborted');
+    }
     const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
     await Promise.all(concurrentChunk.map(b => processBatch(b)));
     
-    // PROGRESS_MATH_FIX: Ensure visible movement even on huge files
-    const currentProcessed = i + concurrentChunk.length;
-    const progressVal = Math.max(1, Math.min(95, Math.ceil((currentProcessed / batches.length) * 100)));
-    if (onProgress) onProgress(progressVal);
+    // Deterministic Adaptive Jitter: Prevent Vercel Rate Limits (429) & CPU starvation
+    // Base wait of 100ms + random jitter up to 150ms ensures staggered connections
+    const jitter = Math.floor(Math.random() * 150) + 100;
+    await new Promise(resolve => setTimeout(resolve, jitter));
   }
 
-  // Stage 3: High-Resolution Recovery (Bypassed for Large Lists to prevent stalls)
-  const retryLeads = uniqueItemsToVerify.filter(item => item.__needsRetry);
-  const skipRecovery = total > 800; // Automatic skip for large datasets
-
-  if (retryLeads.length > 0 && !signal?.aborted && !skipRecovery) {
-    const RETRY_BATCH_SIZE = 20;
-    const RETRY_CONCURRENCY = 2;
-    const retryBatches = [];
-    for (let i = 0; i < retryLeads.length; i += RETRY_BATCH_SIZE) {
-      retryBatches.push(retryLeads.slice(i, i + RETRY_BATCH_SIZE));
-    }
-
-    let consecutiveFailures = 0;
-    for (let i = 0; i < retryBatches.length; i += RETRY_CONCURRENCY) {
-      if (signal?.aborted || consecutiveFailures >= 2) break;
-      const concurrentChunk = retryBatches.slice(i, i + RETRY_CONCURRENCY);
+  // Stage 3: Elite Second Pass (Re-verify Uncertain Leads)
+  const uncertainLeads = preProcessedData.filter(item => item.__needsSecondPass);
+  
+  if (uncertainLeads.length > 0 && !signal?.aborted) {
+    console.log(`[PROCESSOR] STAGE_3_ELITE_PASS: Re-verifying ${uncertainLeads.length} uncertain leads...`);
+    
+    // Extreme stability: 1 concurrent batch of 10 leads
+    const SECOND_PASS_BATCH_SIZE = 10;
+    for (let i = 0; i < uncertainLeads.length; i += SECOND_PASS_BATCH_SIZE) {
+      if (signal?.aborted) break;
+      
+      const chunk = uncertainLeads.slice(i, i + SECOND_PASS_BATCH_SIZE);
+      const emailsToVerify = chunk.map(item => String(item[mappings.emailKey] || '').toLowerCase().trim());
       
       try {
-        await Promise.all(concurrentChunk.map(chunk => processBatch(chunk)));
-        consecutiveFailures = 0;
-      } catch (e) {
-        consecutiveFailures++;
-      }
-      
-      if (onProgress) {
-        const progress = 95 + Math.floor((i / retryBatches.length) * 4);
-        onProgress(progress);
+        const response = await fetch('/api/validate-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            emails: emailsToVerify,
+            options: {
+              excludeDisposable: rules.excludeDisposable,
+              excludeRoleBased: rules.excludeRoleBased,
+              excludeCatchAll: rules.excludeCatchAll,
+              excludeSpamTraps: rules.excludeSpamTraps
+            }
+          })
+        });
+
+        if (response.ok) {
+          const { results } = await response.json();
+          results.forEach((verificationResult: any, idx: number) => {
+            const item = chunk[idx];
+            const status = verificationResult.verificationStatus;
+            const isSafe = status === 'safe' || status === 'verified';
+
+            if (isSafe) {
+              stats.verifiedLeads++;
+              const updatedItem = { ...item };
+              
+              // Data Enhancement (Sync with First Pass)
+              if (mappings.firstNameKey) updatedItem[mappings.firstNameKey] = cleanText(item[mappings.firstNameKey], rules.strictTitleCase);
+              if (mappings.lastNameKey) updatedItem[mappings.lastNameKey] = cleanText(item[mappings.lastNameKey], rules.strictTitleCase);
+              if (mappings.nameKey) updatedItem[mappings.nameKey] = cleanText(item[mappings.nameKey], rules.strictTitleCase);
+              if (mappings.phoneKey) {
+                updatedItem[mappings.phoneKey] = formatPhone(String(item[mappings.phoneKey] || ''), item[mappings.countryKey], rules.forcePlusSign);
+              }
+
+              valid.push({
+                ...verificationResult,
+                ...updatedItem,
+                status: status
+              } as ProcessedContact);
+
+              if (onProgress) {
+                onProgress(100, `[SYS] ELITE_PASS_SECURED: ${updatedItem[mappings.emailKey]}`);
+              }
+            } else {
+              eliminated.push({ ...item, status, reason: verificationResult.verificationReason });
+              if (onProgress) {
+                onProgress(100, `[SYS] ELITE_PASS_REJECTED: ${item[mappings.emailKey]}`);
+              }
+            }
+          });
+        }
+      } catch (err) {
+        // If second pass still fails, we have to eliminate them to guarantee 0% bounce
+        chunk.forEach(item => eliminated.push({ ...item, status: 'unknown', reason: 'Permanent Network Uncertainty' }));
       }
     }
-  } else if (skipRecovery && onProgress) {
-    onProgress(99); // Fast skip
   }
 
-  // Final Elimination for anything still missing
-  uniqueItemsToVerify.forEach(item => {
-    if (!validResults.has(item.id) && !eliminatedResults.has(item.id)) {
-      eliminatedResults.set(item.id, { verificationStatus: 'rejected', reason: 'Permanent Uncertainty' });
-    }
-  });
-
-  // Reconstruct Final Arrays - GUARANTEED NO DATA MIXING
-  const finalValid: any[] = [];
-  const finalEliminated: any[] = [];
-
-  // Sort by original index to preserve Excel order perfectly
-  const allIndices = Array.from(originalRowsMap.keys()).sort((a, b) => a - b);
+  // Final Sort and Stats locking
+  valid.sort((a, b) => a.originalIndex - b.originalIndex);
   
-  allIndices.forEach(idx => {
-    const originalRow = originalRowsMap.get(idx);
-    if (validResults.has(idx)) {
-      const res = validResults.get(idx);
-      // Data Enhancement: ONLY update the specific mapped fields, leave everything else untouched
-      const enhancedRow = { ...originalRow };
-      if (mappings.firstNameKey) enhancedRow[mappings.firstNameKey] = cleanText(originalRow[mappings.firstNameKey], rules.strictTitleCase);
-      if (mappings.lastNameKey) enhancedRow[mappings.lastNameKey] = cleanText(originalRow[mappings.lastNameKey], rules.strictTitleCase);
-      if (mappings.nameKey) enhancedRow[mappings.nameKey] = cleanText(originalRow[mappings.nameKey], rules.strictTitleCase);
-      if (mappings.phoneKey) enhancedRow[mappings.phoneKey] = formatPhone(originalRow[mappings.phoneKey], originalRow[mappings.countryKey], rules.forcePlusSign);
-
-      finalValid.push({
-        ...res,
-        ...enhancedRow,
-        __originalData: originalRow,
-        __enhancedData: enhancedRow
-      });
-    } else {
-      const res = eliminatedResults.get(idx) || { reason: 'Unknown Filter' };
-      finalEliminated.push({
-        ...originalRow,
-        ...res,
-        status: res.verificationStatus || 'rejected',
-        __originalData: originalRow
-      });
+  const finalResult = {
+    valid,
+    eliminated,
+    stats: {
+      ...stats,
+      totalProcessed: total,
+      timestamp: new Date().toISOString()
     }
-  });
-
-  if (onProgress) onProgress(100, `[PROTOCOL] Verification Engine Cycle Complete.`);
-  return {
-    valid: finalValid,
-    eliminated: finalEliminated,
-    stats: { ...stats, totalProcessed: data.length, timestamp: new Date().toISOString() }
   };
+
+  console.log(`[PROCESSOR] PIPELINE_COMPLETE. Enterprise backend processing finished.`);
+
+  return finalResult;
 };
 
 /**
