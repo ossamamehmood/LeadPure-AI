@@ -11,7 +11,7 @@ export interface ContactData {
 }
 
 export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
-  verificationStatus: 'verified' | 'rejected' | 'valid' | 'risky' | 'blocked';
+  verificationStatus: 'verified' | 'risky' | 'rejected' | 'blocked' | 'unknown' | 'safe' | 'usable' | 'dangerous';
   verificationReason?: string;
   subStatus?: string;
   provider?: string;
