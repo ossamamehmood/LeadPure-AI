@@ -1,9 +1,9 @@
-# LeadPure AI Enterprise (v11.5.1)
+# LeadPure AI Enterprise (v12)
 ### Elite Deliverability Intelligence & Lead Hardening Engine
 
-LeadPure AI is a mission-critical infrastructure tool designed for high-stakes enterprise lead operations. Version 11.5.1 introduces the **Deterministic Intelligence Kernel**, prioritizing absolute deliverability accuracy over raw processing speed.
+LeadPure AI is a mission-critical infrastructure tool designed for high-stakes enterprise lead operations. Version 12 introduces the **Deterministic Intelligence Kernel**, prioritizing absolute deliverability accuracy over raw processing speed.
 
-## 🚀 Key Features (v11.5.0 Intelligence)
+## 🚀 Key Features (v12 Intelligence)
 - **Zero-Bounce Protocol**: Aggressive 0% risk filtering for mission-critical email campaigns.
 - **Deterministic Logic**: Infrastructure-aware validation that produces consistent results across repeated runs.
 - **Neural Identity Scan**: Real-time SMTP handshake and heuristic analysis for individual lead inspection.
@@ -19,7 +19,7 @@ LeadPure AI is a mission-critical infrastructure tool designed for high-stakes e
 - **Framework**: Next.js 14 + React 19
 - **Styling**: Tailwind CSS (v4 Compatible Architecture)
 - **Animation**: Motion (v12 Performance Optimized)
-- **Engine**: Custom lead-pure-intel v11.5.0
+- **Engine**: Custom lead-pure-intel v12
 
 ## 🚦 Getting Started
 1. **Clone & Install**: `npm install`
@@ -28,7 +28,7 @@ LeadPure AI is a mission-critical infrastructure tool designed for high-stakes e
 4. **Deploy**: Optimized for Vercel edge runtime.
 
 ## ⚖️ Performance vs. Accuracy
-Version 11.5.1 is tuned for **Maximum Accuracy**. The system performs triple-stage retries and infrastructure audits on every record. While this may take longer than basic regex-based tools, it guarantees a 0% bounce risk, protecting your sender reputation from permanent damage.
+Version 12 is tuned for **Maximum Accuracy**. The system performs triple-stage retries and infrastructure audits on every record. While this may take longer than basic regex-based tools, it guarantees a 0% bounce risk, protecting your sender reputation from permanent damage.
 
 ---
 *LeadPure AI: Precision Deliverability for the Elite Marketer.*

@@ -112,7 +112,7 @@ const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
 const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean, provider: string) => {
-  // ELITE SAFETY PROTOCOL (v11.0): Probabilistic Deliverability
+  // ELITE SAFETY PROTOCOL (v12.0): Probabilistic Deliverability
   // A lead is 'safe' if it has:
   // 1. Successful SMTP handshake + Not a Catch-all
   // 2. High-trust Free Provider (Gmail/Outlook) + High Score

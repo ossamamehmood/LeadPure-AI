@@ -1,7 +1,7 @@
 {
   "name": "leadpure-ai",
   "private": true,
-  "version": "11.5.1",
+  "version": "12.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",

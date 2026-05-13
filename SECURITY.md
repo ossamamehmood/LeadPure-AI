@@ -1,4 +1,4 @@
-# LeadPure AI Security Protocol (v11.5.1)
+# LeadPure AI Security Protocol (v12)
 
 ## 1. Zero-Trust Data Architecture
 LeadPure AI operates on a **stateless, client-side first** security model. Unlike traditional SaaS tools that store your leads on their servers, LeadPure AI processes data in your browser's secure sandbox.
@@ -6,8 +6,8 @@ LeadPure AI operates on a **stateless, client-side first** security model. Unlik
 - **Zero Persistence**: No lead data is ever stored in a database. Once the session is closed, the data is purged from memory.
 - **Local Sovereignty**: Your data remains on your machine. We only transmit anonymized, cryptographic hashes of email domains for infrastructure lookups.
 
-## 2. Deliverability Intelligence Kernel (v11.5.0)
-The heart of our security is the **v11.5.0 Intelligence Kernel**, designed to protect your SMTP reputation at all costs.
+## 2. Deliverability Intelligence Kernel (v12)
+The heart of our security is the **v12 Intelligence Kernel**, designed to protect your SMTP reputation at all costs.
 
 ### Validation Layers:
 1. **Infrastructure Audit**: Real-time handshake with MX servers to verify existence without sending mail.
