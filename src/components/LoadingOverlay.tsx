@@ -104,8 +104,8 @@ export function LoadingOverlay({ progress, estimatedSeconds, onCancel, customTex
                       <div 
                         className={cn(
                           "font-black uppercase tracking-wider transition-all duration-300",
-                          isSafe ? "bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-purple bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(2,254,220,0.3)]" :
-                          isDangerous ? "bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(245,2,253,0.3)]" :
+                          isSafe ? "bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-purple bg-clip-text text-transparent shadow-sm" :
+                          isDangerous ? "bg-gradient-to-r from-brand-pink to-brand-purple bg-clip-text text-transparent shadow-sm" :
                           "text-slate-500"
                         )}
                       >

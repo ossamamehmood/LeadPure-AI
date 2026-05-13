@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, ShieldCheck, ShieldAlert, Zap, Activity, Globe, Info } from 'lucide-react';
+import { cn } from '../lib/utils';
 import { GlossyCard } from './ui/GlossyCard';
 import { verifyEmail } from '../utils/processor';
 import { ProcessedContact } from '../types';
@@ -35,7 +36,8 @@ export function SingleValidation() {
 
   const getStatusColor = (status: string | undefined) => {
     switch (status) {
-      case 'verified': return 'bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink bg-clip-text text-transparent shadow-lg';
+      case 'verified':
+      case 'safe': return 'bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink bg-clip-text text-transparent shadow-lg';
       case 'risky': return 'text-amber-400 shadow-sm';
       case 'rejected':
       case 'blocked': return 'text-brand-pink shadow-lg';
@@ -45,7 +47,8 @@ export function SingleValidation() {
 
   const getStatusBg = (status: string | undefined) => {
     switch (status) {
-      case 'verified': return 'bg-brand-blue/10 border-brand-blue/20';
+      case 'verified':
+      case 'safe': return 'bg-brand-blue/10 border-brand-blue/20';
       case 'risky': return 'bg-amber-400/20 border-amber-400/30';
       case 'rejected':
       case 'blocked': return 'bg-brand-pink/20 border-brand-pink/30';
@@ -161,7 +164,7 @@ export function SingleValidation() {
                   <GlossyCard className="p-6 md:p-8 border-none overflow-hidden relative group">
                     <div className={cn(
                       "absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 opacity-30 transition-all",
-                      result.verificationStatus === 'verified' ? 'bg-brand-blue' : 
+                      (result.verificationStatus === 'verified' || result.verificationStatus === 'safe') ? 'bg-brand-blue' : 
                       result.verificationStatus === 'risky' ? 'bg-amber-400' : 'bg-brand-pink'
                     )} />
                     <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest italic mb-2 relative z-10">Verification Status</p>
@@ -188,7 +191,7 @@ export function SingleValidation() {
                       "w-14 h-14 rounded-2xl flex items-center justify-center border",
                       getStatusBg(result.verificationStatus)
                     )}>
-                      {result.verificationStatus === 'verified' ? <ShieldCheck className="w-7 h-7 text-brand-blue" /> : <ShieldAlert className="w-7 h-7 text-amber-400" />}
+                      {(result.verificationStatus === 'verified' || result.verificationStatus === 'safe') ? <ShieldCheck className="w-7 h-7 text-brand-blue" /> : <ShieldAlert className="w-7 h-7 text-amber-400" />}
                     </div>
                     <div>
                       <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest italic mb-1">Intelligence Assessment</p>
@@ -204,7 +207,7 @@ export function SingleValidation() {
                     </div>
                     <div className="flex items-center gap-3 mb-4">
                       <Globe className="w-4 h-4 text-slate-500" />
-                      <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Infrastucture</span>
+                      <span className="text-[9px] text-slate-500 font-black uppercase tracking-widest">Infrastructure</span>
                     </div>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
@@ -246,9 +249,9 @@ export function SingleValidation() {
                         <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Sub-Status</span>
                         <span className={cn(
                           "text-[10px] font-black uppercase px-2 py-0.5 rounded-full border",
-                          result.verificationStatus === 'verified' ? 'bg-brand-blue/10 border-brand-blue/20 text-brand-blue' : 
-                          result.verificationStatus === 'risky' ? 'bg-amber-400/10 border-amber-400/20 text-amber-400' : 
-                          'bg-brand-pink/10 border-brand-pink/20 text-brand-pink'
+                          {(result.verificationStatus === 'verified' || result.verificationStatus === 'safe') ? 'bg-brand-blue/10 border-brand-blue/20 text-brand-blue' : 
+                           result.verificationStatus === 'risky' ? 'bg-amber-400/10 border-amber-400/20 text-amber-400' : 
+                           'bg-brand-pink/10 border-brand-pink/20 text-brand-pink'
                         )}>
                           {result.subStatus || 'Unknown'}
                         </span>

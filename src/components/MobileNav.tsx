@@ -26,9 +26,9 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
             isUploadActive ? "text-brand-blue" : "text-slate-500"
           )}
         >
-          <Upload className={cn("w-5 h-5", isUploadActive && "drop-shadow-[0_0_8px_rgba(90,92,255,0.4)]")} />
+          <Upload className={cn("w-5 h-5", isUploadActive && "shadow-sm")} />
           <span className="text-[8px] font-black uppercase tracking-widest">Ingest</span>
-          {isUploadActive && <div className="w-1 h-1 rounded-full gradient-bg shadow-[0_0_5px_rgba(90,92,255,0.6)]" />}
+          {isUploadActive && <div className="w-1 h-1 rounded-full gradient-bg shadow-sm" />}
         </button>
 
         <button 
@@ -44,9 +44,9 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
             currentTab === 'rules' ? "text-brand-blue" : "text-slate-500"
           )}
         >
-          <Settings2 className={cn("w-5 h-5", currentTab === 'rules' && "drop-shadow-[0_0_8px_rgba(90,92,255,0.4)]")} />
+          <Settings2 className={cn("w-5 h-5", currentTab === 'rules' && "shadow-sm")} />
           <span className="text-[8px] font-black uppercase tracking-widest">Protocols</span>
-          {currentTab === 'rules' && <div className="w-1 h-1 rounded-full gradient-bg shadow-[0_0_5px_rgba(90,92,255,0.6)]" />}
+          {currentTab === 'rules' && <div className="w-1 h-1 rounded-full gradient-bg shadow-sm" />}
         </button>
 
         <button 
@@ -62,9 +62,9 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
             currentTab === 'history' ? "text-brand-blue" : "text-slate-500"
           )}
         >
-          <Clock className={cn("w-5 h-5", currentTab === 'history' && "drop-shadow-[0_0_8px_rgba(90,92,255,0.4)]")} />
+          <Clock className={cn("w-5 h-5", currentTab === 'history' && "shadow-sm")} />
           <span className="text-[8px] font-black uppercase tracking-widest">Logs</span>
-          {currentTab === 'history' && <div className="w-1 h-1 rounded-full gradient-bg shadow-[0_0_5px_rgba(90,92,255,0.6)]" />}
+          {currentTab === 'history' && <div className="w-1 h-1 rounded-full gradient-bg shadow-sm" />}
         </button>
       </nav>
     </div>

@@ -25,7 +25,7 @@ export function RuleToggle({ domain, title, description, active, onToggle }: Rul
       {active && (
         <>
           <div className="absolute inset-0 bg-gradient-to-tr from-brand-cyan/10 via-brand-blue/5 to-brand-pink/5 pointer-events-none opacity-40" />
-          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-brand-cyan via-brand-blue to-brand-pink shadow-[0_0_15px_rgba(90,92,255,0.5)]" />
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-brand-cyan via-brand-blue to-brand-pink shadow-lg" />
         </>
       )}
       
@@ -45,7 +45,7 @@ export function RuleToggle({ domain, title, description, active, onToggle }: Rul
                animate={{ opacity: 1, x: 0 }}
                className="text-[8px] font-black uppercase tracking-[0.3em] flex items-center gap-2"
             >
-              <div className="w-1.5 h-1.5 rounded-full gradient-bg animate-pulse shadow-[0_0_8px_rgba(90,92,255,0.6)]" />
+              <div className="w-1.5 h-1.5 rounded-full gradient-bg animate-pulse shadow-sm" />
               <span className="gradient-text">Safe-Node Active</span>
             </motion.div>
           )}
@@ -68,7 +68,7 @@ export function RuleToggle({ domain, title, description, active, onToggle }: Rul
           <div className={cn(
             "absolute top-1 w-4 h-4 rounded-full transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1)",
             active 
-              ? "left-[26px] gradient-bg shadow-[0_0_15px_rgba(90,92,255,0.5)]" 
+              ? "left-[26px] gradient-bg shadow-lg" 
               : "left-1 bg-slate-700"
           )} />
         </div>

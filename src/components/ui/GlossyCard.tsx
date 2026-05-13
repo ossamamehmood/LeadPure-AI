@@ -39,7 +39,7 @@ export function GlossyCard({ children, className, glow = 'none', onClick }: Glos
         glow === 'pink' && "bg-brand-pink",
         glow === 'blue' && "bg-brand-blue",
         glow === 'purple' && "bg-brand-purple",
-        glow === 'gradient' && "gradient-bg shadow-[0_0_20px_rgba(90,92,255,0.4)]"
+        glow === 'gradient' && "gradient-bg shadow-lg"
       )} />
 
       <div className="relative z-10 h-full">{children}</div>
