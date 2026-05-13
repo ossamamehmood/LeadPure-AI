@@ -115,20 +115,20 @@ const parkedIpPatterns = [
 const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
+// ELITE SAFETY PROTOCOL (v12.21): Senior Architect Direct-Validation Model
 const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean, provider: string, hasSpf: boolean, hasDmarc: boolean) => {
-  // ELITE SAFETY PROTOCOL (v12.20): Senior Architect Calibration
+  // A lead is safe if the SMTP server EXPLICITLY accepted it OR it has high-trust infrastructure
   const isHighTrustProvider = provider === 'google' || provider === 'microsoft' || provider === 'enterprise_gateway';
   
   if (score < 30) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
   
-  // A lead is safe if it passes SMTP OR has perfect infrastructure + good score
-  const isSafe = smtpValid || (isHighTrustProvider && hasSpf && score >= 60);
-  
-  if (isSafe) {
-    if (isCatchAll) {
-      return { bounceRisk: 'Medium' as const, reputationImpact: 'Neutral' as const, finalStatus: 'safe' as const };
-    }
-    return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
+  // DIRECT_VALIDATION: If SMTP passed, it is safe.
+  if (smtpValid || (isHighTrustProvider && hasSpf && score >= 60)) {
+    return { 
+      bounceRisk: isCatchAll ? 'Medium' : 'Safe', 
+      reputationImpact: 'Positive', 
+      finalStatus: 'safe' 
+    };
   }
 
   return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
@@ -463,8 +463,8 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       reasons.push("SMTP Inconclusive (Probing Suppressed by Firewall)");
     }
 
-    if (smtpValid && !isFreeEmail && !isCatchAll) {
-      // Catch-all Detection Logic (Optimized v12.3 - High Speed Mode)
+    if (smtpValid && !isFreeEmail) {
+      // Catch-all Detection Logic (Optimized v12.4)
       const mxLower = (primaryMx || '').toLowerCase();
       const catchAllSignatures = ['mimecast.com', 'pphosted.com', 'barracudanetworks.com', 'sophos.com', 'outlook.com', 'google.com'];
       
