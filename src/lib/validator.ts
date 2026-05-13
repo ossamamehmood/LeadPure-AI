@@ -115,22 +115,16 @@ const parkedIpPatterns = [
 const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
 // ----------------- UTILITIES -----------------
-const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean, provider: string) => {
-  // ELITE SAFETY PROTOCOL (v11.0): Probabilistic Deliverability
-  // A lead is 'safe' if it has:
-  // 1. Successful SMTP handshake + Not a Catch-all
-  // 2. High-trust Free Provider (Gmail/Outlook) + High Score
-  // 3. High-trust Enterprise Infrastructure (Google/MSFT/Mimecast) + High Score + Successful Syntax
-  
+const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean, provider: string, hasSpf: boolean, hasDmarc: boolean) => {
+  // ELITE SAFETY PROTOCOL (v12.20): Senior Architect Calibration
   const isHighTrustProvider = provider === 'google' || provider === 'microsoft' || provider === 'enterprise_gateway';
   
-  // High-Trust Bridge: If infrastructure is perfect, we allow even without SMTP proof
-  const hasEliteInfrastructure = hasSpf && hasDmarc && isHighTrustProvider;
-  const infrastructureScore = score >= 50;
-
   if (score < 30) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
   
-  if (smtpValid || hasEliteInfrastructure || (isCatchAll && infrastructureScore)) {
+  // A lead is safe if it passes SMTP OR has perfect infrastructure + good score
+  const isSafe = smtpValid || (isHighTrustProvider && hasSpf && score >= 60);
+  
+  if (isSafe) {
     if (isCatchAll) {
       return { bounceRisk: 'Medium' as const, reputationImpact: 'Neutral' as const, finalStatus: 'safe' as const };
     }
@@ -543,7 +537,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     reasons.push("Spam-Trap Behavior Profile");
   }
 
-  const { bounceRisk, reputationImpact, finalStatus } = determineRisk(score, smtpValid, isCatchAll, isFreeEmail, provider);
+  const { bounceRisk, reputationImpact, finalStatus } = determineRisk(score, smtpValid, isCatchAll, isFreeEmail, provider, hasSpf, hasDmarc);
 
   const result: ValidationResult = {
     email: cleanEmail,
