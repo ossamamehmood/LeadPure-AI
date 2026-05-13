@@ -386,12 +386,15 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       ]);
       hasSpf = spfResult;
       hasDmarc = dmarcResult;
+      
+      if (hasSpf) score += 10;
+      if (hasDmarc) score += 10;
     }
   }
 
   // --- WEIGHTED POINT ACCUMULATION (v10.3 Advanced) ---
   if (mxRecordFound) {
-    score += 40; // Core infrastructure foundation
+    score += 50; // Increased base trust
     reasons.push("MX Infrastructure Active");
   } else {
     return {
@@ -458,7 +461,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     }
     
     if (smtpCheck.success) {
-      score += 25;
+      score += 30; // Strong deliverability proof
       reasons.push("SMTP Verification Success");
       smtpValid = true;
     } else if (smtpCheck.code === 550) {
