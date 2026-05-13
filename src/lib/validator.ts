@@ -122,8 +122,8 @@ const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, i
   
   if (score < 30) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
   
-  // DIRECT_VALIDATION: If SMTP passed, it is safe.
-  if (smtpValid || (isHighTrustProvider && hasSpf && score >= 60)) {
+  // DIRECT_VALIDATION: If SMTP passed OR infrastructure is perfect, it is safe.
+  if (smtpValid || (isHighTrustProvider && (hasSpf || hasDmarc) && score >= 40)) {
     return { 
       bounceRisk: isCatchAll ? 'Medium' : 'Safe', 
       reputationImpact: 'Positive', 
@@ -213,7 +213,7 @@ const performSmtpCheck = async (email: string, mxRecord: string, timeoutMs = 450
       try {
         if (currentStep === 0 && code === 220) {
           currentStep++;
-          await humanDelay();
+          await engineDelay();
           socket.write(`EHLO leadpure.ai\r\n`);
         } else if (currentStep === 1 && code === 250) {
           currentStep++;

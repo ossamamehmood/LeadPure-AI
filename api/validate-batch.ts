@@ -3,7 +3,7 @@ import { validateEmailFull, ValidationOptions, ValidationResult } from '../src/l
 // DETERMINISTIC_BACKEND_CACHE: Ensures consistency across Incognito and re-runs
 const globalBackendCache = new Map<string, { result: ValidationResult, timestamp: number }>();
 const CACHE_EXPIRY = 1000 * 60 * 60; // 1 Hour TTL for deterministic locking
-const CACHE_VERSION = 'LP_V4_FINAL'; // Forced logic reset after architectural fix
+const CACHE_VERSION = 'LP_V6_STABLE'; // Forced reset after SMTP crash fix
 
 // Vercel Native Serverless Handler
 export default async function handler(req: Request | any, res: Response | any) {
