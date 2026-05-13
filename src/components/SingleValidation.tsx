@@ -249,7 +249,7 @@ export function SingleValidation() {
                         <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Sub-Status</span>
                         <span className={cn(
                           "text-[10px] font-black uppercase px-2 py-0.5 rounded-full border",
-                          {(result.verificationStatus === 'verified' || result.verificationStatus === 'safe') ? 'bg-brand-blue/10 border-brand-blue/20 text-brand-blue' : 
+                          (result.verificationStatus === 'verified' || result.verificationStatus === 'safe') ? 'bg-brand-blue/10 border-brand-blue/20 text-brand-blue' : 
                            result.verificationStatus === 'risky' ? 'bg-amber-400/10 border-amber-400/20 text-amber-400' : 
                            'bg-brand-pink/10 border-brand-pink/20 text-brand-pink'
                         )}>
