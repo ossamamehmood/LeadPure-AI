@@ -124,24 +124,19 @@ const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, i
   
   const isHighTrustProvider = provider === 'google' || provider === 'microsoft' || provider === 'enterprise_gateway';
   
-  if (score < 45) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
+  if (score < 40) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
   
   // Deliverability Safety Margin Logic
   const hasDirectProof = smtpValid && !isCatchAll;
-  const hasInfrastructureTrust = (isFreeEmail || isHighTrustProvider) && score >= 85; 
+  const hasInfrastructureTrust = (isFreeEmail || isHighTrustProvider) && score >= 75; 
   
   const isEliteVerified = hasDirectProof || hasInfrastructureTrust;
   
-  if (isEliteVerified && score >= 75) {
+  if (isEliteVerified || (isCatchAll && score >= 60)) {
     // FINAL_SAFETY_GATE: Advanced Catch-all Deliverability
     if (isCatchAll) {
-      // High-trust catch-alls are usable for enterprise outreach
-      if (isHighTrustProvider) {
-        return { bounceRisk: 'Medium' as const, reputationImpact: 'Neutral' as const, finalStatus: 'safe' as const };
-      }
-      return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
+      return { bounceRisk: 'Medium' as const, reputationImpact: 'Neutral' as const, finalStatus: 'safe' as const };
     }
-    
     return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
   }
 
@@ -477,20 +472,16 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       reasons.push("SMTP Inconclusive (Probing Suppressed by Firewall)");
     }
 
-    if (smtpValid && !isFreeEmail) {
-      // Catch-all Detection Logic (Optimized v12.2 - Global Domain Lock)
+    if (smtpValid && !isFreeEmail && !isCatchAll) {
+      // Catch-all Detection Logic (Optimized v12.3 - High Speed Mode)
       const mxLower = (primaryMx || '').toLowerCase();
+      const catchAllSignatures = ['mimecast.com', 'pphosted.com', 'barracudanetworks.com', 'sophos.com', 'outlook.com', 'google.com'];
       
-      // Fast Signature Check
-      const catchAllSignatures = ['mimecast.com', 'pphosted.com', 'barracudanetworks.com', 'sophos.com'];
-      const hasCatchAllSignature = catchAllSignatures.some(sig => mxLower.includes(sig));
-
-      if (hasCatchAllSignature) {
+      if (catchAllSignatures.some(sig => mxLower.includes(sig))) {
         isCatchAll = true;
       } else {
-        // Atomic Domain Probe (Ensures only ONE catch-all check per domain ever)
-        const randomPrefix = `lp_v_${Math.random().toString(36).substring(2, 8)}`;
-        const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '', 2500);
+        const randomPrefix = `v_${Math.random().toString(36).substring(2, 6)}`;
+        const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '', 1500);
         if (catchAllCheck.success) isCatchAll = true;
       }
     }

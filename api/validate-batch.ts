@@ -26,7 +26,7 @@ export default async function handler(req: Request | any, res: Response | any) {
 
     const startTime = Date.now();
     const TIMEOUT_MS = 9000;
-    const MAX_CONCURRENT = 10; // Restored stable concurrency
+    const MAX_CONCURRENT = 20; // High-speed nitro concurrency
     const domainLastHit = new Map<string, number>();
 
     // DETERMINISM_LOCK: We process in the EXACT order provided to guarantee identical timing patterns
@@ -46,7 +46,7 @@ export default async function handler(req: Request | any, res: Response | any) {
 
         const domain = cleanEmail.split('@')[1];
         const lastHit = domainLastHit.get(domain) || 0;
-        const waitTime = Math.max(0, 40 - (Date.now() - lastHit)); // Faster 40ms stagger for 2x speed
+        const waitTime = Math.max(0, 15 - (Date.now() - lastHit)); // 15ms Nitro Stagger
         if (waitTime > 0) await new Promise(res => setTimeout(res, waitTime));
         domainLastHit.set(domain, Date.now());
 
