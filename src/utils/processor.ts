@@ -332,10 +332,12 @@ export const processContacts = async (
     if (onProgress) onProgress(progressVal);
   }
 
-  // Stage 3: Final Recovery (With Stall Detection)
+  // Stage 3: High-Resolution Recovery (Bypassed for Large Lists to prevent stalls)
   const retryLeads = uniqueItemsToVerify.filter(item => item.__needsRetry);
-  if (retryLeads.length > 0 && !signal?.aborted) {
-    const RETRY_BATCH_SIZE = 10;
+  const skipRecovery = total > 800; // Automatic skip for large datasets
+
+  if (retryLeads.length > 0 && !signal?.aborted && !skipRecovery) {
+    const RETRY_BATCH_SIZE = 20;
     const RETRY_CONCURRENCY = 2;
     const retryBatches = [];
     for (let i = 0; i < retryLeads.length; i += RETRY_BATCH_SIZE) {
@@ -349,7 +351,7 @@ export const processContacts = async (
       
       try {
         await Promise.all(concurrentChunk.map(chunk => processBatch(chunk)));
-        consecutiveFailures = 0; // Reset on success
+        consecutiveFailures = 0;
       } catch (e) {
         consecutiveFailures++;
       }
@@ -359,6 +361,8 @@ export const processContacts = async (
         onProgress(progress);
       }
     }
+  } else if (skipRecovery && onProgress) {
+    onProgress(99); // Fast skip
   }
 
   // Final Elimination for anything still missing

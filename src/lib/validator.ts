@@ -124,16 +124,13 @@ const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, i
   
   const isHighTrustProvider = provider === 'google' || provider === 'microsoft' || provider === 'enterprise_gateway';
   
-  if (score < 40) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
+  // High-Trust Bridge: If infrastructure is perfect, we allow even without SMTP proof
+  const hasEliteInfrastructure = hasSpf && hasDmarc && isHighTrustProvider;
+  const infrastructureScore = score >= 50;
+
+  if (score < 30) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
   
-  // Deliverability Safety Margin Logic
-  const hasDirectProof = smtpValid && !isCatchAll;
-  const hasInfrastructureTrust = (isFreeEmail || isHighTrustProvider) && score >= 75; 
-  
-  const isEliteVerified = hasDirectProof || hasInfrastructureTrust;
-  
-  if (isEliteVerified || (isCatchAll && score >= 60)) {
-    // FINAL_SAFETY_GATE: Advanced Catch-all Deliverability
+  if (smtpValid || hasEliteInfrastructure || (isCatchAll && infrastructureScore)) {
     if (isCatchAll) {
       return { bounceRisk: 'Medium' as const, reputationImpact: 'Neutral' as const, finalStatus: 'safe' as const };
     }
@@ -570,8 +567,8 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   // SESSION LOCK POLICY: Persist all results to ensure UI consistency.
   // We cache even unknown/timeouts, but the processor will attempt a second pass.
   emailCache.set(cleanEmail, result);
-  
-  if (emailCache.size > 5000) emailCache.clear();
+  if (emailCache.size > 2000) emailCache.clear();
+  if (domainCache.size > 1000) domainCache.clear();
 
   return result;
 };
