@@ -27,3 +27,7 @@ The heart of our security is the **v12 Intelligence Kernel**, designed to protec
 
 ---
 *LeadPure AI is an elite security tool. Use responsibly to maintain the integrity of the global email ecosystem.*
+
+## 📬 Security Inquiries
+For security-related questions or responsible disclosure of vulnerabilities, please contact:
+**Email**: [ossamamehmood110@gmail.com](mailto:ossamamehmood110@gmail.com)
