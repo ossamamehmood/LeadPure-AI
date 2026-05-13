@@ -177,7 +177,7 @@ export const processContacts = async (
 
   // Stage 1: Local Normalization & Deduplication
   const seenEmails = new Set<string>();
-  const preProcessedData = data.filter((item) => {
+  const preProcessedData = data.map((item, idx) => ({ ...item, __originalIndex: idx })).filter((item) => {
     if (!item || typeof item !== 'object') {
       stats.sanitizedRows++;
       return false;
@@ -333,7 +333,7 @@ export const processContacts = async (
           valid.push({
             ...verificationResult,
             ...updatedItem,
-            originalIndex: startIndex + idx,
+            originalIndex: item.__originalIndex,
             __originalData: updatedItem
           } as ProcessedContact);
 
@@ -432,7 +432,8 @@ export const processContacts = async (
               valid.push({
                 ...verificationResult,
                 ...updatedItem,
-                status: status
+                originalIndex: item.__originalIndex,
+                __originalData: updatedItem
               } as ProcessedContact);
 
               if (onProgress) {
