@@ -230,6 +230,33 @@ export const performSmtpCheck = async (
   });
 };
 
+// ----------------- HIGH-SPEED HTTPS TELEMETRY FALLBACK (FOR PORT 25 BLOCKADES) -----------------
+const performHttpsFallbackCheck = async (email: string): Promise<{ success: boolean; code: number; response: string }> => {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000); // 4s timeout budget for public validator API
+    
+    const url = `https://rapid-email-verifier.fly.dev/api/validate?email=${encodeURIComponent(email)}`;
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.status) {
+        const isValid = data.status === 'VALID';
+        return {
+          success: isValid,
+          code: isValid ? 250 : 550,
+          response: `HTTPS Fallback: status=${data.status}`
+        };
+      }
+    }
+    return { success: false, code: 0, response: 'HTTPS Fallback API returned invalid response status' };
+  } catch (e: any) {
+    return { success: false, code: 0, response: `HTTPS Fallback API Error: ${e.message}` };
+  }
+};
+
 // ----------------- CORE 10-LAYER VALIDATION PROTOCOL -----------------
 export const validateEmailFull = async (email: string, options: ValidationOptions): Promise<ValidationResult> => {
   const cleanEmail = email.toLowerCase().trim().replace(/[\s"'\r\n]/g, '');
@@ -486,10 +513,21 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     const controlEmail = `${randomIdentity}@${domain}`;
     console.log(`[TRACE] [${cleanEmail}] executing control probe on catch-all: ${controlEmail}`);
     
-    const controlCheck = await performSmtpCheck(controlEmail, primaryMx);
+    let controlCheck = await performSmtpCheck(controlEmail, primaryMx);
     
-    // Explicit trace logging of the control handshake
-    console.log(`[TRACE] [${cleanEmail}] control SMTP response: code=${controlCheck.code} response="${controlCheck.response}" timedOut=${controlCheck.timedOut}`);
+    // Vercel Fallback: If Port 25 is blocked (socket timed out), use the HTTPS telemetry API!
+    if (controlCheck.timedOut || controlCheck.code === 0) {
+      console.log(`[TRACE] [${cleanEmail}] Port 25 control check blocked on platform; routing through HTTPS Fallback API`);
+      const httpResult = await performHttpsFallbackCheck(controlEmail);
+      controlCheck = {
+        success: httpResult.success,
+        code: httpResult.code,
+        response: `HTTPS Control Fallback: ${httpResult.response}`,
+        timedOut: false
+      };
+    }
+    
+    console.log(`[TRACE] [${cleanEmail}] control SMTP response: code=${controlCheck.code} response="${controlCheck.response}"`);
 
     if (controlCheck.success || controlCheck.code === 250 || controlCheck.code === 251) {
       isCatchAll = true;
@@ -546,10 +584,21 @@ export const validateEmailFull = async (email: string, options: ValidationOption
 
   // 6. Deep Outbound SMTP Handshake (Layer 6)
   console.log(`[TRACE] [${cleanEmail}] executing deep SMTP probe to MX server: ${primaryMx}`);
-  const smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
+  let smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
   
-  // Explicit trace logging of target handshake
-  console.log(`[TRACE] [${cleanEmail}] SMTP probe result: code=${smtpCheck.code} response="${smtpCheck.response}" timedOut=${smtpCheck.timedOut}`);
+  // Vercel Fallback: If Port 25 is blocked (socket timed out), use the HTTPS telemetry API!
+  if (smtpCheck.timedOut || smtpCheck.code === 0) {
+    console.log(`[TRACE] [${cleanEmail}] Port 25 target check blocked on platform; routing through HTTPS Fallback API`);
+    const httpResult = await performHttpsFallbackCheck(cleanEmail);
+    smtpCheck = {
+      success: httpResult.success,
+      code: httpResult.code,
+      response: `HTTPS Probe Fallback: ${httpResult.response}`,
+      timedOut: false
+    };
+  }
+
+  console.log(`[TRACE] [${cleanEmail}] SMTP probe result: code=${smtpCheck.code} response="${smtpCheck.response}"`);
 
   let result: ValidationResult;
 
