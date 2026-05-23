@@ -11,9 +11,23 @@ export interface ContactData {
 }
 
 export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
-  verificationStatus: 'verified' | 'rejected' | 'valid' | 'risky' | 'blocked';
+  /** Core standardized status */
+  status: 'SAFE' | 'RISKY' | 'INVALID' | 'UNKNOWN';
+  /** Sub‑status or detailed reason */
+  sub_status?: string;
+  /** Machine‑readable failure code */
+  failure_code?: 'ERR_001' | 'ERR_002' | 'ERR_003' | 'ERR_004' | 'ERR_005' | 'ERR_006' | 'ERR_007' | 'ERR_008' | 'ERR_009' | null;
+  /** SMTP response code when applicable */
+  smtp_code?: number | null;
+  /** Resolved MX host IP address */
+  mx_ip?: string | null;
+  /** ISO‑8601 timestamp of validation */
+  timestamp?: string;
+  /** Whether the domain accepts all incoming identities */
+  is_catchall?: boolean;
+
+  // ---- Existing auxiliary diagnostics (retain for UI) ----
   verificationReason?: string;
-  subStatus?: string;
   provider?: string;
   isFreeEmail?: boolean;
   domainAgeDays?: number;

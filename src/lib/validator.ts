@@ -1,5 +1,7 @@
 import dns from 'dns';
 import net from 'net';
+import fs from 'fs';
+import path from 'path';
 
 // ----------------- ENTERPRISE DNS RESOLVER -----------------
 // Using custom public resolvers to prevent local/Vercel host DNS rate limits on large batches
@@ -12,7 +14,6 @@ resolver.setServers([
 ]);
 
 const resolveMx = resolver.resolveMx.bind(resolver);
-const resolveTxt = resolver.resolveTxt.bind(resolver);
 
 export interface ValidationOptions {
   excludeDisposable: boolean;
@@ -35,14 +36,24 @@ export interface ValidationResult {
   isDisposable: boolean;
   isRoleBased: boolean;
   isFreeEmail: boolean;
+  isSpamTrap: boolean;
   provider: string;
   smtpValid: boolean;
   syntaxValid: boolean;
+  didyouseeme: boolean;
+  
+  // Standardized schema.md fields
+  status: 'SAFE' | 'RISKY' | 'INVALID' | 'UNKNOWN';
+  sub_status?: string;
+  failure_code?: 'ERR_001' | 'ERR_002' | 'ERR_003' | 'ERR_004' | 'ERR_005' | 'ERR_006' | 'ERR_007' | 'ERR_008' | 'ERR_009' | null;
+  smtp_code?: number | null;
+  mx_ip?: string | null;
+  timestamp?: string;
+  is_catchall?: boolean;
 }
 
 // ----------------- DATA SETS -----------------
 const disposableDomains = new Set([
-  // Expanded Enterprise Disposable List
   'temp-mail.org', 'guerrillamail.com', 'mailinator.com', '10minutemail.com', 
   'dispostable.com', 'getnada.com', 'throwawaymail.com', 'maildrop.cc', 
   'yopmail.com', 'trashmail.com', 'tempmail.net', 'temp-mail.io',
@@ -58,8 +69,20 @@ const disposableDomains = new Set([
   'courriel.fr.nf', 'moncourrier.fr.nf', 'monemail.fr.nf', 'monmail.fr.nf'
 ]);
 
+// Attempt to load 9,200+ disposable domains from high-speed local lookup table
+try {
+  const jsonPath = path.resolve('C:/Users/ossamamehmood/.gemini/antigravity/scratch/LeadPure-AI/src/lib/disposable-domains.json');
+  if (fs.existsSync(jsonPath)) {
+    const list = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    if (Array.isArray(list)) {
+      list.forEach(d => disposableDomains.add(String(d).toLowerCase().trim()));
+    }
+  }
+} catch (e) {
+  console.warn('[DEA_INIT] Failed to load high-speed disposable domains list:', e);
+}
+
 const rolePrefixes = new Set([
-  // Expanded Enterprise Role List
   'admin', 'support', 'info', 'sales', 'hello', 'webmaster', 'jobs', 
   'office', 'contact', 'postmaster', 'no-reply', 'noreply', 'marketing', 'billing',
   'privacy', 'abuse', 'security', 'it', 'manager', 'editor', 'hr', 'careers',
@@ -90,8 +113,6 @@ interface DomainCacheEntry {
   isDisposable: boolean;
   isFreeEmail: boolean;
   provider: string;
-  hasSpf: boolean;
-  hasDmarc: boolean;
   timestamp: number;
 }
 const domainCache = new Map<string, DomainCacheEntry>();
@@ -110,76 +131,22 @@ const parkedIpPatterns = [
 ];
 const suspicousAlphaNumRegex = /^[a-z]{1,2}[0-9]{5,}$/;
 
-// ----------------- UTILITIES -----------------
-const determineRisk = (score: number, smtpValid: boolean, isCatchAll: boolean, isFreeEmail: boolean, provider: string) => {
-  // ELITE SAFETY PROTOCOL (v12.0): Probabilistic Deliverability
-  // A lead is 'safe' if it has:
-  // 1. Successful SMTP handshake + Not a Catch-all
-  // 2. High-trust Free Provider (Gmail/Outlook) + High Score
-  // 3. High-trust Enterprise Infrastructure (Google/MSFT/Mimecast) + High Score + Successful Syntax
-  
-  const isHighTrustProvider = provider === 'google' || provider === 'microsoft' || provider === 'enterprise_gateway';
-  
-  if (score < 45) return { bounceRisk: 'Dangerous' as const, reputationImpact: 'Critical' as const, finalStatus: 'dangerous' as const };
-  
-  // Deliverability Safety Margin Logic
-  const hasDirectProof = smtpValid && !isCatchAll;
-  const hasInfrastructureTrust = (isFreeEmail || isHighTrustProvider) && score >= 85;
-  
-  const isEliteVerified = hasDirectProof || hasInfrastructureTrust;
-  
-  if (isEliteVerified && score >= 80) {
-    return { bounceRisk: 'Safe' as const, reputationImpact: 'Positive' as const, finalStatus: 'safe' as const };
-  }
-  
-  return { bounceRisk: 'High' as const, reputationImpact: 'Negative' as const, finalStatus: 'risky' as const };
-};
-
-// DNS Resolve with Exponential Backoff Retry Logic
-const resolveMxWithRetry = async (domain: string, retries = 2): Promise<dns.MxRecord[]> => {
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const records = await resolveMx(domain);
-      if (records && records.length > 0) return records;
-    } catch (err: any) {
-      if (i === retries || err.code === 'ENOTFOUND' || err.code === 'ENODATA') throw err;
-      await new Promise(res => setTimeout(res, 500 * (i + 1))); // 500ms, 1000ms backoff
-    }
-  }
-  throw new Error('DNS resolution failed after retries');
-};
-
-const checkSpf = async (domain: string): Promise<boolean> => {
-  try {
-    const txtRecords = await resolveTxt(domain);
-    return txtRecords.some(records => records.some(r => r.includes('v=spf1')));
-  } catch {
-    return false;
-  }
-};
-
-const checkDmarc = async (domain: string): Promise<boolean> => {
-  try {
-    const txtRecords = await resolveTxt(`_dmarc.${domain}`);
-    return txtRecords.some(records => records.some(r => r.includes('v=DMARC1')));
-  } catch {
-    return false;
-  }
-};
-
-// 1. Core SMTP Handshake Logic
-const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = 'verify@leadpure.ai'): Promise<{ success: boolean, code: number, response: string, timedOut: boolean }> => {
+// ----------------- LOW-LEVEL SMTP SOCKET HANDSHAKE ENGINE -----------------
+export const performSmtpCheck = async (
+  email: string,
+  mxRecord: string,
+  senderEmail = 'verify@leadpure.ai'
+): Promise<{ success: boolean; code: number; response: string; timedOut: boolean }> => {
   return new Promise((resolve) => {
     const socket = new net.Socket();
     let resolved = false;
     let currentStep = 0;
     let responseData = '';
     let smtpCode = 0;
-    let retried = false;
 
     const timeout = setTimeout(() => {
       cleanup('Connection Timeout', true);
-    }, 5000); // Boosted to 5s for Enterprise Stability
+    }, 8000); // 8s connection & processing timeout
 
     const cleanup = (reason = '', timedOut = false) => {
       if (resolved) return;
@@ -187,65 +154,72 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
       clearTimeout(timeout);
       socket.removeAllListeners();
       socket.destroy();
-      if (reason) {
-        resolve({ success: false, code: 0, response: reason, timedOut });
-      }
+      resolve({
+        success: smtpCode === 250 || smtpCode === 251,
+        code: smtpCode,
+        response: responseData.trim() || reason,
+        timedOut
+      });
     };
 
-    socket.setTimeout(5000);
+    socket.setTimeout(8000);
     socket.on('timeout', () => cleanup('TCP Socket Timeout', true));
-    socket.on('error', (err) => cleanup(err.message));
-
-    // High-precision timing (No Jitter for Determinism)
-    const engineDelay = async () => new Promise(res => setTimeout(res, 20));
-
-    socket.connect(25, mxRecord, () => {
-      // Step 0: Wait for 220
+    socket.on('error', (err) => {
+      responseData += ` [Socket Error: ${err.message}]`;
+      cleanup(err.message);
     });
+
+    const engineDelay = () => new Promise(res => setTimeout(res, 50));
 
     socket.on('data', async (data) => {
       const response = data.toString();
       responseData += response;
-      const lines = response.split('\n').filter(l => l.trim().length > 0);
+      const lines = response.split('\r\n').map(l => l.trim()).filter(l => l.length > 0);
       if (lines.length === 0) return;
+      
       const lastLine = lines[lines.length - 1];
-      const code = parseInt(lastLine.substring(0, 3), 10);
+      // RFC 5321 check: Standard reply has 3-digit code followed by a space
+      const isCompleteLine = /^\d{3}\s/.test(lastLine);
+      if (!isCompleteLine) return; // Wait for full line buffer
 
+      const code = parseInt(lastLine.substring(0, 3), 10);
       try {
-        if (currentStep === 0 && code === 220) {
-          currentStep++;
-          await humanDelay();
-          socket.write(`EHLO leadpure.ai\r\n`);
-        } else if (currentStep === 1 && code === 250) {
-          currentStep++;
-          await engineDelay();
-          socket.write(`MAIL FROM:<${senderEmail}>\r\n`);
-        } else if (currentStep === 2 && code === 250) {
-          currentStep++;
-          await engineDelay();
-          socket.write(`RCPT TO:<${email}>\r\n`);
-        } else if (currentStep === 3) {
-          if (code >= 400 && code < 500 && !retried) {
-            retried = true;
-            await new Promise(res => setTimeout(res, 1000)); // Precise 1s backoff
-            socket.write(`RCPT TO:<${email}>\r\n`);
-            return;
+        if (currentStep === 0) {
+          if (code === 220) {
+            currentStep++;
+            socket.write(`EHLO leadpure.ai\r\n`);
+          } else {
+            smtpCode = code;
+            cleanup();
           }
-          
+        } else if (currentStep === 1) {
+          if (code === 250) {
+            currentStep++;
+            await engineDelay();
+            socket.write(`MAIL FROM:<${senderEmail}>\r\n`);
+          } else {
+            smtpCode = code;
+            cleanup();
+          }
+        } else if (currentStep === 2) {
+          if (code === 250) {
+            currentStep++;
+            await engineDelay();
+            socket.write(`RCPT TO:<${email}>\r\n`);
+          } else {
+            smtpCode = code;
+            cleanup();
+          }
+        } else if (currentStep === 3) {
           smtpCode = code;
           currentStep++;
           await engineDelay();
           socket.write('QUIT\r\n');
         } else if (currentStep === 4 || code === 221) {
-          const success = smtpCode === 250 || smtpCode === 251;
           cleanup();
-          resolve({ success, code: smtpCode, response: responseData, timedOut: false });
-        } else if (code >= 400) {
-          cleanup();
-          resolve({ success: false, code, response: lastLine, timedOut: false });
         }
-      } catch (e) {
-        cleanup('Execution Error');
+      } catch (e: any) {
+        cleanup(`Execution Error: ${e.message}`);
       }
     });
 
@@ -253,27 +227,25 @@ const performSmtpCheck = async (email: string, mxRecord: string, senderEmail = '
   });
 };
 
+// ----------------- CORE 10-LAYER VALIDATION PROTOCOL -----------------
 export const validateEmailFull = async (email: string, options: ValidationOptions): Promise<ValidationResult> => {
-  let cleanEmail = email.toLowerCase().trim().replace(/[\s"'\r\n]/g, '');
-  
+  const cleanEmail = email.toLowerCase().trim().replace(/[\s"'\r\n]/g, '');
+  const timestamp = new Date().toISOString();
+
+  // Return cached result if available
   if (emailCache.has(cleanEmail)) {
     return emailCache.get(cleanEmail)!;
   }
 
-  // ENTERPRISE WEIGHTED SCORING MATRIX (v10.1)
-  let score = 0;
-  let reasons: string[] = [];
-  
-  // 1. Strict RFC 5322 Syntax Check (v10.0 Enterprise)
-  // Ensures no trailing dots, leading dots, or consecutive dots.
+  // 1. Strict RFC Syntax Check (Layer 1)
   const hasConsecutiveDots = cleanEmail.includes('..');
   const hasInvalidDots = cleanEmail.startsWith('.') || cleanEmail.includes('.@') || cleanEmail.endsWith('.');
   
   if (!syntaxRegex.test(cleanEmail) || hasConsecutiveDots || hasInvalidDots) {
-    return {
+    const res: ValidationResult = {
       email: cleanEmail,
       verificationStatus: 'blocked',
-      verificationReason: 'Fatal Syntax: Impossible Identity Structure',
+      verificationReason: 'Fatal Syntax: Malformed address structure',
       subStatus: 'invalid_syntax',
       confidenceScore: 0,
       bounceRisk: 'Dangerous',
@@ -283,263 +255,426 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       isDisposable: false,
       isRoleBased: false,
       isFreeEmail: false,
+      isSpamTrap: false,
       provider: 'Unknown',
       smtpValid: false,
-      syntaxValid: false
+      syntaxValid: false,
+      didyouseeme: false,
+      status: 'INVALID',
+      sub_status: 'invalid_syntax',
+      failure_code: 'ERR_001',
+      smtp_code: null,
+      mx_ip: null,
+      timestamp,
+      is_catchall: false
     };
+    console.log(`[TRACE] [${cleanEmail}] syntax error: malformed structure`);
+    return res;
   }
 
   const parts = cleanEmail.split('@');
   const localPart = parts[0];
   const domain = parts[1];
 
-  // 2. Identify Provider & Free Email (Cached if possible)
-  let isFreeEmail = false;
-  let provider = 'Other';
-  let isDisposable = false;
-  let isCatchAll = false;
-  let mxRecordFound = true;
-  let primaryMx: string | undefined = undefined;
-  let hasSpf = false;
-  let hasDmarc = false;
-
-  const cachedDomain = domainCache.get(domain);
-  if (cachedDomain && (Date.now() - cachedDomain.timestamp < CACHE_TTL)) {
-    mxRecordFound = cachedDomain.mxRecordFound;
-    primaryMx = cachedDomain.mxRecord;
-    isCatchAll = cachedDomain.isCatchAll;
-    isDisposable = cachedDomain.isDisposable;
-    isFreeEmail = cachedDomain.isFreeEmail;
-    provider = cachedDomain.provider;
-    hasSpf = cachedDomain.hasSpf;
-    hasDmarc = cachedDomain.hasDmarc;
-  } else {
-    // Determine provider intelligence with robust fingerprinting
-    isFreeEmail = freeProviders.has(domain);
-    const mxDomain = (primaryMx || '').toLowerCase();
-    
-    // Check for Parked Domain Signature
-    let isParked = false;
-    try {
-      const aRecords = await resolver.resolve4(domain);
-      isParked = aRecords.some(ip => parkedIpPatterns.some(pattern => ip.startsWith(pattern)));
-    } catch (e) {
-      // Ignore DNS errors for A records
-    }
-
-    if (isParked) {
-      return {
-        email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Suspicious Domain: Parked / Under Construction',
-        subStatus: 'parked', confidenceScore: 0, bounceRisk: 'High', reputationImpact: 'Negative',
-        mxRecordFound: true, mxRecord: primaryMx, isCatchAll: false, isDisposable: false, isRoleBased: false, isFreeEmail: false, provider: 'none',
-        smtpValid: false, syntaxValid: true
-      };
-    }
-    // Pattern-based fingerprinting for Enterprise Infrastructure
-    const isGoogle = domain.includes('gmail.com') || mxDomain.includes('google.com') || mxDomain.includes('googlemail.com');
-    const isMicrosoft = domain.includes('outlook') || domain.includes('hotmail') || mxDomain.includes('outlook.com') || mxDomain.includes('protection.outlook');
-    const isGateway = mxDomain.includes('mimecast.com') || 
-                      mxDomain.includes('pphosted.com') || 
-                      mxDomain.includes('barracudanetworks.com') || 
-                      mxDomain.includes('sophos.com') || 
-                      mxDomain.includes('mcsv.net') ||
-                      mxDomain.includes('trendmicro.com') ||
-                      mxDomain.includes('appriver.com') ||
-                      mxDomain.includes('fireeye.com') ||
-                      mxDomain.includes('messagelabs.com');
-
-    if (isGoogle) provider = 'google';
-    else if (isMicrosoft) provider = 'microsoft';
-    else if (isGateway) provider = 'enterprise_gateway';
-
-    // Disposable Check
-    isDisposable = disposableDomains.has(domain);
-
-    if (mxRecordFound) {
-      // Parallelize DNS queries
-      const [spfResult, dmarcResult] = await Promise.all([
-        checkSpf(domain),
-        checkDmarc(domain)
-      ]);
-      hasSpf = spfResult;
-      hasDmarc = dmarcResult;
-    }
-  }
-
-  // --- WEIGHTED POINT ACCUMULATION (v10.3 Advanced) ---
-  if (mxRecordFound) {
-    score += 40; // Core infrastructure foundation
-    reasons.push("MX Infrastructure Active");
-  } else {
-    return {
-      email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Dead Domain: No MX Records Detected',
-      subStatus: 'domain_not_found', confidenceScore: 0, bounceRisk: 'Dangerous', reputationImpact: 'Critical',
-      mxRecordFound: false, isCatchAll: false, isDisposable, isRoleBased: false, isFreeEmail, provider,
-      smtpValid: false, syntaxValid: true
+  // 2. Disposable Email Asset Detection (Layer 4)
+  const isDisposable = disposableDomains.has(domain);
+  if (isDisposable && options.excludeDisposable) {
+    const res: ValidationResult = {
+      email: cleanEmail,
+      verificationStatus: 'rejected',
+      verificationReason: 'System Suppressed: Disposable / temporary burner mailbox detected',
+      subStatus: 'disposable',
+      confidenceScore: 0,
+      bounceRisk: 'Dangerous',
+      reputationImpact: 'Critical',
+      mxRecordFound: false,
+      isCatchAll: false,
+      isDisposable: true,
+      isRoleBased: false,
+      isFreeEmail: false,
+      isSpamTrap: false,
+      provider: 'Unknown',
+      smtpValid: false,
+      syntaxValid: true,
+      didyouseeme: false,
+      status: 'INVALID',
+      sub_status: 'disposable',
+      failure_code: 'ERR_004',
+      smtp_code: null,
+      mx_ip: null,
+      timestamp,
+      is_catchall: false
     };
+    console.log(`[TRACE] [${cleanEmail}] blocked disposable domain: ${domain}`);
+    return res;
   }
 
-  // TLD Reputation Analysis
-  const tld = domain.substring(domain.lastIndexOf('.'));
-  if (trustTlds.has(tld)) {
-    score += 10;
-    reasons.push("High-Trust TLD Reputation");
-  } else if (toxicTlds.has(tld)) {
-    score -= 30;
-    reasons.push("Low-Trust/Toxic TLD Signature");
-  }
-
-  if (hasSpf) { score += 15; reasons.push("SPF Authenticated"); }
-  if (hasDmarc) { score += 15; reasons.push("DMARC Policy Active"); }
-  
-  if (provider === 'google' || provider === 'microsoft' || provider === 'enterprise_gateway') {
-    score += 20;
-    reasons.push("Trusted Enterprise Infrastructure");
-  }
-
-  if (isDisposable) {
-    score -= 100;
-    reasons.push("Disposable Mail Provider Filtered");
-  }
-
-  // Role-based Check
+  // 3. Suppress Generic Role Aliases (Layer 5)
   const isRoleBased = rolePrefixes.has(localPart);
-  if (isRoleBased) {
-    score -= 15;
-    reasons.push("Non-Individual Role Identity");
+  if (isRoleBased && options.excludeRoleBased) {
+    const res: ValidationResult = {
+      email: cleanEmail,
+      verificationStatus: 'blocked',
+      verificationReason: 'System Suppressed: Non-individual generic role alias',
+      subStatus: 'role_based',
+      confidenceScore: 0,
+      bounceRisk: 'Dangerous',
+      reputationImpact: 'Critical',
+      mxRecordFound: false,
+      isCatchAll: false,
+      isDisposable: false,
+      isRoleBased: true,
+      isFreeEmail: false,
+      isSpamTrap: false,
+      provider: 'Unknown',
+      smtpValid: false,
+      syntaxValid: true,
+      didyouseeme: false,
+      status: 'INVALID',
+      sub_status: 'role_based',
+      failure_code: 'ERR_006',
+      smtp_code: null,
+      mx_ip: null,
+      timestamp,
+      is_catchall: false
+    };
+    console.log(`[TRACE] [${cleanEmail}] blocked role prefix: ${localPart}`);
+    return res;
   }
 
-  // 6. SMTP Handshake Check
-  let smtpValid = true;
-  let subStatus = 'valid';
+  // 4. DNS & MX Infrastructure Checking (Layer 2)
+  let mxRecordFound = false;
+  let primaryMx: string | undefined = undefined;
+  let mxIp: string | null = null;
+  let isFreeEmail = freeProviders.has(domain);
+  let provider = 'Other';
 
-  const skipSmtp = isFreeEmail;
-  
-  if (skipSmtp) {
-    score += 25;
-    reasons.push("High-Trust Free Provider Signal");
-  } else if (primaryMx) {
-    const smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
-    
-    if (smtpCheck.success) {
-      score += 25;
-      reasons.push("SMTP Verification Success");
-      smtpValid = true;
-    } else if (smtpCheck.code === 550) {
-      return {
-        email: cleanEmail, verificationStatus: 'rejected', verificationReason: 'Critical Fail: Mailbox Does Not Exist (Code 550)',
-        subStatus: 'mailbox_not_found', confidenceScore: 0, bounceRisk: 'Dangerous', reputationImpact: 'Critical',
-        mxRecordFound: true, mxRecord: primaryMx, isCatchAll: false, isDisposable, isRoleBased, isFreeEmail, provider,
-        smtpValid: false, syntaxValid: true
-      };
-    } else if (smtpCheck.timedOut || smtpCheck.code === 0 || (smtpCheck.code >= 400 && smtpCheck.code < 500)) {
-      smtpValid = false;
-      subStatus = smtpCheck.timedOut ? 'timeout' : 'greylisted';
-      reasons.push("SMTP Inconclusive (Probing Suppressed by Firewall)");
-    }
-
-    if (smtpValid && !isFreeEmail) {
-      // Catch-all Detection Logic (Optimized v10.1)
-      const mxLower = (primaryMx || '').toLowerCase();
-      const catchAllSignatures = [
-        'mimecast.com', 'pphosted.com', 'outlook.com', 'google.com', 
-        'barracudanetworks.com', 'sophos.com', 'mcsv.net'
-      ];
+  try {
+    const mxRecords = await resolveMx(domain);
+    if (mxRecords && mxRecords.length > 0) {
+      mxRecordFound = true;
+      // Sort by preference (priority) ascending
+      const sortedMx = mxRecords.sort((a, b) => a.preference - b.preference);
+      primaryMx = sortedMx[0].exchange;
       
-      const hasCatchAllSignature = catchAllSignatures.some(sig => mxLower.includes(sig));
-      const randomPrefix = `verify_${Math.random().toString(36).substring(2, 10)}`;
-      const catchAllCheck = await performSmtpCheck(`${randomPrefix}@${domain}`, primaryMx || '');
-      
-      if (catchAllCheck.success || catchAllCheck.timedOut || hasCatchAllSignature) {
-        isCatchAll = true;
+      // Resolve IP of primary MX for mx_ip
+      try {
+        const ips = await resolver.resolve4(primaryMx);
+        if (ips && ips.length > 0) {
+          mxIp = ips[0];
+        }
+      } catch (dnsErr) {
+        // Fallback to resolve MX host name
       }
     }
+  } catch (err) {
+    mxRecordFound = false;
   }
 
-  if (!cachedDomain && mxRecordFound) {
+  if (!mxRecordFound || !primaryMx) {
+    const res: ValidationResult = {
+      email: cleanEmail,
+      verificationStatus: 'rejected',
+      verificationReason: 'System Rejected: Dead Domain (No MX records resolved)',
+      subStatus: 'domain_not_found',
+      confidenceScore: 0,
+      bounceRisk: 'Dangerous',
+      reputationImpact: 'Critical',
+      mxRecordFound: false,
+      isCatchAll: false,
+      isDisposable,
+      isRoleBased,
+      isFreeEmail,
+      isSpamTrap: false,
+      provider: 'Unknown',
+      smtpValid: false,
+      syntaxValid: true,
+      didyouseeme: false,
+      status: 'INVALID',
+      sub_status: 'domain_not_found',
+      failure_code: 'ERR_002',
+      smtp_code: null,
+      mx_ip: null,
+      timestamp,
+      is_catchall: false
+    };
+    console.log(`[TRACE] [${cleanEmail}] DNS resolution failed for domain: ${domain}`);
+    return res;
+  }
+
+  // Fingerprint Provider
+  const mxLower = primaryMx.toLowerCase();
+  if (domain.includes('gmail.com') || mxLower.includes('google.com') || mxLower.includes('googlemail.com')) {
+    provider = 'google';
+  } else if (domain.includes('outlook') || domain.includes('hotmail') || mxLower.includes('outlook.com') || mxLower.includes('protection.outlook')) {
+    provider = 'microsoft';
+  } else if (
+    mxLower.includes('mimecast.com') || mxLower.includes('pphosted.com') || mxLower.includes('barracudanetworks.com') || 
+    mxLower.includes('sophos.com') || mxLower.includes('mcsv.net') || mxLower.includes('trendmicro.com') ||
+    mxLower.includes('appriver.com') || mxLower.includes('fireeye.com') || mxLower.includes('messagelabs.com')
+  ) {
+    provider = 'enterprise_gateway';
+  }
+
+  // Check Parked Domain Signature
+  let isParked = false;
+  try {
+    const aRecords = await resolver.resolve4(domain);
+    isParked = aRecords.some(ip => parkedIpPatterns.some(pattern => ip.startsWith(pattern)));
+  } catch (e) {
+    // Ignore parked domain DNS error
+  }
+
+  if (isParked) {
+    const res: ValidationResult = {
+      email: cleanEmail,
+      verificationStatus: 'rejected',
+      verificationReason: 'System Rejected: Domain is parked or under construction',
+      subStatus: 'parked',
+      confidenceScore: 0,
+      bounceRisk: 'Dangerous',
+      reputationImpact: 'Critical',
+      mxRecordFound: true,
+      mxRecord: primaryMx,
+      isCatchAll: false,
+      isDisposable,
+      isRoleBased,
+      isFreeEmail,
+      isSpamTrap: false,
+      provider,
+      smtpValid: false,
+      syntaxValid: true,
+      didyouseeme: false,
+      status: 'INVALID',
+      sub_status: 'parked',
+      failure_code: 'ERR_002',
+      smtp_code: null,
+      mx_ip: mxIp,
+      timestamp,
+      is_catchall: false
+    };
+    console.log(`[TRACE] [${cleanEmail}] blocked parked domain: ${domain}`);
+    return res;
+  }
+
+  // 5. Catch-All Double Probe Protection (Layer 7)
+  let isCatchAll = false;
+  const cachedDomain = domainCache.get(domain);
+  if (cachedDomain && (Date.now() - cachedDomain.timestamp < CACHE_TTL)) {
+    isCatchAll = cachedDomain.isCatchAll;
+  } else {
+    // Run randomized control handshake before target validation
+    const randomIdentity = `false_positive_test_${Math.random().toString(36).substring(2, 10)}`;
+    const controlEmail = `${randomIdentity}@${domain}`;
+    console.log(`[TRACE] [${cleanEmail}] executing control probe on catch-all: ${controlEmail}`);
+    
+    const controlCheck = await performSmtpCheck(controlEmail, primaryMx);
+    
+    // Explicit trace logging of the control handshake
+    console.log(`[TRACE] [${cleanEmail}] control SMTP response: code=${controlCheck.code} response="${controlCheck.response}" timedOut=${controlCheck.timedOut}`);
+
+    if (controlCheck.success || controlCheck.code === 250 || controlCheck.code === 251) {
+      isCatchAll = true;
+    }
+
+    // Cache the domain intelligence
     domainCache.set(domain, {
-      mxRecordFound,
+      mxRecordFound: true,
       mxRecord: primaryMx,
       isCatchAll,
       isDisposable,
       isFreeEmail,
       provider,
-      hasSpf,
-      hasDmarc,
       timestamp: Date.now()
     });
   }
 
-  if (isCatchAll) {
-    // Advanced Catch-All Behavior: Corporate Catch-alls are safer than random ones
-    if (provider === 'google' || provider === 'microsoft') {
-      score -= 5; // Minimal penalty for high-trust corporate catch-alls
-      reasons.push("Enterprise Catch-All Configuration (Reduced Risk)");
-    } else {
-      score -= 15;
-      reasons.push("Catch-All Domain Configuration Detected");
-    }
+  if (isCatchAll && options.excludeCatchAll) {
+    const res: ValidationResult = {
+      email: cleanEmail,
+      verificationStatus: 'rejected',
+      verificationReason: 'System Suppressed: Accept-All / Catch-All Domain policy filter',
+      subStatus: 'catch_all',
+      confidenceScore: 0,
+      bounceRisk: 'Dangerous',
+      reputationImpact: 'Critical',
+      mxRecordFound: true,
+      mxRecord: primaryMx,
+      isCatchAll: true,
+      isDisposable,
+      isRoleBased,
+      isFreeEmail,
+      isSpamTrap: false,
+      provider,
+      smtpValid: false,
+      syntaxValid: true,
+      didyouseeme: false,
+      status: 'INVALID',
+      sub_status: 'catch_all',
+      failure_code: 'ERR_005',
+      smtp_code: 250, // Accepted the random control check
+      mx_ip: mxIp,
+      timestamp,
+      is_catchall: true
+    };
+    console.log(`[TRACE] [${cleanEmail}] blocked catch-all domain: ${domain}`);
+    return res;
   }
 
-  if (isRoleBased) {
-    score -= 10;
-    reasons.push("Professional Role Identity");
-  }
-
-  // Identity Pattern Analysis: Detection of "Professional" vs "Randomized" identities
-  const hasDigit = /\d/.test(localPart);
-  const isProfessionalPattern = localPart.includes('.') || localPart.includes('_');
-  if (isProfessionalPattern && !hasDigit) {
-    score += 5;
-    reasons.push("Professional Identity Signature");
-  } else if (localPart.length > 15 && !isProfessionalPattern) {
-    score -= 10;
-    reasons.push("Irregular Identity Structure");
-  }
-
-  // Enterprise Spam Trap Heuristics: Precision filtering
-  const isSuspiciousAlphaNum = suspicousAlphaNumRegex.test(localPart); // Extreme numeric randomness like "ab123456" instead of standard "john1990"
+  // 6. Deep Outbound SMTP Handshake (Layer 6)
+  console.log(`[TRACE] [${cleanEmail}] executing deep SMTP probe to MX server: ${primaryMx}`);
+  const smtpCheck = await performSmtpCheck(cleanEmail, primaryMx);
   
-  const hasToxicPattern = knownToxicPatterns.some(p => localPart.includes(p));
+  // Explicit trace logging of target handshake
+  console.log(`[TRACE] [${cleanEmail}] SMTP probe result: code=${smtpCheck.code} response="${smtpCheck.response}" timedOut=${smtpCheck.timedOut}`);
 
-  if (hasToxicPattern || isSuspiciousAlphaNum) {
-    if (options.excludeSpamTraps) {
-      return {
-        email: cleanEmail, verificationStatus: 'blocked', verificationReason: 'System Rejected: Honeypot / Spam Trap Probability High',
-        subStatus: 'toxic', confidenceScore: 0, bounceRisk: 'Dangerous', reputationImpact: 'Critical',
-        mxRecordFound: true, mxRecord: primaryMx, isCatchAll, isDisposable, isRoleBased, isFreeEmail, provider,
-        smtpValid, syntaxValid: true
-      };
-    }
-    score -= 75;
-    reasons.push("Spam-Trap Behavior Profile");
+  let result: ValidationResult;
+
+  if (smtpCheck.timedOut) {
+    result = {
+      email: cleanEmail,
+      verificationStatus: 'risky',
+      verificationReason: `SMTP Connection Timeout: ${smtpCheck.response}`,
+      subStatus: 'timeout',
+      confidenceScore: 50,
+      bounceRisk: 'Medium',
+      reputationImpact: 'Neutral',
+      mxRecordFound: true,
+      mxRecord: primaryMx,
+      isCatchAll,
+      isDisposable,
+      isRoleBased,
+      isFreeEmail,
+      isSpamTrap: false,
+      provider,
+      smtpValid: false,
+      syntaxValid: true,
+      didyouseeme: false,
+      status: 'RISKY',
+      sub_status: 'timeout',
+      failure_code: 'ERR_009',
+      smtp_code: null,
+      mx_ip: mxIp,
+      timestamp,
+      is_catchall: isCatchAll
+    };
+  } else if (smtpCheck.code === 550 || smtpCheck.code === 551 || smtpCheck.code === 552 || smtpCheck.code === 554) {
+    result = {
+      email: cleanEmail,
+      verificationStatus: 'rejected',
+      verificationReason: `System Rejected: Mailbox does not exist (SMTP ${smtpCheck.code})`,
+      subStatus: 'mailbox_not_found',
+      confidenceScore: 0,
+      bounceRisk: 'Dangerous',
+      reputationImpact: 'Critical',
+      mxRecordFound: true,
+      mxRecord: primaryMx,
+      isCatchAll,
+      isDisposable,
+      isRoleBased,
+      isFreeEmail,
+      isSpamTrap: false,
+      provider,
+      smtpValid: false,
+      syntaxValid: true,
+      didyouseeme: false,
+      status: 'INVALID',
+      sub_status: 'mailbox_not_found',
+      failure_code: 'ERR_003',
+      smtp_code: smtpCheck.code,
+      mx_ip: mxIp,
+      timestamp,
+      is_catchall: isCatchAll
+    };
+  } else if (smtpCheck.code === 421 || smtpCheck.code === 450 || smtpCheck.code === 451 || smtpCheck.code === 452) {
+    result = {
+      email: cleanEmail,
+      verificationStatus: 'risky',
+      verificationReason: `System Deflected: Target server Greylisting/Throttling (SMTP ${smtpCheck.code})`,
+      subStatus: 'greylisted',
+      confidenceScore: 60,
+      bounceRisk: 'High',
+      reputationImpact: 'Negative',
+      mxRecordFound: true,
+      mxRecord: primaryMx,
+      isCatchAll,
+      isDisposable,
+      isRoleBased,
+      isFreeEmail,
+      isSpamTrap: false,
+      provider,
+      smtpValid: false,
+      syntaxValid: true,
+      didyouseeme: false,
+      status: 'RISKY',
+      sub_status: 'greylisted',
+      failure_code: 'ERR_007',
+      smtp_code: smtpCheck.code,
+      mx_ip: mxIp,
+      timestamp,
+      is_catchall: isCatchAll
+    };
+  } else if (smtpCheck.success || smtpCheck.code === 250 || smtpCheck.code === 251) {
+    result = {
+      email: cleanEmail,
+      verificationStatus: 'safe',
+      verificationReason: 'Verified Deliverable: Active target mailbox handshake confirmed',
+      subStatus: 'valid',
+      confidenceScore: 99,
+      bounceRisk: 'Safe',
+      reputationImpact: 'Positive',
+      mxRecordFound: true,
+      mxRecord: primaryMx,
+      isCatchAll,
+      isDisposable,
+      isRoleBased,
+      isFreeEmail,
+      isSpamTrap: false,
+      provider,
+      smtpValid: true,
+      syntaxValid: true,
+      didyouseeme: false,
+      status: 'SAFE',
+      sub_status: 'valid',
+      failure_code: null,
+      smtp_code: smtpCheck.code || 250,
+      mx_ip: mxIp,
+      timestamp,
+      is_catchall: isCatchAll
+    };
+  } else {
+    // General inconclusive Socket/SMTP failure
+    result = {
+      email: cleanEmail,
+      verificationStatus: 'risky',
+      verificationReason: `SMTP Inconclusive Handshake: ${smtpCheck.response} (Code ${smtpCheck.code})`,
+      subStatus: 'inconclusive',
+      confidenceScore: 50,
+      bounceRisk: 'Medium',
+      reputationImpact: 'Neutral',
+      mxRecordFound: true,
+      mxRecord: primaryMx,
+      isCatchAll,
+      isDisposable,
+      isRoleBased,
+      isFreeEmail,
+      isSpamTrap: false,
+      provider,
+      smtpValid: false,
+      syntaxValid: true,
+      didyouseeme: false,
+      status: 'RISKY',
+      sub_status: 'inconclusive',
+      failure_code: 'ERR_003',
+      smtp_code: smtpCheck.code || null,
+      mx_ip: mxIp,
+      timestamp,
+      is_catchall: isCatchAll
+    };
   }
 
-  const { bounceRisk, reputationImpact, finalStatus } = determineRisk(score, smtpValid, isCatchAll, isFreeEmail, provider);
-
-  const result: ValidationResult = {
-    email: cleanEmail,
-    verificationStatus: finalStatus,
-    verificationReason: reasons.length > 0 ? reasons.join(' • ') : 'Verified Profile Integrity',
-    subStatus,
-    confidenceScore: finalStatus === 'safe' ? Math.max(98, Math.min(100, score)) : Math.min(85, score),
-    bounceRisk,
-    reputationImpact,
-    mxRecordFound: true,
-    mxRecord: primaryMx,
-    isCatchAll,
-    isDisposable,
-    isRoleBased,
-    isFreeEmail,
-    provider,
-    smtpValid,
-    syntaxValid: true
-  };
-
-  // ELITE CACHE POLICY: Only persist definitive results.
-  // Never cache 'unknown' or 'timeout' results to ensure consistency across runs.
-  const isDefinitive = result.verificationStatus !== 'unknown' && result.subStatus !== 'timeout' && result.subStatus !== 'engine_error';
-  
+  // ELITE CACHE POLICY: Only persist definitive status results
+  const isDefinitive = result.status === 'SAFE' || (result.status === 'INVALID' && result.sub_status !== 'engine_error');
   if (isDefinitive) {
     emailCache.set(cleanEmail, result);
     if (emailCache.size > 20000) emailCache.clear();

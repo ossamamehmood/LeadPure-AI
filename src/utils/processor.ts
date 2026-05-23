@@ -96,7 +96,6 @@ export const autoCorrectEmail = (email: string): string => {
   if (!cleaned) return '';
 
   // 2. TLD Typo Corrections
-  // 2. TLD Typo Corrections via fast Regex match
   const typoRegex = /\.(cm|con|cpm|copm|coom|comm|com\.com)$/;
   if (typoRegex.test(cleaned)) {
     cleaned = cleaned.replace(typoRegex, '.com');
@@ -113,7 +112,6 @@ export const autoCorrectEmail = (email: string): string => {
       'outlok.com': 'outlook.com'
     };
     
-    // Instead of iterating through all entries, extract domain and check directly if possible
     const parts = cleaned.split('@');
     if (parts.length > 1) {
       const domain = parts[parts.length - 1];
@@ -123,7 +121,7 @@ export const autoCorrectEmail = (email: string): string => {
     }
   }
 
-  // 3. Missing dot before com (e.g. @gmailcom -> @gmail.com)
+  // 3. Missing dot before com
   if (cleaned.endsWith('gmailcom')) cleaned = cleaned.replace('gmailcom', 'gmail.com');
   if (cleaned.endsWith('yahoocom')) cleaned = cleaned.replace('yahoocom', 'yahoo.com');
   if (cleaned.endsWith('hotmailcom')) cleaned = cleaned.replace('hotmailcom', 'hotmail.com');
@@ -131,7 +129,7 @@ export const autoCorrectEmail = (email: string): string => {
   if (cleaned.endsWith('aolcom')) cleaned = cleaned.replace('aolcom', 'aol.com');
   if (cleaned.endsWith('icloudcom')) cleaned = cleaned.replace('icloudcom', 'icloud.com');
 
-  // 5. Missing @ sign for major providers (if it just says johndoegmail.com without @)
+  // 4. Missing @ sign for major providers
   const majorProviders = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com'];
   if (!cleaned.includes('@')) {
     for (const provider of majorProviders) {
@@ -158,7 +156,7 @@ export const processContacts = async (
   const valid: any[] = [];
   const eliminated: any[] = [];
   
-  console.log(`[PROCESSOR_V10.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
+  console.log(`[PROCESSOR_V12.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
   
   const stats = {
     totalInput: data.length,
@@ -180,29 +178,91 @@ export const processContacts = async (
   const seenEmails = new Set<string>();
   const seenPhones = new Set<string>();
   
-  const preProcessedData = data.filter((item) => {
+  const preProcessedData = data.filter((item, index) => {
     if (!item || typeof item !== 'object') {
       stats.sanitizedRows++;
+      eliminated.push({
+        email: '',
+        status: 'INVALID',
+        sub_status: 'sanitized_row',
+        failure_code: 'ERR_001',
+        verificationReason: 'Null or non-object row sanitized',
+        confidenceScore: 0,
+        bounceRisk: 'Dangerous',
+        reputationImpact: 'Critical',
+        mxRecordFound: false,
+        isCatchAll: false,
+        isDisposable: false,
+        isRoleBased: false,
+        isFreeEmail: false,
+        isSpamTrap: false,
+        provider: 'Unknown',
+        smtpValid: false,
+        syntaxValid: false,
+        originalIndex: index,
+        __originalData: item
+      });
       return false;
     }
 
-    // Email Deduplication
     const emailKey = mappings.emailKey;
     let rawEmail = String(item[emailKey] || '').toLowerCase().trim();
     rawEmail = autoCorrectEmail(rawEmail);
 
     if (!rawEmail) {
       stats.emptyIdentities++;
+      eliminated.push({
+        ...item,
+        email: '',
+        status: 'INVALID',
+        sub_status: 'empty_email',
+        failure_code: 'ERR_001',
+        verificationReason: 'Empty email identity suppressed',
+        confidenceScore: 0,
+        bounceRisk: 'Dangerous',
+        reputationImpact: 'Critical',
+        mxRecordFound: false,
+        isCatchAll: false,
+        isDisposable: false,
+        isRoleBased: false,
+        isFreeEmail: false,
+        isSpamTrap: false,
+        provider: 'Unknown',
+        smtpValid: false,
+        syntaxValid: false,
+        originalIndex: index,
+        __originalData: item
+      });
       return false;
     }
 
     if (seenEmails.has(rawEmail)) {
       stats.duplicateEntries++;
-      eliminated.push({ ...item, reason: 'Deterministic Protocol: Duplicate Email Suppressed' });
+      eliminated.push({
+        ...item,
+        email: rawEmail,
+        status: 'INVALID',
+        sub_status: 'duplicate',
+        failure_code: 'ERR_001',
+        verificationReason: 'Deterministic Protocol: Duplicate Email Suppressed',
+        confidenceScore: 0,
+        bounceRisk: 'Dangerous',
+        reputationImpact: 'Critical',
+        mxRecordFound: false,
+        isCatchAll: false,
+        isDisposable: false,
+        isRoleBased: false,
+        isFreeEmail: false,
+        isSpamTrap: false,
+        provider: 'Unknown',
+        smtpValid: false,
+        syntaxValid: false,
+        originalIndex: index,
+        __originalData: item
+      });
       return false;
     }
 
-    // Phone Deduplication
     const phoneKey = mappings.phoneKey;
     if (phoneKey) {
       const rawPhone = String(item[phoneKey] || '').trim();
@@ -210,7 +270,28 @@ export const processContacts = async (
         const normalizedPhone = formatPhone(rawPhone, item[mappings.countryKey], rules.forcePlusSign);
         if (normalizedPhone && seenPhones.has(normalizedPhone)) {
           stats.duplicateEntries++;
-          eliminated.push({ ...item, reason: 'Deterministic Protocol: Duplicate Phone Suppressed' });
+          eliminated.push({
+            ...item,
+            email: rawEmail,
+            status: 'INVALID',
+            sub_status: 'duplicate_phone',
+            failure_code: 'ERR_001',
+            verificationReason: 'Deterministic Protocol: Duplicate Phone Suppressed',
+            confidenceScore: 0,
+            bounceRisk: 'Dangerous',
+            reputationImpact: 'Critical',
+            mxRecordFound: false,
+            isCatchAll: false,
+            isDisposable: false,
+            isRoleBased: false,
+            isFreeEmail: false,
+            isSpamTrap: false,
+            provider: 'Unknown',
+            smtpValid: false,
+            syntaxValid: false,
+            originalIndex: index,
+            __originalData: item
+          });
           return false;
         }
         if (normalizedPhone) seenPhones.add(normalizedPhone);
@@ -223,11 +304,11 @@ export const processContacts = async (
 
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
-  // Stage 2: Concurrent Batch Processing to Backend Engine
+  // Stage 2: Sequential Execution Processing to Backend Engine (MAX_CONCURRENT = 1)
   const total = preProcessedData.length;
-  // Reduced batch size and concurrency for absolute precision and port stability
-  const BATCH_SIZE = 40; 
-  const CONCURRENT_BATCHES = 2;
+  // Enforce BATCH_SIZE = 1 and CONCURRENT_BATCHES = 1 for perfect, timeout-free sequential execution stability
+  const BATCH_SIZE = 1; 
+  const CONCURRENT_BATCHES = 1;
   
   const batches = [];
   for (let i = 0; i < total; i += BATCH_SIZE) {
@@ -281,81 +362,80 @@ export const processContacts = async (
         }
         
         success = true;
+        const { results } = await response.json();
       
-      const { results } = await response.json();
-      
-      // Merge results back into items
-      results.forEach((verificationResult: any, idx: number) => {
-        const item = items[idx];
-        
-        const status = verificationResult.verificationStatus;
-        const isSafe = status === 'safe' || status === 'verified';
+        // Merge results back into items
+        results.forEach((verificationResult: any, idx: number) => {
+          const item = items[idx];
+          const status = verificationResult.status;
+          const isSafe = status === 'SAFE';
 
-        // STRICT 100% QUALITY MATRIX ENFORCEMENT: Only 'safe' leads allowed for 0% bounce rate goal.
-        // 'usable', 'risky', and 'dangerous' leads are now eliminated to ensure maximum deliverability.
-        if (!isSafe) {
-          // Track granular stats
-          const subStatus = verificationResult.subStatus || '';
-          if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
-          else if (subStatus === 'domain_not_found') stats.dnsFailure++;
-          else if (subStatus === 'disposable') stats.disposableMatch++;
-          else if (subStatus === 'role_based') stats.roleBasedMatch++;
-          else if (subStatus === 'catch_all') stats.catchAllMatch++;
-          else if (subStatus === 'toxic') stats.toxicPatternMatch++;
-          else if (subStatus === 'greylisted') stats.greylistedMatch++;
-          else if (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous') stats.highBounceRisk++;
+          if (!isSafe) {
+            // Track granular stats
+            const subStatus = verificationResult.sub_status || '';
+            if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
+            else if (subStatus === 'domain_not_found') stats.dnsFailure++;
+            else if (subStatus === 'disposable') stats.disposableMatch++;
+            else if (subStatus === 'role_based') stats.roleBasedMatch++;
+            else if (subStatus === 'catch_all') stats.catchAllMatch++;
+            else if (subStatus === 'toxic') stats.toxicPatternMatch++;
+            else if (subStatus === 'greylisted') stats.greylistedMatch++;
+            else if (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous') stats.highBounceRisk++;
 
-          eliminated.push({ 
-            ...item, 
-            reason: verificationResult.verificationReason,
-            score: verificationResult.confidenceScore,
-            bounceRisk: verificationResult.bounceRisk,
-            reputationImpact: verificationResult.reputationImpact,
-            subStatus: verificationResult.subStatus,
-            status: status
-          });
-          
-          if (onProgress && idx === results.length - 1) {
-             onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] FILTERED: ${item[mappings.emailKey]} -> ${status.toUpperCase()} (${verificationResult.verificationReason})`);
+            eliminated.push({ 
+              ...item, 
+              ...verificationResult,
+              reason: verificationResult.verificationReason,
+              score: verificationResult.confidenceScore,
+              bounceRisk: verificationResult.bounceRisk,
+              reputationImpact: verificationResult.reputationImpact,
+              subStatus: verificationResult.sub_status,
+              status: status,
+              originalIndex: startIndex + idx,
+              __originalData: item
+            });
+            
+            if (onProgress) {
+               onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] FILTERED: ${item[mappings.emailKey]} -> ${status} (${verificationResult.verificationReason})`);
+            }
+          } else {
+            stats.verifiedLeads++;
+            
+            // Data Enhancement
+            const updatedItem = { ...item };
+            if (mappings.emailKey && verificationResult.email) {
+              updatedItem[mappings.emailKey] = verificationResult.email;
+            }
+            if (mappings.firstNameKey) updatedItem[mappings.firstNameKey] = cleanText(item[mappings.firstNameKey], rules.strictTitleCase);
+            if (mappings.lastNameKey) updatedItem[mappings.lastNameKey] = cleanText(item[mappings.lastNameKey], rules.strictTitleCase);
+            if (mappings.nameKey) updatedItem[mappings.nameKey] = cleanText(item[mappings.nameKey], rules.strictTitleCase);
+            if (mappings.cityKey) updatedItem[mappings.cityKey] = cleanText(item[mappings.cityKey], rules.strictTitleCase);
+            if (mappings.countryKey) updatedItem[mappings.countryKey] = cleanText(item[mappings.countryKey], rules.strictTitleCase);
+            
+            if (mappings.phoneKey) {
+              const originalPhone = String(item[mappings.phoneKey] || '');
+              const formatted = formatPhone(originalPhone, item[mappings.countryKey], rules.forcePlusSign);
+              updatedItem[mappings.phoneKey] = formatted;
+            }
+
+            if (mappings.postalCodeKey) {
+              updatedItem[mappings.postalCodeKey] = String(item[mappings.postalCodeKey] || '').trim().toUpperCase();
+            }
+
+            valid.push({
+              ...verificationResult,
+              ...updatedItem,
+              originalIndex: startIndex + idx,
+              __originalData: updatedItem
+            } as ProcessedContact);
+
+            if (onProgress) {
+               onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] SECURED: ${updatedItem[mappings.emailKey]} -> ${status} (${verificationResult.verificationReason})`);
+            }
           }
-        } else {
-          stats.verifiedLeads++;
-          
-          // Data Enhancement
-          const updatedItem = { ...item };
-          if (mappings.emailKey && verificationResult.email) {
-            updatedItem[mappings.emailKey] = verificationResult.email;
-          }
-          if (mappings.firstNameKey) updatedItem[mappings.firstNameKey] = cleanText(item[mappings.firstNameKey], rules.strictTitleCase);
-          if (mappings.lastNameKey) updatedItem[mappings.lastNameKey] = cleanText(item[mappings.lastNameKey], rules.strictTitleCase);
-          if (mappings.nameKey) updatedItem[mappings.nameKey] = cleanText(item[mappings.nameKey], rules.strictTitleCase);
-          if (mappings.cityKey) updatedItem[mappings.cityKey] = cleanText(item[mappings.cityKey], rules.strictTitleCase);
-          if (mappings.countryKey) updatedItem[mappings.countryKey] = cleanText(item[mappings.countryKey], rules.strictTitleCase);
-          
-          if (mappings.phoneKey) {
-            const originalPhone = String(item[mappings.phoneKey] || '');
-            const formatted = formatPhone(originalPhone, item[mappings.countryKey], rules.forcePlusSign);
-            updatedItem[mappings.phoneKey] = formatted;
-          }
+        });
 
-          if (mappings.postalCodeKey) {
-            updatedItem[mappings.postalCodeKey] = String(item[mappings.postalCodeKey] || '').trim().toUpperCase();
-          }
-
-          valid.push({
-            ...verificationResult,
-            ...updatedItem,
-            originalIndex: startIndex + idx,
-            __originalData: updatedItem
-          } as ProcessedContact);
-
-          if (onProgress && idx === results.length - 1) {
-             onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] SECURED: ${updatedItem[mappings.emailKey]} -> ${status.toUpperCase()} (${verificationResult.verificationReason})`);
-          }
-        }
-      });
-
-    } catch (err: any) {
+      } catch (err: any) {
         if (err.name === 'AbortError' && signal?.aborted) {
           retries = -1; // Force stop if specifically aborted by user
           break;
@@ -364,7 +444,34 @@ export const processContacts = async (
         retries--;
         if (retries < 0) {
           console.error(`[BATCH_ERROR] Batch starting at ${startIndex} failed permanently:`, err);
-          items.forEach(item => eliminated.push({ ...item, reason: `Network/Timeout Failure: ${err.message}` }));
+          items.forEach((item, idx) => {
+            eliminated.push({
+              ...item,
+              email: String(item[mappings.emailKey] || '').toLowerCase().trim(),
+              status: 'UNKNOWN',
+              sub_status: 'engine_error',
+              failure_code: 'ERR_009',
+              smtp_code: null,
+              mx_ip: null,
+              timestamp: new Date().toISOString(),
+              is_catchall: false,
+              verificationReason: `Network/Timeout Failure: ${err.message}`,
+              confidenceScore: 0,
+              bounceRisk: 'Unknown',
+              reputationImpact: 'Unknown',
+              mxRecordFound: false,
+              isCatchAll: false,
+              isDisposable: false,
+              isRoleBased: false,
+              isFreeEmail: false,
+              isSpamTrap: false,
+              provider: 'Unknown',
+              smtpValid: false,
+              syntaxValid: false,
+              originalIndex: startIndex + idx,
+              __originalData: item
+            });
+          });
         } else {
           console.warn(`[BATCH_RETRY] Batch ${startIndex} failed, retrying... (${retries} left)`);
           await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5s exponential backoff base
@@ -378,7 +485,7 @@ export const processContacts = async (
     }
   };
 
-  // Process in chunks of CONCURRENT_BATCHES
+  // Process in chunks of CONCURRENT_BATCHES (sequentially since CONCURRENT_BATCHES = 1)
   for (let i = 0; i < batches.length; i += CONCURRENT_BATCHES) {
     if (signal?.aborted) {
       console.log(`[PROCESSOR] PIPELINE_ABORTED by user.`);
@@ -387,10 +494,8 @@ export const processContacts = async (
     const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
     await Promise.all(concurrentChunk.map(b => processBatch(b)));
     
-    // Deterministic Adaptive Jitter: Prevent Vercel Rate Limits (429) & CPU starvation
-    // Base wait of 100ms + random jitter up to 150ms ensures staggered connections
-    const jitter = Math.floor(Math.random() * 150) + 100;
-    await new Promise(resolve => setTimeout(resolve, jitter));
+    // Tiny adaptive delay between sequential runs to respect target MX servers
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
 
   const finalReport = {
@@ -407,7 +512,6 @@ export const processContacts = async (
 
 /**
  * Single Email Verification Wrapper (for SingleValidation.tsx UI component)
- * Preserves the exact original signature but routes through the new enterprise backend.
  */
 export const verifyEmail = async (
   email: string,
@@ -419,6 +523,7 @@ export const verifyEmail = async (
   }
 ): Promise<Partial<ProcessedContact>> => {
   const clean = String(email || '').toLowerCase().trim();
+  const timestamp = new Date().toISOString();
   
   if (!clean) {
     return {
@@ -436,7 +541,14 @@ export const verifyEmail = async (
       provider: 'Unknown',
       smtpValid: false,
       syntaxValid: false,
-      email: clean
+      email: clean,
+      status: 'INVALID',
+      sub_status: 'invalid_syntax',
+      failure_code: 'ERR_001',
+      smtp_code: null,
+      mx_ip: null,
+      timestamp,
+      is_catchall: false
     };
   }
 
@@ -476,7 +588,14 @@ export const verifyEmail = async (
       provider: 'Unknown',
       smtpValid: false,
       syntaxValid: false,
-      email: clean
+      email: clean,
+      status: 'UNKNOWN',
+      sub_status: 'timeout',
+      failure_code: 'ERR_009',
+      smtp_code: null,
+      mx_ip: null,
+      timestamp,
+      is_catchall: false
     };
   }
 };
