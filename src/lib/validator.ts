@@ -50,6 +50,9 @@ export interface ValidationResult {
   mx_ip?: string | null;
   timestamp?: string;
   is_catchall?: boolean;
+  
+  // Telemetry Trace Log
+  trace?: string;
 }
 
 // ----------------- DATA SETS -----------------
@@ -146,7 +149,7 @@ export const performSmtpCheck = async (
 
     const timeout = setTimeout(() => {
       cleanup('Connection Timeout', true);
-    }, 8000); // 8s connection & processing timeout
+    }, 6000); // 6s connection & processing timeout
 
     const cleanup = (reason = '', timedOut = false) => {
       if (resolved) return;
@@ -162,7 +165,7 @@ export const performSmtpCheck = async (
       });
     };
 
-    socket.setTimeout(8000);
+    socket.setTimeout(6000);
     socket.on('timeout', () => cleanup('TCP Socket Timeout', true));
     socket.on('error', (err) => {
       responseData += ` [Socket Error: ${err.message}]`;
@@ -231,6 +234,7 @@ export const performSmtpCheck = async (
 export const validateEmailFull = async (email: string, options: ValidationOptions): Promise<ValidationResult> => {
   const cleanEmail = email.toLowerCase().trim().replace(/[\s"'\r\n]/g, '');
   const timestamp = new Date().toISOString();
+  const traceSteps: string[] = [];
 
   // Return cached result if available
   if (emailCache.has(cleanEmail)) {
@@ -242,6 +246,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   const hasInvalidDots = cleanEmail.startsWith('.') || cleanEmail.includes('.@') || cleanEmail.endsWith('.');
   
   if (!syntaxRegex.test(cleanEmail) || hasConsecutiveDots || hasInvalidDots) {
+    traceSteps.push('Syntax: Invalid (ERR_001)');
     const res: ValidationResult = {
       email: cleanEmail,
       verificationStatus: 'blocked',
@@ -266,11 +271,13 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtp_code: null,
       mx_ip: null,
       timestamp,
-      is_catchall: false
+      is_catchall: false,
+      trace: traceSteps.join(' -> ')
     };
     console.log(`[TRACE] [${cleanEmail}] syntax error: malformed structure`);
     return res;
   }
+  traceSteps.push('Syntax: Valid');
 
   const parts = cleanEmail.split('@');
   const localPart = parts[0];
@@ -279,6 +286,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   // 2. Disposable Email Asset Detection (Layer 4)
   const isDisposable = disposableDomains.has(domain);
   if (isDisposable && options.excludeDisposable) {
+    traceSteps.push('DEA: Blocked (ERR_004)');
     const res: ValidationResult = {
       email: cleanEmail,
       verificationStatus: 'rejected',
@@ -303,15 +311,18 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtp_code: null,
       mx_ip: null,
       timestamp,
-      is_catchall: false
+      is_catchall: false,
+      trace: traceSteps.join(' -> ')
     };
     console.log(`[TRACE] [${cleanEmail}] blocked disposable domain: ${domain}`);
     return res;
   }
+  traceSteps.push('DEA: Passed');
 
   // 3. Suppress Generic Role Aliases (Layer 5)
   const isRoleBased = rolePrefixes.has(localPart);
   if (isRoleBased && options.excludeRoleBased) {
+    traceSteps.push('Role: Blocked (ERR_006)');
     const res: ValidationResult = {
       email: cleanEmail,
       verificationStatus: 'blocked',
@@ -336,11 +347,13 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtp_code: null,
       mx_ip: null,
       timestamp,
-      is_catchall: false
+      is_catchall: false,
+      trace: traceSteps.join(' -> ')
     };
     console.log(`[TRACE] [${cleanEmail}] blocked role prefix: ${localPart}`);
     return res;
   }
+  traceSteps.push('Role: Passed');
 
   // 4. DNS & MX Infrastructure Checking (Layer 2)
   let mxRecordFound = false;
@@ -353,7 +366,6 @@ export const validateEmailFull = async (email: string, options: ValidationOption
     const mxRecords = await resolveMx(domain);
     if (mxRecords && mxRecords.length > 0) {
       mxRecordFound = true;
-      // Sort by preference (priority) ascending
       const sortedMx = mxRecords.sort((a, b) => a.preference - b.preference);
       primaryMx = sortedMx[0].exchange;
       
@@ -372,6 +384,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   }
 
   if (!mxRecordFound || !primaryMx) {
+    traceSteps.push('DNS: Failed (ERR_002)');
     const res: ValidationResult = {
       email: cleanEmail,
       verificationStatus: 'rejected',
@@ -396,11 +409,13 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtp_code: null,
       mx_ip: null,
       timestamp,
-      is_catchall: false
+      is_catchall: false,
+      trace: traceSteps.join(' -> ')
     };
     console.log(`[TRACE] [${cleanEmail}] DNS resolution failed for domain: ${domain}`);
     return res;
   }
+  traceSteps.push(`DNS: MX resolved (${primaryMx})`);
 
   // Fingerprint Provider
   const mxLower = primaryMx.toLowerCase();
@@ -426,6 +441,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   }
 
   if (isParked) {
+    traceSteps.push('DNS: Parked Domain (ERR_002)');
     const res: ValidationResult = {
       email: cleanEmail,
       verificationStatus: 'rejected',
@@ -451,7 +467,8 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtp_code: null,
       mx_ip: mxIp,
       timestamp,
-      is_catchall: false
+      is_catchall: false,
+      trace: traceSteps.join(' -> ')
     };
     console.log(`[TRACE] [${cleanEmail}] blocked parked domain: ${domain}`);
     return res;
@@ -462,6 +479,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   const cachedDomain = domainCache.get(domain);
   if (cachedDomain && (Date.now() - cachedDomain.timestamp < CACHE_TTL)) {
     isCatchAll = cachedDomain.isCatchAll;
+    traceSteps.push(`Catch-All: Cached (${isCatchAll ? 'Active' : 'Inactive'})`);
   } else {
     // Run randomized control handshake before target validation
     const randomIdentity = `false_positive_test_${Math.random().toString(36).substring(2, 10)}`;
@@ -475,6 +493,9 @@ export const validateEmailFull = async (email: string, options: ValidationOption
 
     if (controlCheck.success || controlCheck.code === 250 || controlCheck.code === 251) {
       isCatchAll = true;
+      traceSteps.push('Catch-All: Control probe accepted (Accept-All Active)');
+    } else {
+      traceSteps.push('Catch-All: Control probe rejected (Accept-All Inactive)');
     }
 
     // Cache the domain intelligence
@@ -490,6 +511,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   }
 
   if (isCatchAll && options.excludeCatchAll) {
+    traceSteps.push('Catch-All: Blocked (ERR_005)');
     const res: ValidationResult = {
       email: cleanEmail,
       verificationStatus: 'rejected',
@@ -512,10 +534,11 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       status: 'INVALID',
       sub_status: 'catch_all',
       failure_code: 'ERR_005',
-      smtp_code: 250, // Accepted the random control check
+      smtp_code: 250,
       mx_ip: mxIp,
       timestamp,
-      is_catchall: true
+      is_catchall: true,
+      trace: traceSteps.join(' -> ')
     };
     console.log(`[TRACE] [${cleanEmail}] blocked catch-all domain: ${domain}`);
     return res;
@@ -531,6 +554,7 @@ export const validateEmailFull = async (email: string, options: ValidationOption
   let result: ValidationResult;
 
   if (smtpCheck.timedOut) {
+    traceSteps.push('SMTP: Socket Timeout (ERR_009)');
     result = {
       email: cleanEmail,
       verificationStatus: 'risky',
@@ -556,9 +580,11 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtp_code: null,
       mx_ip: mxIp,
       timestamp,
-      is_catchall: isCatchAll
+      is_catchall: isCatchAll,
+      trace: traceSteps.join(' -> ')
     };
   } else if (smtpCheck.code === 550 || smtpCheck.code === 551 || smtpCheck.code === 552 || smtpCheck.code === 554) {
+    traceSteps.push(`SMTP: Hard Fail Code ${smtpCheck.code} (ERR_003)`);
     result = {
       email: cleanEmail,
       verificationStatus: 'rejected',
@@ -584,9 +610,11 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtp_code: smtpCheck.code,
       mx_ip: mxIp,
       timestamp,
-      is_catchall: isCatchAll
+      is_catchall: isCatchAll,
+      trace: traceSteps.join(' -> ')
     };
   } else if (smtpCheck.code === 421 || smtpCheck.code === 450 || smtpCheck.code === 451 || smtpCheck.code === 452) {
+    traceSteps.push(`SMTP: Greylisted/Throttled Code ${smtpCheck.code} (ERR_007)`);
     result = {
       email: cleanEmail,
       verificationStatus: 'risky',
@@ -612,9 +640,11 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtp_code: smtpCheck.code,
       mx_ip: mxIp,
       timestamp,
-      is_catchall: isCatchAll
+      is_catchall: isCatchAll,
+      trace: traceSteps.join(' -> ')
     };
   } else if (smtpCheck.success || smtpCheck.code === 250 || smtpCheck.code === 251) {
+    traceSteps.push(`SMTP: Handshake Success Code ${smtpCheck.code || 250}`);
     result = {
       email: cleanEmail,
       verificationStatus: 'safe',
@@ -640,10 +670,11 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtp_code: smtpCheck.code || 250,
       mx_ip: mxIp,
       timestamp,
-      is_catchall: isCatchAll
+      is_catchall: isCatchAll,
+      trace: traceSteps.join(' -> ')
     };
   } else {
-    // General inconclusive Socket/SMTP failure
+    traceSteps.push(`SMTP: Inconclusive Code ${smtpCheck.code || 0} (ERR_003)`);
     result = {
       email: cleanEmail,
       verificationStatus: 'risky',
@@ -669,11 +700,12 @@ export const validateEmailFull = async (email: string, options: ValidationOption
       smtp_code: smtpCheck.code || null,
       mx_ip: mxIp,
       timestamp,
-      is_catchall: isCatchAll
+      is_catchall: isCatchAll,
+      trace: traceSteps.join(' -> ')
     };
   }
 
-  // ELITE CACHE POLICY: Only persist definitive status results
+  // ELITE CACHE POLICY
   const isDefinitive = result.status === 'SAFE' || (result.status === 'INVALID' && result.sub_status !== 'engine_error');
   if (isDefinitive) {
     emailCache.set(cleanEmail, result);

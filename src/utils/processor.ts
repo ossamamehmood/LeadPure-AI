@@ -1,6 +1,23 @@
 import { parsePhoneNumberWithError, CountryCode } from 'libphonenumber-js';
 import { ProcessedContact } from '../types';
 
+// Forensic telemetry CSV writing engine (active only in Node environments)
+let fs: any = null;
+const csvPath = 'C:/Users/ossamamehmood/.gemini/antigravity/scratch/LeadPure-AI/debug-results.csv';
+
+if (typeof process !== 'undefined' && process.versions && process.versions.node) {
+  import('fs').then(mod => {
+    fs = mod.default || mod;
+    try {
+      if (!fs.existsSync(csvPath)) {
+        fs.writeFileSync(csvPath, 'email,status,failure_code,smtp_code,mx_ip,trace\n', 'utf-8');
+      }
+    } catch (e) {
+      console.warn('[TELEMETRY] Failed to initialize debug-results.csv:', e);
+    }
+  }).catch(() => {});
+}
+
 /**
  * Clean text: trim, remove extra spaces, and enforce Proper Title Case
  */
@@ -200,8 +217,15 @@ export const processContacts = async (
         smtpValid: false,
         syntaxValid: false,
         originalIndex: index,
-        __originalData: item
+        __originalData: item,
+        trace: 'Sanitization -> Eliminated null row (ERR_001)'
       });
+      
+      if (fs) {
+        try {
+          fs.appendFileSync(csvPath, ',INVALID,ERR_001,,,"Sanitization -> Eliminated null row (ERR_001)"\n', 'utf-8');
+        } catch (e) {}
+      }
       return false;
     }
 
@@ -231,8 +255,15 @@ export const processContacts = async (
         smtpValid: false,
         syntaxValid: false,
         originalIndex: index,
-        __originalData: item
+        __originalData: item,
+        trace: 'Pre-process -> Empty Email Identity Suppressed (ERR_001)'
       });
+      
+      if (fs) {
+        try {
+          fs.appendFileSync(csvPath, ',INVALID,ERR_001,,,"Pre-process -> Empty Email Identity Suppressed (ERR_001)"\n', 'utf-8');
+        } catch (e) {}
+      }
       return false;
     }
 
@@ -258,8 +289,16 @@ export const processContacts = async (
         smtpValid: false,
         syntaxValid: false,
         originalIndex: index,
-        __originalData: item
+        __originalData: item,
+        trace: `Pre-process -> Duplicate Email Identity Suppressed (${rawEmail}) (ERR_001)`
       });
+
+      if (fs) {
+        try {
+          const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
+          fs.appendFileSync(csvPath, `${escapeCsv(rawEmail)},INVALID,ERR_001,,,"Pre-process -> Duplicate Email Identity Suppressed (ERR_001)"\n`, 'utf-8');
+        } catch (e) {}
+      }
       return false;
     }
 
@@ -290,8 +329,16 @@ export const processContacts = async (
             smtpValid: false,
             syntaxValid: false,
             originalIndex: index,
-            __originalData: item
+            __originalData: item,
+            trace: `Pre-process -> Duplicate Phone Identity Suppressed (${normalizedPhone}) (ERR_001)`
           });
+
+          if (fs) {
+            try {
+              const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
+              fs.appendFileSync(csvPath, `${escapeCsv(rawEmail)},INVALID,ERR_001,,,"Pre-process -> Duplicate Phone Suppressed (${normalizedPhone})"\n`, 'utf-8');
+            } catch (e) {}
+          }
           return false;
         }
         if (normalizedPhone) seenPhones.add(normalizedPhone);
@@ -304,11 +351,10 @@ export const processContacts = async (
 
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
-  // Stage 2: Sequential Execution Processing to Backend Engine (MAX_CONCURRENT = 1)
+  // Stage 2: Sequential Batch processing (enforcing 40 leads per batch)
   const total = preProcessedData.length;
-  // Enforce BATCH_SIZE = 1 and CONCURRENT_BATCHES = 1 for perfect, timeout-free sequential execution stability
-  const BATCH_SIZE = 1; 
-  const CONCURRENT_BATCHES = 1;
+  const BATCH_SIZE = 40; 
+  const CONCURRENT_BATCHES = 1; // Pure sequential execution: Batch-after-batch throttling
   
   const batches = [];
   for (let i = 0; i < total; i += BATCH_SIZE) {
@@ -332,13 +378,9 @@ export const processContacts = async (
     while (retries >= 0 && !success && !signal?.aborted) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 9500); // 9.5s local timeout limit
         
-        if (signal) {
-          signal.addEventListener('abort', () => controller.abort());
-        }
-        
-        const response = await fetch('/api/validate-batch', {
+        // High-precision Promise.race wrapper: set to 8000ms safety timeout limit
+        const fetchPromise = fetch('/api/validate-batch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -352,7 +394,15 @@ export const processContacts = async (
           }),
           signal: controller.signal
         });
-        clearTimeout(timeoutId);
+
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            controller.abort();
+            reject(new Error('Gateway Timeout Limit Reached (8000ms)'));
+          }, 8000);
+        });
+
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
 
         if (!response.ok) {
           if (response.status === 502 || response.status === 504 || response.status === 429) {
@@ -371,7 +421,6 @@ export const processContacts = async (
           const isSafe = status === 'SAFE';
 
           if (!isSafe) {
-            // Track granular stats
             const subStatus = verificationResult.sub_status || '';
             if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
             else if (subStatus === 'domain_not_found') stats.dnsFailure++;
@@ -382,7 +431,7 @@ export const processContacts = async (
             else if (subStatus === 'greylisted') stats.greylistedMatch++;
             else if (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous') stats.highBounceRisk++;
 
-            eliminated.push({ 
+            const eliminatedRow = { 
               ...item, 
               ...verificationResult,
               reason: verificationResult.verificationReason,
@@ -393,7 +442,17 @@ export const processContacts = async (
               status: status,
               originalIndex: startIndex + idx,
               __originalData: item
-            });
+            };
+            eliminated.push(eliminatedRow);
+            
+            // Telemetry logging to CSV
+            if (fs) {
+              try {
+                const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
+                const csvRow = `${escapeCsv(verificationResult.email)},${escapeCsv(status)},${escapeCsv(verificationResult.failure_code || '')},${verificationResult.smtp_code ?? ''},${escapeCsv(verificationResult.mx_ip || '')},${escapeCsv(verificationResult.trace || '')}\n`;
+                fs.appendFileSync(csvPath, csvRow, 'utf-8');
+              } catch (e) {}
+            }
             
             if (onProgress) {
                onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] FILTERED: ${item[mappings.emailKey]} -> ${status} (${verificationResult.verificationReason})`);
@@ -401,7 +460,6 @@ export const processContacts = async (
           } else {
             stats.verifiedLeads++;
             
-            // Data Enhancement
             const updatedItem = { ...item };
             if (mappings.emailKey && verificationResult.email) {
               updatedItem[mappings.emailKey] = verificationResult.email;
@@ -422,12 +480,22 @@ export const processContacts = async (
               updatedItem[mappings.postalCodeKey] = String(item[mappings.postalCodeKey] || '').trim().toUpperCase();
             }
 
-            valid.push({
+            const validRow = {
               ...verificationResult,
               ...updatedItem,
               originalIndex: startIndex + idx,
               __originalData: updatedItem
-            } as ProcessedContact);
+            } as ProcessedContact;
+            valid.push(validRow);
+
+            // Telemetry logging to CSV
+            if (fs) {
+              try {
+                const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
+                const csvRow = `${escapeCsv(verificationResult.email)},${escapeCsv(status)},${escapeCsv(verificationResult.failure_code || '')},${verificationResult.smtp_code ?? ''},${escapeCsv(verificationResult.mx_ip || '')},${escapeCsv(verificationResult.trace || '')}\n`;
+                fs.appendFileSync(csvPath, csvRow, 'utf-8');
+              } catch (e) {}
+            }
 
             if (onProgress) {
                onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] SECURED: ${updatedItem[mappings.emailKey]} -> ${status} (${verificationResult.verificationReason})`);
@@ -437,30 +505,32 @@ export const processContacts = async (
 
       } catch (err: any) {
         if (err.name === 'AbortError' && signal?.aborted) {
-          retries = -1; // Force stop if specifically aborted by user
+          retries = -1;
           break;
         }
         
         retries--;
         if (retries < 0) {
           console.error(`[BATCH_ERROR] Batch starting at ${startIndex} failed permanently:`, err);
+          
+          // Complete data row conservation: Map timed-out or failed batch rows safely to ELIMINATED (UNKNOWN/ERR_009)
           items.forEach((item, idx) => {
-            eliminated.push({
-              ...item,
-              email: String(item[mappings.emailKey] || '').toLowerCase().trim(),
-              status: 'UNKNOWN',
-              sub_status: 'engine_error',
-              failure_code: 'ERR_009',
+            const emailVal = String(item[mappings.emailKey] || '').toLowerCase().trim();
+            const verificationResult = {
+              email: emailVal,
+              status: 'UNKNOWN' as const,
+              sub_status: 'timeout',
+              failure_code: 'ERR_009' as const,
               smtp_code: null,
               mx_ip: null,
               timestamp: new Date().toISOString(),
               is_catchall: false,
-              verificationReason: `Network/Timeout Failure: ${err.message}`,
-              confidenceScore: 0,
-              bounceRisk: 'Unknown',
-              reputationImpact: 'Unknown',
+              verificationStatus: 'unknown' as const,
+              verificationReason: `Safety Timeout (8000ms) or Gateway Crash: ${err.message}`,
+              confidenceScore: 50,
+              bounceRisk: 'Unknown' as const,
+              reputationImpact: 'Unknown' as const,
               mxRecordFound: false,
-              isCatchAll: false,
               isDisposable: false,
               isRoleBased: false,
               isFreeEmail: false,
@@ -468,13 +538,30 @@ export const processContacts = async (
               provider: 'Unknown',
               smtpValid: false,
               syntaxValid: false,
+              didyouseeme: false,
+              trace: `Safety Timeout -> Deflected to UNKNOWN (ERR_009)`
+            };
+
+            eliminated.push({
+              ...item,
+              ...verificationResult,
+              reason: verificationResult.verificationReason,
               originalIndex: startIndex + idx,
               __originalData: item
             });
+
+            // Write timed-out trace to telemetry CSV
+            if (fs) {
+              try {
+                const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
+                const csvRow = `${escapeCsv(emailVal)},UNKNOWN,ERR_009,,,"Safety Timeout -> Deflected to UNKNOWN (ERR_009)"\n`;
+                fs.appendFileSync(csvPath, csvRow, 'utf-8');
+              } catch (e) {}
+            }
           });
         } else {
           console.warn(`[BATCH_RETRY] Batch ${startIndex} failed, retrying... (${retries} left)`);
-          await new Promise(resolve => setTimeout(resolve, 1500)); // 1.5s exponential backoff base
+          await new Promise(resolve => setTimeout(resolve, 1500)); 
         }
       }
     }
@@ -485,7 +572,7 @@ export const processContacts = async (
     }
   };
 
-  // Process in chunks of CONCURRENT_BATCHES (sequentially since CONCURRENT_BATCHES = 1)
+  // Run sequential throttling chunk-by-chunk to prevent socket crashes
   for (let i = 0; i < batches.length; i += CONCURRENT_BATCHES) {
     if (signal?.aborted) {
       console.log(`[PROCESSOR] PIPELINE_ABORTED by user.`);
@@ -494,8 +581,8 @@ export const processContacts = async (
     const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
     await Promise.all(concurrentChunk.map(b => processBatch(b)));
     
-    // Tiny adaptive delay between sequential runs to respect target MX servers
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Controlled adaptive jitter between sequential blocks
+    await new Promise(resolve => setTimeout(resolve, 150));
   }
 
   const finalReport = {
@@ -548,13 +635,14 @@ export const verifyEmail = async (
       smtp_code: null,
       mx_ip: null,
       timestamp,
-      is_catchall: false
+      is_catchall: false,
+      trace: 'Syntax check failed: empty localPart'
     };
   }
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 9500);
+    const timeoutId = setTimeout(() => controller.abort(), 7500);
 
     const response = await fetch('/api/validate-batch', {
       method: 'POST',
@@ -595,7 +683,8 @@ export const verifyEmail = async (
       smtp_code: null,
       mx_ip: null,
       timestamp,
-      is_catchall: false
+      is_catchall: false,
+      trace: `Safety Timeout -> Deflected to UNKNOWN (ERR_009) via wrapper: ${err.message}`
     };
   }
 };

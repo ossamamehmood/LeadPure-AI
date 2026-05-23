@@ -11,11 +11,11 @@ export interface ContactData {
 }
 
 export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
-  /** Core standardized status */
+  /** Core standardized status compliant with schema.md */
   status: 'SAFE' | 'RISKY' | 'INVALID' | 'UNKNOWN';
   /** Sub‑status or detailed reason */
   sub_status?: string;
-  /** Machine‑readable failure code */
+  /** Machine‑readable failure code compliant with schema.md */
   failure_code?: 'ERR_001' | 'ERR_002' | 'ERR_003' | 'ERR_004' | 'ERR_005' | 'ERR_006' | 'ERR_007' | 'ERR_008' | 'ERR_009' | null;
   /** SMTP response code when applicable */
   smtp_code?: number | null;
@@ -25,16 +25,20 @@ export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
   timestamp?: string;
   /** Whether the domain accepts all incoming identities */
   is_catchall?: boolean;
+  /** Forensic trace string for auditing */
+  trace?: string;
 
-  // ---- Existing auxiliary diagnostics (retain for UI) ----
+  // ---- Existing auxiliary diagnostics (retained for UI compatibility) ----
+  verificationStatus?: 'verified' | 'risky' | 'rejected' | 'blocked' | 'unknown' | 'safe' | 'usable' | 'dangerous';
   verificationReason?: string;
+  subStatus?: string;
   provider?: string;
   isFreeEmail?: boolean;
   domainAgeDays?: number;
   mxRecord?: string;
   confidenceScore: number; // 0-100
-  bounceRisk: 'Safe' | 'Medium' | 'High' | 'Dangerous';
-  reputationImpact: 'Positive' | 'Neutral' | 'Negative' | 'Critical';
+  bounceRisk: 'Safe' | 'Medium' | 'High' | 'Dangerous' | 'Unknown';
+  reputationImpact: 'Positive' | 'Neutral' | 'Negative' | 'Critical' | 'Unknown';
   mxRecordFound: boolean;
   isCatchAll?: boolean;
   isDisposable?: boolean;
@@ -79,4 +83,4 @@ export interface CleaningStats {
   valid: number;
   invalid: number;
   cleaned: number;
-} 
+}
