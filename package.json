@@ -15,9 +15,9 @@
     "node": "22.x"
   },
   "dependencies": {
-    "@tailwindcss/vite": "4.1.14",
+    "@tailwindcss/vite": "4.3.1",
     "@types/react-window": "1.8.8",
-    "@vitejs/plugin-react": "5.0.4",
+    "@vitejs/plugin-react": "5.2.0",
     "clsx": "2.1.1",
     "dotenv": "17.2.3",
     "express": "4.22.2",
@@ -38,8 +38,8 @@
     "@types/react-dropzone": "4.2.2",
     "autoprefixer": "10.4.21",
     "tailwindcss": "4.1.14",
-    "tsx": "4.21.0",
+    "tsx": "4.22.4",
     "typescript": "5.8.2",
-    "vite": "^6.4.2"
+    "vite": "^8.0.16"
   }
 }
