@@ -8,6 +8,7 @@ import { isRoleAccount } from './data/roles.js';
 import { isFreeEmailProvider, shouldSkipCatchAll } from './data/free-providers.js';
 import { checkMx, MxCheckResult } from './dns.js';
 import { verifySmtpDeliverability, SmtpCheckResult } from './smtp.js';
+import { checkGravatar } from './gravatar.js';
 
 export interface ValidationOptions {
   excludeDisposable: boolean;
@@ -40,6 +41,8 @@ export interface ValidationResult {
   domainAgeDays?: number;
   spfExists?: boolean;
   dkimExists?: boolean;
+  hasGravatar?: boolean;
+  gravatarUrl?: string;
 
   // Schema standards
   status: 'SAFE' | 'RISKY' | 'INVALID' | 'UNKNOWN';
@@ -476,14 +479,23 @@ export async function validateEmailFull(
   }
 
   // ----------------- FINAL VERDICT: SAFE / DELIVERABLE -----------------
+  // Reacher Misc Check: Gravatar Profile Check (misc/gravatar.rs)
+  const gravatarUrl = await checkGravatar(rawEmail);
+  const hasGravatar = !!gravatarUrl;
+  if (hasGravatar) {
+    trace.push('Gravatar: Active Profile Verified');
+  }
+
   trace.push(smtpResult.verifMethod === 'smtp' ? 'Verified: Real-Time Handshake Confirmed' : 'Verified: Active Domain & MX Infrastructure Confirmed');
 
-  const finalScore = smtpResult.verifMethod === 'smtp' || smtpResult.verifMethod === 'yahoo_api' ? 99 : 94;
+  const finalScore = hasGravatar || smtpResult.verifMethod === 'smtp' || smtpResult.verifMethod === 'yahoo_api' ? 99 : 94;
 
   const result: ValidationResult = {
     email: rawEmail,
     verificationStatus: 'verified',
-    verificationReason: 'Deliverable: Active target mail infrastructure verified',
+    verificationReason: hasGravatar 
+      ? 'Deliverable: Verified Active Identity with Gravatar Profile'
+      : 'Deliverable: Active target mail infrastructure verified',
     subStatus: 'valid',
     confidenceScore: finalScore,
     bounceRisk: 'Safe',
@@ -504,6 +516,8 @@ export async function validateEmailFull(
     domainAgeDays: mxData.domainAgeDays,
     spfExists: mxData.spfExists,
     dkimExists: mxData.dkimExists,
+    hasGravatar,
+    gravatarUrl: gravatarUrl || undefined,
     status: 'SAFE',
     sub_status: 'valid',
     failure_code: null,

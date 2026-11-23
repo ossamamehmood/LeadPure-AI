@@ -3,6 +3,7 @@ import { validateSyntax } from './src/lib/syntax.js';
 import { isDisposableDomain } from './src/lib/data/disposable.js';
 import { isRoleAccount } from './src/lib/data/roles.js';
 import { checkMx } from './src/lib/dns.js';
+import { checkGravatar } from './src/lib/gravatar.js';
 
 async function runTestSuite() {
   console.log("=================================================");
@@ -63,6 +64,7 @@ async function runTestSuite() {
   assert(realGmail.status === 'SAFE', 'Real Gmail status is SAFE');
   assert(realGmail.isCatchAll === false, 'Real Gmail is NOT flagged as catch-all');
   assert(realGmail.confidenceScore >= 90, 'Real Gmail confidence score >= 90');
+  assert(realGmail.hasGravatar === true, 'Real Gmail has active Gravatar profile confirmed');
 
   // Nonexistent domain
   const nonExistent = await validateEmailFull('fake@nonexistentdomain1234567.com', {

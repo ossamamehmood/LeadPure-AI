@@ -49,6 +49,8 @@ export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
   domainAge?: string;
   spfExists?: boolean;
   dkimExists?: boolean;
+  hasGravatar?: boolean;
+  gravatarUrl?: string;
   originalIndex: number;
   __originalData?: any;
 }
