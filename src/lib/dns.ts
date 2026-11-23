@@ -29,7 +29,7 @@ export interface MxCheckResult {
 }
 
 /**
- * Fingerprint mail provider based on MX host name (Reacher core/src/mx/mod.rs)
+ * Fingerprint mail provider based on MX host name
  */
 export function identifyProvider(mxHost: string): {
   provider: 'google' | 'microsoft' | 'yahoo' | 'apple' | 'proton' | 'mimecast' | 'proofpoint' | 'zoho' | 'other';

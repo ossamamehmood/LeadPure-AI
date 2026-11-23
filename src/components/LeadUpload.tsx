@@ -84,7 +84,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
                 Identity <span className="gradient-text">Ingestion</span>
               </h2>
               <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed font-medium uppercase tracking-widest">
-                Initiate Reacher-Grade Verification Pipeline (v12.5). 
+                Initiate LeadPure Neural Verification Pipeline (v13.0). 
               </p>
             </div>
 

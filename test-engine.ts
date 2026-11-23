@@ -7,7 +7,7 @@ import { checkGravatar } from './src/lib/gravatar.js';
 
 async function runTestSuite() {
   console.log("=================================================");
-  console.log("   LEADPURE-AI REACHER-GRADE VERIFICATION SUITE   ");
+  console.log("   LEADPURE-AI ENTERPRISE V13 VERIFICATION SUITE  ");
   console.log("=================================================\n");
 
   let passed = 0;
@@ -52,7 +52,7 @@ async function runTestSuite() {
   assert(fakeMx.acceptsMail === false, 'nonexistent domain does not accept email');
 
   // 5. Full Engine End-to-End Validation
-  console.log("\n[5] End-to-End Reacher Verification Suite:");
+  console.log("\n[5] End-to-End LeadPure Neural Verification Suite:");
   
   // Real Gmail (Must be SAFE and NOT catch-all)
   const realGmail = await validateEmailFull('ossamamehmood110@gmail.com', {
@@ -86,7 +86,7 @@ async function runTestSuite() {
   assert(disposable.status === 'INVALID', 'Disposable email status is INVALID');
   assert(disposable.failure_code === 'ERR_004', 'Disposable email failure code is ERR_004');
 
-  // Nonexistent Yahoo account (verified via Reacher Yahoo API)
+  // Nonexistent Yahoo account (verified via LeadPure HTTPS probe)
   const fakeYahoo = await validateEmailFull('nonexistentuser9823471@yahoo.com', {
     excludeDisposable: true,
     excludeRoleBased: true,
@@ -98,14 +98,14 @@ async function runTestSuite() {
 
   console.log("\n=================================================");
   console.log(`  TOTAL: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);
-  console.log("=================================================");
+  console.log("=================================================\n");
 
   if (failed > 0) {
     process.exit(1);
   }
 }
 
-runTestSuite().catch(err => {
-  console.error("Test Suite crashed:", err);
+runTestSuite().catch((err) => {
+  console.error("Test suite runtime failure:", err);
   process.exit(1);
 });

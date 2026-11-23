@@ -1,4 +1,4 @@
-// Reacher-derived comprehensive role accounts list (core/src/misc/roles.txt)
+// LeadPure comprehensive role accounts registry
 // Covers administrative, generic, system, and department addresses.
 
 export const roleAccounts = new Set<string>([

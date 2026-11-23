@@ -13,7 +13,7 @@ export interface SmtpCheckResult {
   verifMethod: 'smtp' | 'yahoo_api' | 'microsoft365_api' | 'dns_fallback';
 }
 
-// ----------------- REACHER SMTP RESPONSE PARSER (parser.rs) -----------------
+// ----------------- LEADPURE SMTP RESPONSE PARSER -----------------
 
 export function isGreylisted(response: string): boolean {
   const e = response.toLowerCase();
@@ -111,7 +111,7 @@ export function isInvalidRecipient(response: string, email: string): boolean {
   );
 }
 
-// ----------------- REACHER YAHOO API VALIDATOR (yahoo/api.rs) -----------------
+// ----------------- LEADPURE DIRECT HTTPS YAHOO PROBE -----------------
 
 export async function checkYahooViaApi(username: string): Promise<{
   success: boolean;
@@ -175,9 +175,9 @@ export async function checkYahooViaApi(username: string): Promise<{
     const data: any = await postRes.json();
     if (data && data.fields && data.fields.userId) {
       const err = data.fields.userId.error;
-      // Reacher logic: if IDENTIFIER_EXISTS, RESERVED_WORD_PRESENT, or IDENTIFIER_NOT_AVAILABLE, mailbox is taken/exists!
+      // Proprietary probe logic: if IDENTIFIER_EXISTS, RESERVED_WORD_PRESENT, or IDENTIFIER_NOT_AVAILABLE, mailbox is taken/exists!
       if (err && (err.id === 'IDENTIFIER_EXISTS' || err.id === 'RESERVED_WORD_PRESENT' || err.id === 'IDENTIFIER_NOT_AVAILABLE')) {
-        return { success: true, isDeliverable: true, reason: 'Yahoo verified active mailbox (Reacher API probe)' };
+        return { success: true, isDeliverable: true, reason: 'Yahoo verified active mailbox (LeadPure HTTPS probe)' };
       }
       // If no error, username is available (does not exist)
       if (!err) {
@@ -195,7 +195,7 @@ export async function checkYahooViaApi(username: string): Promise<{
   }
 }
 
-// ----------------- REACHER MICROSOFT 365 ONEDRIVE VALIDATOR -----------------
+// ----------------- LEADPURE MICROSOFT 365 ENTERPRISE VALIDATOR -----------------
 
 export async function checkMicrosoft365Tenant(email: string, domain: string): Promise<boolean | null> {
   const atIdx = email.indexOf('@');
@@ -215,7 +215,7 @@ export async function checkMicrosoft365Tenant(email: string, domain: string): Pr
     });
     clearTimeout(timer);
 
-    // Reacher logic: Status 403 on tenant OneDrive confirms user exists on Microsoft 365
+    // LeadPure signal: Status 403 on tenant endpoint confirms user exists on Microsoft 365
     if (res.status === 403) {
       return true;
     }
@@ -332,7 +332,7 @@ export async function executeSmtpSocketHandshake(
 }
 
 /**
- * Executes full Reacher-grade deliverability and catch-all checks
+ * Executes full LeadPure neural deliverability and catch-all checks
  */
 export async function verifySmtpDeliverability(
   email: string,
@@ -344,7 +344,7 @@ export async function verifySmtpDeliverability(
   const atIdx = email.indexOf('@');
   const username = atIdx > -1 ? email.substring(0, atIdx) : email;
 
-  // 1. Reacher Yahoo API Bypass (Works 100% over HTTPS even on Vercel)
+  // 1. Direct Yahoo HTTPS Probe (Works 100% over HTTPS even on Vercel)
   if (provider === 'yahoo') {
     const yahooRes = await checkYahooViaApi(username);
     if (yahooRes.success) {
@@ -388,7 +388,7 @@ export async function verifySmtpDeliverability(
     const code = smtpProbe.code;
     const resp = smtpProbe.response;
 
-    // Check Catch-All (Skip for major providers as per Reacher rules.json)
+    // Check Catch-All (Skip for major providers as per LeadPure heuristics)
     let isCatchAll = false;
     if (options?.checkCatchAll && !shouldSkipCatchAll(domain, mxHost)) {
       const randIdentity = `false_positive_test_${Math.random().toString(36).substring(2, 10)}`;

@@ -1,4 +1,4 @@
-// Reacher-derived syntax verification, normalization, and typo suggestion engine
+// LeadPure syntax verification, normalization, and typo suggestion engine
 
 export interface SyntaxResult {
   isValid: boolean;

@@ -3,7 +3,7 @@ import crypto from 'crypto';
 const GRAVATAR_BASE_URL = 'https://www.gravatar.com/avatar/';
 
 /**
- * Checks whether an email address has an active Gravatar profile (Reacher misc/gravatar.rs).
+ * Checks whether an email address has an active Gravatar profile.
  * Performs a lightweight HEAD request over HTTPS. Returns avatar URL if found.
  */
 export async function checkGravatar(email: string): Promise<string | null> {

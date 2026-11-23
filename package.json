@@ -1,7 +1,7 @@
 {
   "name": "leadpure-ai",
   "private": true,
-  "version": "12.5.0",
+  "version": "13.0.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "test": "tsx test-reacher-engine.ts",
+    "test": "tsx test-engine.ts",
     "test-engine": "tsx test-determinism.ts"
   },
   "engines": {

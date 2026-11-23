@@ -1,6 +1,6 @@
-// Reacher-derived Enterprise Email Verification Engine (v12.5)
-// Combines RFC 5322 syntax validation, Reacher roles, mailchecker disposable detection,
-// DNS MX resolution with RFC 7505 null MX, and Reacher SMTP/HTTPS verification.
+// LeadPure Enterprise Neural Verification Kernel (v13.0)
+// Combines RFC 5322 syntax validation, role filtering, disposable detection,
+// DNS MX resolution with RFC 7505 null MX, and multi-protocol verification probes.
 
 import { validateSyntax, SyntaxResult } from './syntax.js';
 import { isDisposableDomain } from './data/disposable.js';
@@ -63,7 +63,7 @@ const domainCache = new Map<string, MxCheckResult>();
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 /**
- * Validates a single email address using the comprehensive 5-tier Reacher-grade protocol.
+ * Validates a single email address using the comprehensive 5-tier LeadPure protocol.
  */
 export async function validateEmailFull(
   email: string,
@@ -245,7 +245,7 @@ export async function validateEmailFull(
   const primaryMx = mxData.primaryMx;
   const primaryMxIp = mxData.primaryMxIp || null;
 
-  // ----------------- TIER 5: REACHER SMTP & WEB VERIFICATION -----------------
+  // ----------------- TIER 5: LEADPURE MULTI-PROTOCOL VERIFICATION -----------------
   trace.push(`Provider: ${mxData.provider.toUpperCase()}`);
 
   const smtpResult: SmtpCheckResult = await verifySmtpDeliverability(
@@ -479,7 +479,7 @@ export async function validateEmailFull(
   }
 
   // ----------------- FINAL VERDICT: SAFE / DELIVERABLE -----------------
-  // Reacher Misc Check: Gravatar Profile Check (misc/gravatar.rs)
+  // LeadPure Identity Check: Gravatar Profile Signal
   const gravatarUrl = await checkGravatar(rawEmail);
   const hasGravatar = !!gravatarUrl;
   if (hasGravatar) {

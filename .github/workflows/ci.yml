@@ -31,7 +31,7 @@ jobs:
       - name: Static Typecheck (TypeScript)
         run: npm run lint
 
-      - name: Run Reacher-Grade Test Suite
+      - name: Run LeadPure AI v13 Test Suite
         run: npm test
 
       - name: Production Bundle Build (Vite)

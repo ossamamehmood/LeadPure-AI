@@ -16,7 +16,7 @@ export const freeEmailProviders = new Set<string>([
 ]);
 
 /**
- * Reacher Rules: Major free providers that NEVER act as catch-all.
+ * LeadPure Optimization Rules: Major free providers that NEVER act as catch-all.
  * Probing catch-all against these domains will trigger spam filters and false flags.
  */
 export const skipCatchAllDomains = new Set<string>([
