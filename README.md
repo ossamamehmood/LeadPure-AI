@@ -228,3 +228,13 @@ LeadPure AI is pre-configured for instant zero-configuration deployment on Verce
 ## License
 
 Proprietary © 2026 [LeadPure AI](https://leadpureai.vercel.app/). All rights reserved.
+
+## Support & Contact
+
+If you find this project useful, consider supporting my work or reaching out for custom enterprise integrations.
+
+| Platform | Link |
+| :--- | :--- |
+| **🌐 Website** | [ossamamehmood.com](https://ossamamehmood.com) |
+| **📧 Email** | [hello@ossamamehmood.com](mailto:hello@ossamamehmood.com) |
+| **☕ Support Me** | [Patreon](https://patreon.com/ossamamehmood) |
