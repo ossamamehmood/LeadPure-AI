@@ -17,11 +17,11 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
+          <h2 className="text-2xl font-black text-app-text tracking-tight flex items-center gap-3">
             <Clock className="w-6 h-6 text-brand-blue" />
             AUDIT ARCHIVES
           </h2>
-          <p className="text-slate-400 text-xs font-medium mt-1 uppercase tracking-widest">
+          <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1 uppercase tracking-widest">
             {history.length} SECURE RECORDS PRESERVED
           </p>
         </div>
@@ -68,11 +68,11 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                         <FileText className="w-7 h-7 text-brand-blue drop-shadow-[0_0_8px_rgba(90,92,255,0.4)]" />
                       </div>
                       <div className="space-y-1.5">
-                        <h4 className="text-white font-black text-base md:text-lg uppercase tracking-wider line-clamp-1 group-hover:text-brand-blue transition-colors font-mono">
+                        <h4 className="text-app-text font-black text-base md:text-lg uppercase tracking-wider line-clamp-1 group-hover:text-brand-blue transition-colors font-mono">
                           {item.fileName}
                         </h4>
                         <div className="flex items-center gap-3">
-                          <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                          <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest flex items-center gap-2 px-3 py-1 bg-brand-blue/5 rounded-full border border-brand-blue/15">
                             <Clock className="w-3 h-3 text-brand-blue" />
                             {new Date(item.date).toLocaleDateString()}
                           </span>

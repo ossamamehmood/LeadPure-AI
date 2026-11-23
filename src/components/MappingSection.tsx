@@ -26,7 +26,7 @@ export function MappingSection({
   return (
     <div className="max-w-2xl mx-auto w-full space-y-6">
       <GlossyCard className="p-4 md:p-8 rounded-[32px] shadow-2xl">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-8 pb-6 border-b border-white/5 gap-4">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 pb-6 border-b border-app-border gap-4">
           <div className="flex items-center gap-4">
             <div className="bg-[#5A5CFF]/20 p-3 rounded-2xl">
               <LayoutGrid className="w-6 h-6 text-[#5A5CFF]" />

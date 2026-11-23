@@ -52,11 +52,11 @@ export function RuleToggle({ domain, title, description, active, onToggle }: Rul
         </div>
         <h3 className={cn(
           "font-black text-xl uppercase italic tracking-tighter transition-all duration-500",
-          active ? "gradient-text" : "text-slate-500 group-hover:text-slate-300"
+          active ? "gradient-text" : "text-slate-600 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-slate-300"
         )}>{title}</h3>
         <p className={cn(
           "text-[10px] font-medium leading-relaxed pr-8 transition-colors duration-500",
-          active ? "text-slate-400" : "text-slate-600"
+          active ? "text-slate-600 dark:text-slate-400" : "text-slate-500 dark:text-slate-600"
         )}>{description}</p>
       </div>
 

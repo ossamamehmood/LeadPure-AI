@@ -37,15 +37,29 @@
 :root {
   --bg-color: #030303;
   --text-color: #F8FAFC;
-  --border-color: rgba(255, 255, 255, 0.05);
-  --card-color: rgba(10, 10, 10, 0.7);
+  --border-color: rgba(255, 255, 255, 0.06);
+  --card-color: rgba(10, 10, 10, 0.75);
+
+  --glossy-bg: rgba(5, 5, 5, 0.65);
+  --glossy-border: rgba(255, 255, 255, 0.05);
+  --glossy-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
+  --glossy-hover-bg: rgba(8, 8, 8, 0.85);
+  --glossy-hover-border: rgba(255, 255, 255, 0.12);
+  --glossy-hover-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7), inset 0 1px 2px 0 rgba(255, 255, 255, 0.1);
 }
 
 [data-theme='light'] {
   --bg-color: #F8FAFC;
   --text-color: #0F172A;
-  --border-color: rgba(0, 0, 0, 0.1);
-  --card-color: rgba(255, 255, 255, 0.82);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --card-color: rgba(255, 255, 255, 0.85);
+
+  --glossy-bg: rgba(255, 255, 255, 0.85);
+  --glossy-border: rgba(0, 0, 0, 0.08);
+  --glossy-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 2px 8px -2px rgba(0, 0, 0, 0.02), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+  --glossy-hover-bg: rgba(255, 255, 255, 0.95);
+  --glossy-hover-border: rgba(90, 92, 255, 0.3);
+  --glossy-hover-shadow: 0 20px 45px -10px rgba(90, 92, 255, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04), inset 0 1px 2px 0 rgba(255, 255, 255, 1);
 }
 
 /* Base Body Style */
@@ -145,18 +159,21 @@ a.brand-link {
 }
 
 .glossy-card {
-  @apply relative border border-white/[0.03] backdrop-blur-3xl bg-[#050505]/60 overflow-hidden;
-  box-shadow: 
-    0 4px 24px -1px rgba(0, 0, 0, 0.5),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  background-color: var(--glossy-bg);
+  border: 1px solid var(--glossy-border);
+  box-shadow: var(--glossy-shadow);
   transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .glossy-card:hover {
-  @apply border-white/10 bg-[#080808]/80 -translate-y-2;
-  box-shadow: 
-    0 30px 60px -12px rgba(0, 0, 0, 0.7),
-    inset 0 1px 2px 0 rgba(255, 255, 255, 0.1);
+  background-color: var(--glossy-hover-bg);
+  border-color: var(--glossy-hover-border);
+  box-shadow: var(--glossy-hover-shadow);
+  transform: translateY(-4px);
 }
 
 .glossy-card::after {
@@ -176,6 +193,15 @@ a.brand-link {
   pointer-events: none;
 }
 
+[data-theme='light'] .glossy-card::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+}
+
 .glossy-card:hover::after {
   left: 150%;
 }
@@ -186,7 +212,11 @@ a.brand-link {
 .glow-purple { box-shadow: 0 0 40px -15px rgba(157, 0, 255, 0.25), inset 0 0 20px -12px rgba(157, 0, 255, 0.2); }
 .glow-gradient { box-shadow: 0 10px 40px -10px rgba(90, 92, 255, 0.25), 0 5px 20px -5px rgba(245, 2, 253, 0.2); }
 
-[data-theme='light'] .glow-gradient { box-shadow: 0 10px 40px -10px rgba(90, 92, 255, 0.15), 0 5px 20px -5px rgba(245, 2, 253, 0.1); }
+[data-theme='light'] .glow-cyan { box-shadow: 0 12px 35px -8px rgba(2, 254, 220, 0.22), 0 2px 10px -2px rgba(0, 0, 0, 0.03), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9); }
+[data-theme='light'] .glow-pink { box-shadow: 0 12px 35px -8px rgba(245, 2, 253, 0.18), 0 2px 10px -2px rgba(0, 0, 0, 0.03), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9); }
+[data-theme='light'] .glow-blue { box-shadow: 0 12px 35px -8px rgba(90, 92, 255, 0.18), 0 2px 10px -2px rgba(0, 0, 0, 0.03), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9); }
+[data-theme='light'] .glow-purple { box-shadow: 0 12px 35px -8px rgba(157, 0, 255, 0.18), 0 2px 10px -2px rgba(0, 0, 0, 0.03), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9); }
+[data-theme='light'] .glow-gradient { box-shadow: 0 14px 40px -8px rgba(90, 92, 255, 0.18), 0 4px 15px -4px rgba(245, 2, 253, 0.12), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95); }
 
 .gradient-border {
   position: relative;

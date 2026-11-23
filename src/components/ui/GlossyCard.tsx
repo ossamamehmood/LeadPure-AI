@@ -29,8 +29,9 @@ export function GlossyCard({ children, className, glow = 'none', onClick }: Glos
       )}
     >
       {/* Glossy Overlay effect - Layered for depth */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-black/[0.05] pointer-events-none" />
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-black/[0.05] dark:block hidden pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.6] via-white/[0.15] to-transparent dark:hidden block pointer-events-none" />
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-tr from-transparent via-white/[0.08] to-transparent pointer-events-none" />
       
       {/* Dynamic Glow Corner (Subtle) */}
       <div className={cn(

@@ -78,13 +78,13 @@ export function SingleValidation() {
               <div>
                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic mb-3 block">Target Identity</label>
                 <div className="relative group">
-                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700 group-focus-within:text-brand-blue transition-colors" />
+                  <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-blue transition-colors" />
                   <input 
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="ENTER EMAIL ADDRESS..."
-                    className="w-full bg-app-bg/40 border border-app-border rounded-2xl h-16 pl-14 pr-6 text-[13px] font-black text-app-text placeholder:text-slate-500 outline-none focus:border-brand-blue/30 transition-all uppercase tracking-[0.2em] italic"
+                    className="w-full bg-slate-50/80 dark:bg-app-bg/40 border border-slate-200 dark:border-app-border rounded-2xl h-16 pl-14 pr-6 text-[13px] font-black text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-brand-blue/50 focus:ring-2 focus:ring-brand-blue/10 transition-all uppercase tracking-[0.2em] italic shadow-sm"
                   />
                 </div>
               </div>
@@ -92,13 +92,13 @@ export function SingleValidation() {
               <button 
                 type="submit"
                 disabled={isVerifying || !email.includes('@')}
-                className="w-full h-16 bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink hover:brightness-110 text-black font-black uppercase italic tracking-widest text-xs rounded-2xl transition-all shadow-xl disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-3 active:scale-95"
+                className="w-full h-16 bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink hover:brightness-105 text-white font-black uppercase italic tracking-widest text-xs rounded-2xl transition-all shadow-xl shadow-brand-blue/20 hover:shadow-brand-blue/40 disabled:opacity-50 disabled:shadow-none flex items-center justify-center gap-3 active:scale-95 drop-shadow-sm cursor-pointer"
               >
                 {isVerifying ? (
                   <div className="flex gap-1.5 items-center">
-                    <span className="w-1.5 h-1.5 bg-black rounded-full animate-bounce" />
-                    <span className="w-1.5 h-1.5 bg-black rounded-full animate-bounce [animation-delay:0.2s]" />
-                    <span className="w-1.5 h-1.5 bg-black rounded-full animate-bounce [animation-delay:0.4s]" />
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce" />
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.2s]" />
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-bounce [animation-delay:0.4s]" />
                   </div>
                 ) : (
                   <>
@@ -109,10 +109,10 @@ export function SingleValidation() {
               </button>
             </form>
 
-            <div className="mt-8 p-6 bg-app-bg/10 rounded-2xl border border-app-border">
+            <div className="mt-8 p-6 bg-brand-blue/5 dark:bg-app-bg/10 rounded-2xl border border-brand-blue/15 dark:border-app-border">
               <div className="flex items-start gap-4">
-                <Info className="w-4 h-4 text-slate-600 mt-1 flex-shrink-0" />
-                <p className="text-[9px] text-slate-600 font-black uppercase tracking-widest italic leading-relaxed">
+                <Info className="w-4 h-4 text-brand-blue mt-0.5 flex-shrink-0" />
+                <p className="text-[9px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest italic leading-relaxed">
                   Real-time SMTP handshake and heuristic intelligence will be applied to the target mailbox without sending an actual email.
                 </p>
               </div>
@@ -130,10 +130,10 @@ export function SingleValidation() {
                 className="h-full min-h-[300px] flex items-center justify-center border-2 border-dashed border-app-border rounded-[40px]"
               >
                 <div className="text-center">
-                  <div className="w-16 h-16 rounded-3xl bg-app-bg/10 flex items-center justify-center border border-app-border mx-auto mb-6">
-                    <Search className="w-8 h-8 text-slate-800" />
+                  <div className="w-16 h-16 rounded-3xl bg-brand-blue/5 flex items-center justify-center border border-brand-blue/15 mx-auto mb-6 shadow-sm">
+                    <Search className="w-8 h-8 text-brand-blue" />
                   </div>
-                  <p className="text-[10px] text-slate-700 font-extrabold uppercase tracking-[0.4em] italic">Awaiting Target Input</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-[0.4em] italic">Awaiting Target Input</p>
                 </div>
               </motion.div>
             ) : isVerifying ? (

@@ -30,21 +30,21 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
             <span className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-[9px] rounded-full uppercase font-black tracking-widest border border-brand-blue/20">0% Bounces</span>
           </div>
           <h3 className="text-2xl font-black text-app-text tracking-widest uppercase italic transition-all duration-500 group-hover:translate-x-1">Gold Standard</h3>
-          <p className="text-slate-500 text-xs mt-3 leading-relaxed font-medium">Our proprietary validation logic ensures maximum deliverability by purging dead nodes.</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs mt-3 leading-relaxed font-medium">Our proprietary validation logic ensures maximum deliverability by purging dead nodes.</p>
         </GlossyCard>
         
         <GlossyCard glow="blue" className="p-8 rounded-[32px] group">
           <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-6">Logic Core</p>
           <h3 className="text-2xl font-black text-brand-blue tracking-widest uppercase italic group-hover:translate-x-1 transition-transform">Auto-Purge</h3>
-          <p className="text-slate-500 text-xs mt-3 leading-relaxed font-medium">Synthetically generated addresses and commercial bots are automatically stripped from your sequence.</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs mt-3 leading-relaxed font-medium">Synthetically generated addresses and commercial bots are automatically stripped from your sequence.</p>
         </GlossyCard>
         
         <GlossyCard glow="purple" className="p-8 rounded-[32px] group">
           <div className="absolute inset-0 bg-gradient-to-br from-brand-purple/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-6">Audit Depth</p>
           <h3 className="text-2xl font-black gradient-text tracking-widest uppercase italic group-hover:translate-x-1 transition-transform">Deep Scan</h3>
-          <p className="text-slate-500 text-xs mt-3 leading-relaxed font-medium">Every identity undergoes a multi-layer verification check including SMTP and infrastructure audits.</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs mt-3 leading-relaxed font-medium">Every identity undergoes a multi-layer verification check including SMTP and infrastructure audits.</p>
         </GlossyCard>
       </div>
 
@@ -88,7 +88,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center gap-10 border-t border-white/5 pt-10">
+            <div className="flex flex-wrap justify-center gap-10 border-t border-app-border pt-10">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="w-4 h-4 text-brand-blue" />
                 <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Enterprise Vault</span>
@@ -100,9 +100,9 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
             </div>
             
             <div className="flex gap-4">
-              <div className="px-4 py-1.5 bg-white/5 rounded-lg border border-white/10 text-[9px] font-black tracking-widest text-slate-500 uppercase">.XLSX</div>
-              <div className="px-4 py-1.5 bg-white/5 rounded-lg border border-white/10 text-[9px] font-black tracking-widest text-slate-500 uppercase">.CSV</div>
-              <div className="px-4 py-1.5 bg-white/5 rounded-lg border border-white/10 text-[9px] font-black tracking-widest text-slate-500 uppercase">.XLS</div>
+              <div className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 text-[9px] font-black tracking-widest text-slate-600 dark:text-slate-400 uppercase">.XLSX</div>
+              <div className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 text-[9px] font-black tracking-widest text-slate-600 dark:text-slate-400 uppercase">.CSV</div>
+              <div className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 text-[9px] font-black tracking-widest text-slate-600 dark:text-slate-400 uppercase">.XLS</div>
             </div>
           </div>
           

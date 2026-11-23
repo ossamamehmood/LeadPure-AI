@@ -12,7 +12,7 @@ interface RulesSectionProps {
 export function RulesSection({ rules, onToggle }: RulesSectionProps) {
   return (
     <div className="max-w-5xl mx-auto w-full px-2 sm:px-0">
-      <GlossyCard className="p-6 md:p-14 rounded-[32px] md:rounded-[48px] shadow-2xl relative overflow-hidden border-white/5">
+      <GlossyCard className="p-6 md:p-14 rounded-[32px] md:rounded-[48px] shadow-2xl relative overflow-hidden border-app-border">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-blue/5 blur-[120px] rounded-full -mr-64 -mt-64 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-brand-blue/5 blur-[100px] rounded-full -ml-32 -mb-32 pointer-events-none" />
         

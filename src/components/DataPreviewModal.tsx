@@ -16,11 +16,11 @@ const MemoizedPreviewRow = React.memo(({ row, headers }: { row: any, headers: st
   if (!row) return null;
 
   return (
-    <div className="flex border-b border-white/5 hover:bg-white/[0.02] transition-colors group h-[50px] will-change-transform contain-layout contain-paint">
+    <div className="flex border-b border-app-border hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors group h-[50px] will-change-transform contain-layout contain-paint">
       {headers.map((header) => (
         <div 
           key={header} 
-          className="px-6 py-4 text-[11px] font-bold text-slate-400 font-mono tracking-tight border-r border-white/5 last:border-none group-hover:text-white transition-colors overflow-hidden truncate flex items-center"
+          className="px-6 py-4 text-[11px] font-bold text-slate-500 dark:text-slate-400 font-mono tracking-tight border-r border-app-border last:border-none group-hover:text-app-text transition-colors overflow-hidden truncate flex items-center"
           style={{ width: `${100 / headers.length}%`, flexShrink: 0 }}
         >
           {String(row[header] || '-')}
@@ -70,9 +70,9 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="w-full max-w-7xl h-full max-h-[90vh] relative z-10"
           >
-            <GlossyCard className="w-full h-full flex flex-col rounded-[40px] overflow-hidden border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+            <GlossyCard className="w-full h-full flex flex-col rounded-[40px] overflow-hidden border-app-border shadow-[0_0_100px_rgba(0,0,0,0.5)]">
               {/* Header */}
-              <div className="p-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 bg-white/[0.02]">
+              <div className="p-8 border-b border-app-border flex flex-col md:flex-row justify-between items-center gap-6 bg-white/[0.02]">
                 <div className="flex items-center gap-5">
                   <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
                     <TableIcon className="w-6 h-6 text-brand-blue" />
@@ -96,7 +96,7 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
                   </div>
                   <button 
                     onClick={onClose}
-                    className="w-11 h-11 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors border border-white/5"
+                    className="w-11 h-11 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 transition-colors border border-app-border text-app-text"
                   >
                     <X className="w-5 h-5 text-slate-400" />
                   </button>
