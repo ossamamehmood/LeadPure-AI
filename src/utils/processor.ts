@@ -69,7 +69,7 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
   if (raw.startsWith('+')) {
     try {
       const parsed = parsePhoneNumberWithError(raw);
-      formatted = parsed.format('E164');
+      formatted = parsed.format('E.164');
     } catch {
       formatted = '+' + cleaned;
     }
@@ -77,7 +77,7 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
     try {
       const countryCode = (country?.toUpperCase().slice(0, 2) || 'US') as CountryCode;
       const parsed = parsePhoneNumberWithError(cleaned, countryCode);
-      formatted = parsed.format('E164');
+      formatted = parsed.format('E.164');
     } catch {
       if (cleaned.startsWith('00')) {
         formatted = '+' + cleaned.slice(2);
