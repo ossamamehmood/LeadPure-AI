@@ -1,5 +1,5 @@
 import mailchecker from 'mailchecker';
-import customDisposableDomains from '../disposable-domains.json';
+import { customDisposableDomains } from './disposable-list.js';
 
 // Initialize in-memory set from bundled JSON list
 const customSet = new Set<string>();

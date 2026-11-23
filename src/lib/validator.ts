@@ -2,12 +2,12 @@
 // Combines RFC 5322 syntax validation, Reacher roles, mailchecker disposable detection,
 // DNS MX resolution with RFC 7505 null MX, and Reacher SMTP/HTTPS verification.
 
-import { validateSyntax, SyntaxResult } from './syntax';
-import { isDisposableDomain } from './data/disposable';
-import { isRoleAccount } from './data/roles';
-import { isFreeEmailProvider, shouldSkipCatchAll } from './data/free-providers';
-import { checkMx, MxCheckResult } from './dns';
-import { verifySmtpDeliverability, SmtpCheckResult } from './smtp';
+import { validateSyntax, SyntaxResult } from './syntax.js';
+import { isDisposableDomain } from './data/disposable.js';
+import { isRoleAccount } from './data/roles.js';
+import { isFreeEmailProvider, shouldSkipCatchAll } from './data/free-providers.js';
+import { checkMx, MxCheckResult } from './dns.js';
+import { verifySmtpDeliverability, SmtpCheckResult } from './smtp.js';
 
 export interface ValidationOptions {
   excludeDisposable: boolean;

@@ -1,5 +1,5 @@
 import net from 'net';
-import { shouldSkipCatchAll } from './data/free-providers';
+import { shouldSkipCatchAll } from './data/free-providers.js';
 
 export interface SmtpCheckResult {
   canConnect: boolean;
