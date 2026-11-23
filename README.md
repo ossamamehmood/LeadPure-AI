@@ -1,4 +1,4 @@
-# LeadPure AI — Enterprise Neural Email Verification Platform (v13.0.0)
+# LeadPure AI | Enterprise Neural Email Verification Platform (v13.0.0)
 
 <div align="center">
 
