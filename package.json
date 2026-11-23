@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "test": "tsx test-reacher-engine.ts",
     "test-engine": "tsx test-determinism.ts"
   },
   "engines": {
@@ -23,6 +24,7 @@
     "express": "^5.2.1",
     "libphonenumber-js": "1.12.43",
     "lucide-react": "0.546.0",
+    "mailchecker": "^6.0.21",
     "motion": "12.23.24",
     "react": "19.0.1",
     "react-dom": "19.0.1",

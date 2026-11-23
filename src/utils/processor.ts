@@ -3,7 +3,7 @@ import { ProcessedContact } from '../types';
 
 // Forensic telemetry CSV writing engine (active only in Node environments)
 let fs: any = null;
-const csvPath = 'C:/Users/ossamamehmood/.gemini/antigravity/scratch/LeadPure-AI/debug-results.csv';
+const csvPath = typeof process !== 'undefined' && process.cwd ? `${process.cwd()}/debug-results.csv` : '';
 
 if (typeof process !== 'undefined' && process.versions && process.versions.node) {
   import('fs').then(mod => {
