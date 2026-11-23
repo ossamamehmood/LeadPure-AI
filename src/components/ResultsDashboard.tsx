@@ -209,7 +209,7 @@ export function ResultsDashboard({
             <div className="flex items-baseline gap-2">
               <p className={cn(
                 "text-5xl font-black font-mono tracking-tighter italic transition-colors duration-500",
-                avgConfidence >= 98 ? "text-white shadow-sm" : "text-app-text"
+                avgConfidence >= 98 ? "text-brand-blue dark:text-white shadow-sm" : "text-app-text"
               )}>
                 {avgConfidence}<span className="text-2xl">%</span>
               </p>
@@ -222,11 +222,11 @@ export function ResultsDashboard({
         </motion.div>
 
         <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
-          <GlossyCard className="p-7 rounded-[40px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-white/10 transition-all">
+          <GlossyCard className="p-7 rounded-[40px] shadow-2xl relative border-app-border bg-app-card overflow-hidden group hover:border-brand-blue/20 transition-all">
             <div className="flex justify-between items-start mb-5">
               <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic">Engine Status</p>
-              <div className="w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center border border-white/10">
-                <Cpu className="w-4 h-4 text-slate-500" />
+              <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
+                <Cpu className="w-4 h-4 text-brand-blue" />
               </div>
             </div>
             <div className="flex items-center gap-3 mt-1">
@@ -234,7 +234,7 @@ export function ResultsDashboard({
             </div>
             <div className="mt-6 flex items-center justify-between">
               <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest italic leading-none">SMTP Mode</p>
-              <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[8px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30 shadow-sm">v12 Intelligence</div>
+              <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[8px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30 shadow-sm">v13 Intelligence</div>
             </div>
           </GlossyCard>
         </motion.div>

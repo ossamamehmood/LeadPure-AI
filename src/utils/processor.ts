@@ -173,7 +173,7 @@ export const processContacts = async (
   const valid: any[] = [];
   const eliminated: any[] = [];
   
-  console.log(`[PROCESSOR_V12.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
+  console.log(`[PROCESSOR_V13.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
   
   const stats = {
     totalInput: data.length,
