@@ -184,18 +184,31 @@ export default function App() {
   };
 
   const handleDownloadEliminated = (tier: 'all' | 'risky' | 'dangerous' = 'all') => {
-    const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
-    const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+    const rawExt = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')).toLowerCase() : '.xlsx';
+    const extension = (rawExt === '.csv' || rawExt === '.xlsx' || rawExt === '.xls') ? rawExt : '.xlsx';
+    const baseName = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : (fileName || 'leads');
     
     const filteredData = tier === 'all' 
       ? processor.eliminatedData 
-      : processor.eliminatedData.filter(item => item.status === tier);
+      : processor.eliminatedData.filter(item => {
+          if (tier === 'risky') return item.status === 'RISKY' || item.status === 'risky' || item.bounceRisk === 'Medium';
+          if (tier === 'dangerous') return item.status === 'INVALID' || item.status === 'dangerous' || item.bounceRisk === 'Dangerous' || item.bounceRisk === 'High';
+          return true;
+        });
 
-    const exportData = filteredData.map(item => ({
-      ...(item.__originalData || item),
-      elimination_reason: item.verificationReason || item.reason || 'Security Protocol',
-      risk_tier: item.status || 'dangerous'
-    }));
+    const exportData = filteredData.map(item => {
+      const base = item.__originalData || item;
+      return {
+        ...base,
+        Validation_Status: item.status || 'INVALID',
+        Sub_Status: item.sub_status || item.subStatus || '',
+        Failure_Code: item.failure_code || '',
+        Elimination_Reason: item.verificationReason || item.reason || 'Security Protocol',
+        Bounce_Risk: item.bounceRisk || 'Dangerous',
+        Confidence_Score: item.confidenceScore ?? 0,
+        Provider: item.provider || 'Unknown'
+      };
+    });
 
     if (exportData.length === 0) {
       toast(`NO ${tier.toUpperCase()} LEADS FOUND TO EXPORT`, 'info');
@@ -211,11 +224,17 @@ export default function App() {
   };
 
   const handleDownload = () => {
-    const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
-    const baseName = fileName.substring(0, fileName.lastIndexOf('.')) || fileName;
+    const rawExt = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')).toLowerCase() : '.xlsx';
+    const extension = (rawExt === '.csv' || rawExt === '.xlsx' || rawExt === '.xls') ? rawExt : '.xlsx';
+    const baseName = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : (fileName || 'leads');
     
-    // Only export original columns as requested (using protected data copy)
+    // Export normalized lead data
     const exportData = processor.processedData.map(item => item.__originalData || item);
+
+    if (exportData.length === 0) {
+      toast('NO VALID LEADS TO EXPORT', 'info');
+      return;
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();

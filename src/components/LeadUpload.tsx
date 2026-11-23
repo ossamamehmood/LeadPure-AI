@@ -84,7 +84,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
                 Identity <span className="gradient-text">Ingestion</span>
               </h2>
               <p className="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed font-medium uppercase tracking-widest">
-                Initiate Core-Omnisync v5.5 Verification Pipeline. 
+                Initiate Reacher-Grade Verification Pipeline (v12.5). 
               </p>
             </div>
 

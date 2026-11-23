@@ -8,8 +8,8 @@ export default async function handler(req: Request | any, res: Response | any) {
   }
 
   // Enterprise Security Headers
-  res.setHeader('X-LeadPure-Version', 'v12.0.0');
-  res.setHeader('X-LeadPure-Kernel', 'Elite-SMTP-v12.0');
+  res.setHeader('X-LeadPure-Version', 'v12.5.0');
+  res.setHeader('X-LeadPure-Kernel', 'Reacher-Hybrid-v12.5');
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
   try {
