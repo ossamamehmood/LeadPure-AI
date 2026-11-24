@@ -1,0 +1,118 @@
+name: LeadPure Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        description: 'Unique LeadPure verification request ID'
+        required: true
+        type: string
+      emails:
+        description: 'Email address(es) to check (separated by newlines or commas)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Reacher Binary
+        run: |
+          curl -sSL -o reacher.tar.gz https://github.com/reacherhq/check-if-email-exists/releases/download/v0.11.11/check_if_email_exists-x86_64-unknown-linux-gnu.tar.gz
+          tar -xzf reacher.tar.gz
+          chmod +x check_if_email_exists
+          echo "Reacher binary initialized successfully."
+
+      - name: Execute Verification Probes
+        env:
+          INPUT_REQUEST_ID: ${{ inputs.request_id }}
+          INPUT_EMAILS: ${{ inputs.emails }}
+        run: |
+          mkdir -p results
+          python3 - << 'EOF'
+          import os, sys, json, subprocess
+
+          raw_input = os.environ.get("INPUT_EMAILS", "")
+          req_id = os.environ.get("INPUT_REQUEST_ID", "default").strip()
+
+          emails = [e.strip() for e in raw_input.replace(",", "\n").splitlines() if e.strip()]
+          print(f"Executing checks for {len(emails)} addresses (request: {req_id})...")
+
+          results = []
+          for email in emails:
+              print(f"--> Probing {email} via Reacher on Port 25...")
+              try:
+                  proc = subprocess.run(
+                      ["./check_if_email_exists", "--from-email", "verify@leadpure.ai", "--hello-name", "leadpure.ai", email],
+                      capture_output=True,
+                      text=True,
+                      timeout=90
+                  )
+                  output = proc.stdout.strip()
+                  s = output.find('{')
+                  e = output.rfind('}')
+                  if s != -1 and e != -1:
+                      res_json = json.loads(output[s:e+1])
+                      results.append(res_json)
+                      print(f"    Verdict: {res_json.get('is_reachable')}")
+                  else:
+                      print(f"Failed to parse JSON for {email}: {output[:200]}")
+                      results.append({
+                          "input": email,
+                          "is_reachable": "unknown",
+                          "misc": {"is_disposable": False, "is_role_account": False},
+                          "mx": {"accepts_mail": False, "records": []},
+                          "smtp": {"can_connect_smtp": False, "is_deliverable": False, "is_catch_all": False, "response": proc.stderr[:200] or "No JSON output from binary"}
+                      })
+              except subprocess.TimeoutExpired:
+                  print(f"Timeout probing {email}")
+                  results.append({
+                      "input": email,
+                      "is_reachable": "unknown",
+                      "misc": {"is_disposable": False, "is_role_account": False},
+                      "mx": {"accepts_mail": True, "records": []},
+                      "smtp": {"can_connect_smtp": False, "is_deliverable": False, "is_catch_all": False, "response": "SMTP connection timed out"}
+                  })
+              except Exception as err:
+                  print(f"Error checking {email}: {err}")
+                  results.append({
+                      "input": email,
+                      "is_reachable": "unknown",
+                      "misc": {"is_disposable": False, "is_role_account": False},
+                      "mx": {"accepts_mail": False, "records": []},
+                      "smtp": {"can_connect_smtp": False, "is_deliverable": False, "is_catch_all": False, "response": str(err)}
+                  })
+
+          out_file = f"results/{req_id}.json"
+          with open(out_file, "w", encoding="utf-8") as f:
+              json.dump(results, f, indent=2)
+
+          print(f"Wrote {len(results)} results to {out_file}")
+          EOF
+
+      - name: Commit and Push Result to results branch
+        run: |
+          git config user.name "LeadPure Bot"
+          git config user.email "bot@leadpure.ai"
+          cp "results/${{ inputs.request_id }}.json" /tmp/result.json
+          
+          if git ls-remote --exit-code --heads origin results; then
+            git fetch origin results
+            git checkout -B results origin/results
+          else
+            git checkout --orphan results
+            git rm -rf . 2>/dev/null || true
+          fi
+          
+          mkdir -p results
+          cp /tmp/result.json "results/${{ inputs.request_id }}.json"
+          git add "results/${{ inputs.request_id }}.json"
+          git commit -m "verify: result for ${{ inputs.request_id }}"
+          git pull --rebase origin results 2>/dev/null || true
+          git push origin results

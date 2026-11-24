@@ -1,0 +1,243 @@
+import crypto from 'crypto';
+import dns from 'dns/promises';
+
+// Strict score calculation per Phase 2d
+export function calculatePhase2Score(reacherResult: any, hasSpf: boolean = false): number {
+  const syntax = reacherResult.syntax || {};
+  const mx = reacherResult.mx || {};
+  const smtp = reacherResult.smtp || {};
+  const misc = reacherResult.misc || {};
+  const reachable = reacherResult.is_reachable;
+
+  if (syntax.is_valid_syntax === false) return 0;
+  if (mx.accepts_mail === false || (mx.records && mx.records.length === 0)) return 5;
+
+  let score = 20;
+  if (!misc.is_disposable) score += 10;
+  if (!misc.is_role_account) score += 10;
+  if (hasSpf) score += 5;
+  if (smtp.is_deliverable) score += 45;
+  if (smtp.is_catch_all) score -= 25;
+  if (smtp.has_full_inbox) score -= 15;
+  if (smtp.is_disabled) score = Math.min(score, 10);
+  if (reachable === 'unknown') score = Math.min(score, 45);
+
+  return Math.max(0, Math.min(95, score));
+}
+
+function isValidSyntax(email: string): boolean {
+  if (!email || typeof email !== 'string') return false;
+  const parts = email.split('@');
+  if (parts.length !== 2) return false;
+  const [local, domain] = parts;
+  if (!local || !domain || local.length > 64 || domain.length > 255) return false;
+  if (local.startsWith('.') || local.endsWith('.') || local.includes('..')) return false;
+  return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(email);
+}
+
+export default async function handler(req: any, res: any) {
+  res.setHeader('X-LeadPure-Version', 'v15.0.0');
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+
+  const token = process.env.REACHER_GH_TOKEN || process.env.GITHUB_TOKEN;
+  const repoOwner = process.env.REACHER_REPO_OWNER || 'ossamamehmood';
+  const repoName = process.env.REACHER_REPO_NAME || 'LeadPure-AI';
+  const workflowFile = 'leadpure-check.yml';
+
+  // -------------------------------------------------------------
+  // GET /api/check?requestId=... (Polling for completed result)
+  // -------------------------------------------------------------
+  if (req.method === 'GET') {
+    const { requestId } = req.query || {};
+    if (!requestId || typeof requestId !== 'string') {
+      return res.status(400).json({ error: 'requestId parameter is required' });
+    }
+
+    if (!token) {
+      return res.json({
+        status: 'error',
+        is_reachable: 'unknown',
+        confidenceScore: null,
+        ui_label: 'UNKNOWN — verification backend unreachable',
+        ui_reason: 'Backend token (REACHER_GH_TOKEN) not configured in Vercel'
+      });
+    }
+
+    try {
+      const resultUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}.json?ref=results`;
+      const pollRes = await fetch(resultUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.raw+json',
+          'User-Agent': 'LeadPure-AI-Engine'
+        }
+      });
+
+      if (pollRes.status === 404) {
+        return res.json({
+          status: 'pending',
+          requestId,
+          message: 'Checking — a real SMTP probe is running on GitHub Actions; this takes 1–3 minutes'
+        });
+      }
+
+      if (pollRes.ok) {
+        const rawJson: any = await pollRes.json();
+        const resultArray = Array.isArray(rawJson) ? rawJson : [rawJson];
+        const primary = resultArray[0] || {};
+
+        let hasSpf = false;
+        try {
+          const domain = primary.input?.split('@')[1];
+          if (domain) {
+            const txts = await dns.resolveTxt(domain);
+            hasSpf = txts.some(r => r.join('').toLowerCase().startsWith('v=spf1'));
+          }
+        } catch {}
+
+        const score = calculatePhase2Score(primary, hasSpf);
+
+        let ui_label = 'UNKNOWN — could not verify';
+        let ui_reason = '';
+
+        if (primary.is_reachable === 'safe') {
+          ui_label = 'SAFE — mailbox verified';
+          ui_reason = 'Mailbox verified deliverable: Recipient confirmed by target mail server (non-catch-all)';
+        } else if (primary.is_reachable === 'risky') {
+          ui_label = 'RISKY';
+          const reasons = [];
+          if (primary.smtp?.is_catch_all) reasons.push('Catch-All Domain (accepts any local part)');
+          if (primary.misc?.is_role_account) reasons.push('Role Account (shared inbox)');
+          if (primary.misc?.is_disposable) reasons.push('Disposable Email Domain');
+          if (primary.smtp?.has_full_inbox) reasons.push('Mailbox Over Quota');
+          ui_reason = reasons.join(', ') || 'Domain or address characteristics present bounce risk';
+        } else if (primary.is_reachable === 'invalid') {
+          ui_label = 'INVALID';
+          ui_reason = primary.smtp?.is_disabled ? 'Account disabled by provider' : 'Mailbox does not exist (rejected by MX)';
+        }
+
+        return res.json({
+          status: 'completed',
+          ...primary,
+          confidenceScore: score,
+          ui_label,
+          ui_reason,
+          spfExists: hasSpf,
+          requestId,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      return res.json({
+        status: 'error',
+        is_reachable: 'unknown',
+        confidenceScore: null,
+        ui_label: 'UNKNOWN — verification backend unreachable',
+        ui_reason: `GitHub API returned status ${pollRes.status}`
+      });
+    } catch (err: any) {
+      return res.json({
+        status: 'error',
+        is_reachable: 'unknown',
+        confidenceScore: null,
+        ui_label: 'UNKNOWN — verification backend unreachable',
+        ui_reason: `Polling error: ${err.message}`
+      });
+    }
+  }
+
+  // -------------------------------------------------------------
+  // POST /api/check (Dispatch verification request)
+  // -------------------------------------------------------------
+  if (req.method === 'POST') {
+    const { email, emails } = req.body || {};
+    const rawList: string[] = emails ? (Array.isArray(emails) ? emails : [emails]) : (email ? [email] : []);
+
+    if (rawList.length === 0) {
+      return res.status(400).json({ error: 'email or emails array required' });
+    }
+
+    const targetEmail = rawList[0].trim();
+    const domain = targetEmail.split('@')[1] || '';
+
+    // 1. Local Syntax Fast-Check
+    if (!isValidSyntax(targetEmail)) {
+      return res.json({
+        status: 'completed',
+        input: targetEmail,
+        is_reachable: 'invalid',
+        confidenceScore: 0,
+        ui_label: 'INVALID',
+        ui_reason: 'RFC syntax invalid',
+        syntax: { is_valid_syntax: false, domain, username: targetEmail.split('@')[0] },
+        misc: { is_disposable: false, is_role_account: false },
+        mx: { accepts_mail: false, records: [] },
+        smtp: { can_connect_smtp: false, is_deliverable: false, is_catch_all: false }
+      });
+    }
+
+    if (!token) {
+      return res.json({
+        status: 'error',
+        input: targetEmail,
+        is_reachable: 'unknown',
+        confidenceScore: null,
+        ui_label: 'UNKNOWN — verification backend unreachable',
+        ui_reason: 'REACHER_GH_TOKEN not configured in Vercel environment'
+      });
+    }
+
+    const requestId = `lp_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+
+    try {
+      const dispatchUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/actions/workflows/${workflowFile}/dispatches`;
+      const dispatchRes = await fetch(dispatchUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'LeadPure-AI-Engine'
+        },
+        body: JSON.stringify({
+          ref: 'main',
+          inputs: {
+            request_id: requestId,
+            emails: rawList.join('\n')
+          }
+        })
+      });
+
+      if (!dispatchRes.ok) {
+        const errText = await dispatchRes.text();
+        return res.json({
+          status: 'error',
+          input: targetEmail,
+          is_reachable: 'unknown',
+          confidenceScore: null,
+          ui_label: 'UNKNOWN — verification backend unreachable',
+          ui_reason: `Workflow dispatch failed (${dispatchRes.status}): ${errText.slice(0, 100)}`
+        });
+      }
+
+      // Return pending state with requestId so client can poll
+      return res.json({
+        status: 'pending',
+        requestId,
+        targetEmail,
+        message: 'Checking — a real SMTP probe is running on GitHub Actions; this takes 1–3 minutes'
+      });
+    } catch (err: any) {
+      return res.json({
+        status: 'error',
+        input: targetEmail,
+        is_reachable: 'unknown',
+        confidenceScore: null,
+        ui_label: 'UNKNOWN — verification backend unreachable',
+        ui_reason: `Dispatch error: ${err.message}`
+      });
+    }
+  }
+
+  return res.status(405).json({ error: 'Method Not Allowed' });
+}
