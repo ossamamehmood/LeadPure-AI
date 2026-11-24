@@ -9,6 +9,7 @@
   <img src="https://img.shields.io/badge/Status-Production%20Active-brightgreen?style=for-the-badge" alt="Production" />
 
   <br />
+  <br />
 
   <div align="center">
   <img src=".github/LeadPure_AI.gif" alt="Orbita AI Banner" width="100%" />
@@ -19,6 +20,7 @@
   <br />
   *Engineered for 0% bounce-rate precision and mission-critical cold outreach protection.*
 
+  <br />
   <br />
 
   [Live Production Demo](https://leadpureai.vercel.app/) • [API Documentation](#api-reference) • [Verification Architecture](#neural-verification-architecture) • [Error Codes](#error-code-taxonomy)
