@@ -9,10 +9,11 @@
   <img src="https://img.shields.io/badge/Status-Production%20Active-brightgreen?style=for-the-badge" alt="Production" />
 
   <br />
-  <br />
 
   <div align="center">
   <img src=".github/LeadPure_AI.gif" alt="Orbita AI Banner" width="100%" />
+
+  <br />
 
   **Proprietary high-throughput email verification, mailbox deliverability intelligence, and identity hygiene engine.**
   <br />
