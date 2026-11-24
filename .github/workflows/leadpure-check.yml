@@ -1,14 +1,18 @@
-name: LeadPure Check
+name: leadpure-check
+
+# LeadPure OWN engine — runs probe.mjs (LeadPure's own SMTP probe) on a GitHub
+# Actions runner (outbound port 25 open) and commits the raw result JSON to
+# the `results` branch of THIS repo. No Reacher, no external verify repo.
 
 on:
   workflow_dispatch:
     inputs:
       request_id:
-        description: 'Unique LeadPure verification request ID'
+        description: 'Unique request id (result file name)'
         required: true
         type: string
       emails:
-        description: 'Email address(es) to check (separated by newlines or commas)'
+        description: 'Emails to verify, one per line'
         required: true
         type: string
 
@@ -16,110 +20,53 @@ permissions:
   contents: write
 
 jobs:
-  verify:
+  probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - name: Checkout repository
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
 
-      - name: Disable IPv6 (Force IPv4 for reliable SMTP)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Force IPv4 (avoid IPv6 SMTP drops)
+        run: sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1 || true
+
+      - name: Write email list
         run: |
-          sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
-          sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
-          sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+          printf '%s\n' "${{ inputs.emails }}" > emails.txt
+          wc -l emails.txt
 
-      - name: Download Reacher Binary
-        run: |
-          curl -sSL -o reacher.tar.gz https://github.com/reacherhq/check-if-email-exists/releases/download/v0.11.11/check_if_email_exists-x86_64-unknown-linux-gnu.tar.gz
-          tar -xzf reacher.tar.gz
-          chmod +x check_if_email_exists
-          echo "Reacher binary initialized successfully."
+      - name: Run LeadPure probe
+        run: node engine/probe.mjs emails.txt result.json
 
-      - name: Execute Verification Probes
+      - name: Publish result to results branch
         env:
-          INPUT_REQUEST_ID: ${{ inputs.request_id }}
-          INPUT_EMAILS: ${{ inputs.emails }}
+          REQUEST_ID: ${{ inputs.request_id }}
         run: |
-          mkdir -p results
-          python3 - << 'EOF'
-          import os, sys, json, subprocess
-
-          raw_input = os.environ.get("INPUT_EMAILS", "")
-          req_id = os.environ.get("INPUT_REQUEST_ID", "default").strip()
-
-          emails = [e.strip() for e in raw_input.replace(",", "\n").splitlines() if e.strip()]
-          print(f"Executing checks for {len(emails)} addresses (request: {req_id})...")
-
-          results = []
-          for email in emails:
-              print(f"--> Probing {email} via Reacher on Port 25...")
-              try:
-                  proc = subprocess.run(
-                      ["./check_if_email_exists", "--from-email", "verify@leadpure.ai", "--hello-name", "leadpure.ai", email],
-                      capture_output=True,
-                      text=True,
-                      timeout=180
-                  )
-                  output = proc.stdout.strip()
-                  s = output.find('{')
-                  e = output.rfind('}')
-                  if s != -1 and e != -1:
-                      res_json = json.loads(output[s:e+1])
-                      results.append(res_json)
-                      print(f"    Verdict: {res_json.get('is_reachable')}")
-                  else:
-                      print(f"Failed to parse JSON for {email}: {output[:200]}")
-                      results.append({
-                          "input": email,
-                          "is_reachable": "unknown",
-                          "misc": {"is_disposable": False, "is_role_account": False},
-                          "mx": {"accepts_mail": False, "records": []},
-                          "smtp": {"can_connect_smtp": False, "is_deliverable": False, "is_catch_all": False, "response": proc.stderr[:200] or "No JSON output from binary"}
-                      })
-              except subprocess.TimeoutExpired:
-                  print(f"Timeout probing {email}")
-                  results.append({
-                      "input": email,
-                      "is_reachable": "unknown",
-                      "misc": {"is_disposable": False, "is_role_account": False},
-                      "mx": {"accepts_mail": True, "records": []},
-                      "smtp": {"can_connect_smtp": False, "is_deliverable": False, "is_catch_all": False, "response": "SMTP connection timed out"}
-                  })
-              except Exception as err:
-                  print(f"Error checking {email}: {err}")
-                  results.append({
-                      "input": email,
-                      "is_reachable": "unknown",
-                      "misc": {"is_disposable": False, "is_role_account": False},
-                      "mx": {"accepts_mail": False, "records": []},
-                      "smtp": {"can_connect_smtp": False, "is_deliverable": False, "is_catch_all": False, "response": str(err)}
-                  })
-
-          out_file = f"results/{req_id}.json"
-          with open(out_file, "w", encoding="utf-8") as f:
-              json.dump(results, f, indent=2)
-
-          print(f"Wrote {len(results)} results to {out_file}")
-          EOF
-
-      - name: Commit and Push Result to results branch
-        run: |
-          git config user.name "LeadPure Bot"
-          git config user.email "bot@leadpure.ai"
-          cp "results/${{ inputs.request_id }}.json" /tmp/result.json
-          rm -rf results
-          
-          if git ls-remote --exit-code --heads origin results; then
-            git fetch origin results
-            git checkout -B results origin/results
+          git config user.name "leadpure-engine"
+          git config user.email "engine@leadpure.ai"
+          # Fetch or create the results branch in a scratch clone of this repo
+          cd "$RUNNER_TEMP"
+          git clone --quiet "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" pub
+          cd pub
+          if git ls-remote --exit-code --heads origin results >/dev/null 2>&1; then
+            git checkout --quiet results
           else
-            git checkout --orphan results
-            git rm -rf . 2>/dev/null || true
+            git checkout --quiet --orphan results
+            git rm -rf . >/dev/null 2>&1 || true
+            echo "# LeadPure verification results" > README.md
+            git add README.md
+            git commit --quiet -m "init results branch"
           fi
-          
           mkdir -p results
-          cp /tmp/result.json "results/${{ inputs.request_id }}.json"
-          git add "results/${{ inputs.request_id }}.json"
-          git commit -m "verify: result for ${{ inputs.request_id }}"
-          git pull --rebase origin results 2>/dev/null || true
-          git push origin results
+          cp "$GITHUB_WORKSPACE/result.json" "results/${REQUEST_ID}.json"
+          git add "results/${REQUEST_ID}.json"
+          git commit --quiet -m "result ${REQUEST_ID}"
+          git push --quiet origin results
+          echo "Published results/${REQUEST_ID}.json"
