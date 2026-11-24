@@ -367,9 +367,9 @@ export function SingleValidation() {
                         <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Bounce Risk</span>
                         <span className={cn(
                           "text-[10px] font-black uppercase",
-                          result.bounceRisk === 'Low' || result.bounceRisk === 'Safe' ? 'text-emerald-400' : 
-                          result.bounceRisk === 'Moderate' || result.bounceRisk === 'Medium' ? 'text-amber-400' : 
-                          result.bounceRisk === 'High' ? 'text-rose-500' : 'text-slate-400'
+                          result.bounceRisk === 'Safe' ? 'text-emerald-400' : 
+                          result.bounceRisk === 'Medium' ? 'text-amber-400' : 
+                          result.bounceRisk === 'High' || result.bounceRisk === 'Dangerous' ? 'text-rose-500' : 'text-slate-400'
                         )}>
                           {result.bounceRisk}
                         </span>
