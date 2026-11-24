@@ -1,0 +1,62 @@
+[
+  {
+    "input": "bellanacosta1@gmail.com",
+    "is_reachable": "invalid",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false,
+      "is_b2c": true,
+      "gravatar_url": null,
+      "haveibeenpwned": null
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "alt2.gmail-smtp-in.l.google.com.",
+        "alt1.gmail-smtp-in.l.google.com.",
+        "alt4.gmail-smtp-in.l.google.com.",
+        "gmail-smtp-in.l.google.com.",
+        "alt3.gmail-smtp-in.l.google.com."
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "bellanacosta1@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "bellanacosta1",
+      "normalized_email": "bellanacosta1@gmail.com",
+      "suggestion": null
+    },
+    "debug": {
+      "backend_name": "reacher-cli",
+      "reacher_version": "0.11.11",
+      "start_time": "2026-11-24T21:08:49.228681820Z",
+      "end_time": "2026-11-24T21:08:49.548105297Z",
+      "duration": {
+        "secs": 0,
+        "nanos": 319423477
+      },
+      "smtp": {
+        "verif_method": {
+          "type": "Smtp",
+          "host": "gmail-smtp-in.l.google.com.",
+          "verif_method": {
+            "from_email": "verify@leadpure.ai",
+            "hello_name": "leadpure.ai",
+            "proxy": null,
+            "smtp_port": 25,
+            "smtp_timeout": null,
+            "retries": 1
+          }
+        }
+      }
+    }
+  }
+]
