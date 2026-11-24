@@ -39,6 +39,30 @@ export function SingleValidation() {
 
       const initialData = await postRes.json();
 
+      if (initialData.status === 'error') {
+        clearInterval(timer);
+        setResult({
+          email: clean,
+          verificationStatus: 'unknown',
+          verificationReason: initialData.ui_reason || 'Verification backend unreachable',
+          subStatus: 'backend_error',
+          confidenceScore: 40,
+          bounceRisk: 'Unknown',
+          reputationImpact: 'Unknown',
+          mxRecordFound: false,
+          isCatchAll: false,
+          isDisposable: false,
+          isRoleBased: false,
+          isFreeEmail: false,
+          provider: 'Unknown',
+          smtpValid: false,
+          syntaxValid: true,
+          spfExists: false
+        });
+        setIsVerifying(false);
+        return;
+      }
+
       if (initialData.status === 'completed') {
         clearInterval(timer);
         setResult(initialData);

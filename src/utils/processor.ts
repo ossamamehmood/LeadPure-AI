@@ -351,238 +351,171 @@ export const processContacts = async (
 
   console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
 
-  // Stage 2: Sequential Batch processing (enforcing 40 leads per batch)
+  // Stage 2: Verification Engine (Single batch via /api/check on Port 25 runner)
   const total = preProcessedData.length;
-  const BATCH_SIZE = 40; 
-  const CONCURRENT_BATCHES = 1; // Pure sequential execution: Batch-after-batch throttling
-  
-  const batches = [];
-  for (let i = 0; i < total; i += BATCH_SIZE) {
-    batches.push({
-      startIndex: i,
-      items: preProcessedData.slice(i, i + BATCH_SIZE)
+  const emailsToVerify = preProcessedData.map(item => String(item[mappings.emailKey] || '').toLowerCase().trim());
+
+  if (total > 0 && !signal?.aborted) {
+    if (onProgress) onProgress(5, `Submitting ${total} identities to LeadPure verification engine...`);
+
+    const postRes = await fetch('/api/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emails: emailsToVerify }),
+      signal
     });
-  }
 
-  let completedBatches = 0;
+    const initialData = await postRes.json();
+    let results: any[] = [];
 
-  const processBatch = async (batchObj: { startIndex: number, items: any[] }) => {
-    if (signal?.aborted) return;
-    
-    const { startIndex, items } = batchObj;
-    const emailsToVerify = items.map(item => String(item[mappings.emailKey] || '').toLowerCase().trim());
-    
-    let retries = 2;
-    let success = false;
-    
-    while (retries >= 0 && !success && !signal?.aborted) {
-      try {
-        const controller = new AbortController();
-        
-        // High-precision Promise.race wrapper: set to 8000ms safety timeout limit
-        const fetchPromise = fetch('/api/validate-batch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            emails: emailsToVerify,
-            options: {
-              excludeDisposable: rules.excludeDisposable,
-              excludeRoleBased: rules.excludeRoleBased,
-              excludeCatchAll: rules.excludeCatchAll,
-              excludeSpamTraps: rules.excludeSpamTraps
-            }
-          }),
-          signal: controller.signal
-        });
+    if (initialData.status === 'completed' && Array.isArray(initialData.results)) {
+      results = initialData.results;
+    } else if (initialData.status === 'pending' && initialData.requestId) {
+      const reqId = initialData.requestId;
+      const startTime = Date.now();
+      const maxWaitMs = 600000; // 10 minutes max for bulk verification
 
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => {
-            controller.abort();
-            reject(new Error('Gateway Timeout Limit Reached (8000ms)'));
-          }, 8000);
-        });
-
-        const response = await Promise.race([fetchPromise, timeoutPromise]);
-
-        if (!response.ok) {
-          if (response.status === 502 || response.status === 504 || response.status === 429) {
-            throw new Error(`Gateway/RateLimit Error ${response.status}`);
-          }
-          throw new Error(`HTTP ${response.status}`);
+      while (Date.now() - startTime < maxWaitMs && !signal?.aborted) {
+        await new Promise(r => setTimeout(r, 6000));
+        const elapsedSec = Math.round((Date.now() - startTime) / 1000);
+        if (onProgress) {
+          onProgress(
+            Math.min(95, 10 + Math.round((elapsedSec / 120) * 85)),
+            `Probing mailboxes on Port 25 runner (${elapsedSec}s elapsed)...`
+          );
         }
-        
-        success = true;
-        const { results } = await response.json();
-      
-        // Merge results back into items
-        results.forEach((verificationResult: any, idx: number) => {
-          const item = items[idx];
-          const status = verificationResult.status;
-          const isSafe = status === 'SAFE';
 
-          if (!isSafe) {
-            const subStatus = verificationResult.sub_status || '';
-            if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
-            else if (subStatus === 'domain_not_found') stats.dnsFailure++;
-            else if (subStatus === 'disposable') stats.disposableMatch++;
-            else if (subStatus === 'role_based') stats.roleBasedMatch++;
-            else if (subStatus === 'catch_all') stats.catchAllMatch++;
-            else if (subStatus === 'toxic') stats.toxicPatternMatch++;
-            else if (subStatus === 'greylisted') stats.greylistedMatch++;
-            else if (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous') stats.highBounceRisk++;
-
-            const eliminatedRow = { 
-              ...item, 
-              ...verificationResult,
-              reason: verificationResult.verificationReason,
-              score: verificationResult.confidenceScore,
-              bounceRisk: verificationResult.bounceRisk,
-              reputationImpact: verificationResult.reputationImpact,
-              subStatus: verificationResult.sub_status,
-              status: status,
-              originalIndex: startIndex + idx,
-              __originalData: item
-            };
-            eliminated.push(eliminatedRow);
-            
-            // Telemetry logging to CSV
-            if (fs) {
-              try {
-                const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
-                const csvRow = `${escapeCsv(verificationResult.email)},${escapeCsv(status)},${escapeCsv(verificationResult.failure_code || '')},${verificationResult.smtp_code ?? ''},${escapeCsv(verificationResult.mx_ip || '')},${escapeCsv(verificationResult.trace || '')}\n`;
-                fs.appendFileSync(csvPath, csvRow, 'utf-8');
-              } catch (e) {}
-            }
-            
-            if (onProgress) {
-               onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] FILTERED: ${item[mappings.emailKey]} -> ${status} (${verificationResult.verificationReason})`);
-            }
-          } else {
-            stats.verifiedLeads++;
-            
-            const updatedItem = { ...item };
-            if (mappings.emailKey && verificationResult.email) {
-              updatedItem[mappings.emailKey] = verificationResult.email;
-            }
-            if (mappings.firstNameKey) updatedItem[mappings.firstNameKey] = cleanText(item[mappings.firstNameKey], rules.strictTitleCase);
-            if (mappings.lastNameKey) updatedItem[mappings.lastNameKey] = cleanText(item[mappings.lastNameKey], rules.strictTitleCase);
-            if (mappings.nameKey) updatedItem[mappings.nameKey] = cleanText(item[mappings.nameKey], rules.strictTitleCase);
-            if (mappings.cityKey) updatedItem[mappings.cityKey] = cleanText(item[mappings.cityKey], rules.strictTitleCase);
-            if (mappings.countryKey) updatedItem[mappings.countryKey] = cleanText(item[mappings.countryKey], rules.strictTitleCase);
-            
-            if (mappings.phoneKey) {
-              const originalPhone = String(item[mappings.phoneKey] || '');
-              const formatted = formatPhone(originalPhone, item[mappings.countryKey], rules.forcePlusSign);
-              updatedItem[mappings.phoneKey] = formatted;
-            }
-
-            if (mappings.postalCodeKey) {
-              updatedItem[mappings.postalCodeKey] = String(item[mappings.postalCodeKey] || '').trim().toUpperCase();
-            }
-
-            const validRow = {
-              ...verificationResult,
-              ...updatedItem,
-              originalIndex: startIndex + idx,
-              __originalData: updatedItem
-            } as ProcessedContact;
-            valid.push(validRow);
-
-            // Telemetry logging to CSV
-            if (fs) {
-              try {
-                const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
-                const csvRow = `${escapeCsv(verificationResult.email)},${escapeCsv(status)},${escapeCsv(verificationResult.failure_code || '')},${verificationResult.smtp_code ?? ''},${escapeCsv(verificationResult.mx_ip || '')},${escapeCsv(verificationResult.trace || '')}\n`;
-                fs.appendFileSync(csvPath, csvRow, 'utf-8');
-              } catch (e) {}
-            }
-
-            if (onProgress) {
-               onProgress(Math.min(100, Math.round(((completedBatches * BATCH_SIZE) + idx) / total * 100)), `[SYS] SECURED: ${updatedItem[mappings.emailKey]} -> ${status} (${verificationResult.verificationReason})`);
+        try {
+          const pollRes = await fetch(`/api/check?requestId=${encodeURIComponent(reqId)}`);
+          if (pollRes.ok) {
+            const pollData = await pollRes.json();
+            if (pollData.status === 'completed' && Array.isArray(pollData.results)) {
+              results = pollData.results;
+              break;
             }
           }
-        });
-
-      } catch (err: any) {
-        if (err.name === 'AbortError' && signal?.aborted) {
-          retries = -1;
-          break;
-        }
-        
-        retries--;
-        if (retries < 0) {
-          console.error(`[BATCH_ERROR] Batch starting at ${startIndex} failed permanently:`, err);
-          
-          // Complete data row conservation: Map timed-out or failed batch rows safely to ELIMINATED (UNKNOWN/ERR_009)
-          items.forEach((item, idx) => {
-            const emailVal = String(item[mappings.emailKey] || '').toLowerCase().trim();
-            const verificationResult = {
-              email: emailVal,
-              status: 'UNKNOWN' as const,
-              sub_status: 'timeout',
-              failure_code: 'ERR_009' as const,
-              smtp_code: null,
-              mx_ip: null,
-              timestamp: new Date().toISOString(),
-              is_catchall: false,
-              verificationStatus: 'unknown' as const,
-              verificationReason: `Safety Timeout (8000ms) or Gateway Crash: ${err.message}`,
-              confidenceScore: 50,
-              bounceRisk: 'Unknown' as const,
-              reputationImpact: 'Unknown' as const,
-              mxRecordFound: false,
-              isDisposable: false,
-              isRoleBased: false,
-              isFreeEmail: false,
-              isSpamTrap: false,
-              provider: 'Unknown',
-              smtpValid: false,
-              syntaxValid: false,
-              didyouseeme: false,
-              trace: `Safety Timeout -> Deflected to UNKNOWN (ERR_009)`
-            };
-
-            eliminated.push({
-              ...item,
-              ...verificationResult,
-              reason: verificationResult.verificationReason,
-              originalIndex: startIndex + idx,
-              __originalData: item
-            });
-
-            // Write timed-out trace to telemetry CSV
-            if (fs) {
-              try {
-                const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
-                const csvRow = `${escapeCsv(emailVal)},UNKNOWN,ERR_009,,,"Safety Timeout -> Deflected to UNKNOWN (ERR_009)"\n`;
-                fs.appendFileSync(csvPath, csvRow, 'utf-8');
-              } catch (e) {}
-            }
-          });
-        } else {
-          console.warn(`[BATCH_RETRY] Batch ${startIndex} failed, retrying... (${retries} left)`);
-          await new Promise(resolve => setTimeout(resolve, 1500)); 
+        } catch (pollErr) {
+          console.warn('[BULK_POLL_ERR]', pollErr);
         }
       }
     }
 
-    completedBatches++;
-    if (onProgress) {
-      onProgress(Math.min(100, Math.round((completedBatches / batches.length) * 100)));
-    }
-  };
+    // Merge results back into items or fallback to fail-closed UNKNOWN
+    preProcessedData.forEach((item, idx) => {
+      const emailVal = emailsToVerify[idx];
+      const verificationResult = results[idx] || {
+        email: emailVal,
+        status: 'UNKNOWN' as const,
+        sub_status: 'timeout',
+        failure_code: 'ERR_009' as const,
+        smtp_code: null,
+        mx_ip: null,
+        timestamp: new Date().toISOString(),
+        is_catchall: false,
+        verificationStatus: 'unknown' as const,
+        verificationReason: initialData.ui_reason || 'Verification backend did not answer within timeout window',
+        confidenceScore: 40,
+        bounceRisk: 'Unknown' as const,
+        reputationImpact: 'Unknown' as const,
+        mxRecordFound: false,
+        isDisposable: false,
+        isRoleBased: false,
+        isFreeEmail: false,
+        isSpamTrap: false,
+        provider: 'Unknown',
+        smtpValid: false,
+        syntaxValid: true,
+        didyouseeme: false,
+        trace: 'Timeout -> Deflected to UNKNOWN (ERR_009)'
+      };
 
-  // Run sequential throttling chunk-by-chunk to prevent socket crashes
-  for (let i = 0; i < batches.length; i += CONCURRENT_BATCHES) {
-    if (signal?.aborted) {
-      console.log(`[PROCESSOR] PIPELINE_ABORTED by user.`);
-      throw new Error('Pipeline Aborted');
-    }
-    const concurrentChunk = batches.slice(i, i + CONCURRENT_BATCHES);
-    await Promise.all(concurrentChunk.map(b => processBatch(b)));
-    
-    // Controlled adaptive jitter between sequential blocks
-    await new Promise(resolve => setTimeout(resolve, 150));
+      const status = verificationResult.status;
+      const isSafe = status === 'SAFE' || status === 'VERIFIED';
+
+      if (!isSafe) {
+        const subStatus = verificationResult.sub_status || verificationResult.subStatus || '';
+        if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
+        else if (subStatus === 'domain_not_found') stats.dnsFailure++;
+        else if (subStatus === 'disposable') stats.disposableMatch++;
+        else if (subStatus === 'role_based') stats.roleBasedMatch++;
+        else if (subStatus === 'catch_all' || verificationResult.isCatchAll) stats.catchAllMatch++;
+        else if (subStatus === 'toxic') stats.toxicPatternMatch++;
+        else if (subStatus === 'greylisted') stats.greylistedMatch++;
+        else if (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous') stats.highBounceRisk++;
+
+        const eliminatedRow = {
+          ...item,
+          ...verificationResult,
+          reason: verificationResult.verificationReason,
+          score: verificationResult.confidenceScore,
+          bounceRisk: verificationResult.bounceRisk,
+          reputationImpact: verificationResult.reputationImpact,
+          subStatus: subStatus,
+          status: status,
+          originalIndex: idx,
+          __originalData: item
+        };
+        eliminated.push(eliminatedRow);
+
+        if (fs) {
+          try {
+            const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
+            const csvRow = `${escapeCsv(verificationResult.email)},${escapeCsv(status)},${escapeCsv(verificationResult.failure_code || '')},${verificationResult.smtp_code ?? ''},${escapeCsv(verificationResult.mx_ip || '')},${escapeCsv(verificationResult.trace || '')}\n`;
+            fs.appendFileSync(csvPath, csvRow, 'utf-8');
+          } catch (e) {}
+        }
+
+        if (onProgress) {
+          onProgress(Math.min(100, Math.round(((idx + 1) / total) * 100)), `[SYS] FILTERED: ${item[mappings.emailKey]} -> ${status} (${verificationResult.verificationReason})`);
+        }
+      } else {
+        stats.verifiedLeads++;
+
+        const updatedItem = { ...item };
+        if (mappings.emailKey && verificationResult.email) {
+          updatedItem[mappings.emailKey] = verificationResult.email;
+        }
+        if (mappings.firstNameKey) updatedItem[mappings.firstNameKey] = cleanText(item[mappings.firstNameKey], rules.strictTitleCase);
+        if (mappings.lastNameKey) updatedItem[mappings.lastNameKey] = cleanText(item[mappings.lastNameKey], rules.strictTitleCase);
+        if (mappings.nameKey) updatedItem[mappings.nameKey] = cleanText(item[mappings.nameKey], rules.strictTitleCase);
+        if (mappings.cityKey) updatedItem[mappings.cityKey] = cleanText(item[mappings.cityKey], rules.strictTitleCase);
+        if (mappings.countryKey) updatedItem[mappings.countryKey] = cleanText(item[mappings.countryKey], rules.strictTitleCase);
+
+        if (mappings.phoneKey) {
+          const originalPhone = String(item[mappings.phoneKey] || '');
+          const formatted = formatPhone(originalPhone, item[mappings.countryKey], rules.forcePlusSign);
+          updatedItem[mappings.phoneKey] = formatted;
+        }
+
+        if (mappings.postalCodeKey) {
+          updatedItem[mappings.postalCodeKey] = String(item[mappings.postalCodeKey] || '').trim().toUpperCase();
+        }
+
+        const validRow = {
+          ...verificationResult,
+          ...updatedItem,
+          originalIndex: idx,
+          __originalData: updatedItem
+        } as ProcessedContact;
+        valid.push(validRow);
+
+        if (fs) {
+          try {
+            const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
+            const csvRow = `${escapeCsv(verificationResult.email)},${escapeCsv(status)},${escapeCsv(verificationResult.failure_code || '')},${verificationResult.smtp_code ?? ''},${escapeCsv(verificationResult.mx_ip || '')},${escapeCsv(verificationResult.trace || '')}\n`;
+            fs.appendFileSync(csvPath, csvRow, 'utf-8');
+          } catch (e) {}
+        }
+
+        if (onProgress) {
+          onProgress(Math.min(100, Math.round(((idx + 1) / total) * 100)), `[SYS] SECURED: ${updatedItem[mappings.emailKey]} -> ${status} (${verificationResult.verificationReason})`);
+        }
+      }
+    });
+  }
+
+  if (onProgress) {
+    onProgress(100, 'Verification complete');
   }
 
   const finalReport = {

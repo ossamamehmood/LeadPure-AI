@@ -116,12 +116,23 @@ export default async function handler(req: any, res: any) {
             ui_reason = item.smtp?.is_disabled ? 'Account disabled by provider' : 'Mailbox does not exist (rejected by MX)';
           }
 
-          const status = item.is_reachable === 'safe' ? 'VERIFIED' : (item.is_reachable === 'risky' ? 'RISKY' : (item.is_reachable === 'invalid' ? 'INVALID' : 'UNKNOWN'));
+          const status = item.is_reachable === 'safe' ? 'SAFE' : (item.is_reachable === 'risky' ? 'RISKY' : (item.is_reachable === 'invalid' ? 'INVALID' : 'UNKNOWN'));
           const verificationStatus = item.is_reachable === 'safe' ? 'safe' : (item.is_reachable === 'risky' ? 'risky' : (item.is_reachable === 'invalid' ? 'blocked' : 'unknown'));
+
+          let sub_status = 'ok';
+          if (item.syntax?.is_valid_syntax === false) sub_status = 'invalid_syntax';
+          else if (!item.mx?.accepts_mail) sub_status = 'domain_not_found';
+          else if (item.misc?.is_disposable) sub_status = 'disposable';
+          else if (item.misc?.is_role_account) sub_status = 'role_based';
+          else if (item.smtp?.is_catch_all) sub_status = 'catch_all';
+          else if (item.is_reachable === 'invalid') sub_status = 'mailbox_not_found';
+          else if (item.is_reachable === 'unknown') sub_status = 'unreachable';
 
           return {
             email: item.input,
             status,
+            sub_status,
+            subStatus: sub_status,
             verificationStatus,
             verificationReason: ui_reason,
             confidenceScore: score,
