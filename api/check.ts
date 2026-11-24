@@ -157,8 +157,8 @@ export default async function handler(req: any, res: any) {
 
         const primaryMapped = mappedList[0] || {};
         return res.json({
-          status: 'completed',
           ...primaryMapped,
+          status: 'completed',
           results: mappedList,
           requestId,
           timestamp: new Date().toISOString()
