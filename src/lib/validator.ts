@@ -1,4 +1,4 @@
-// LeadPure Enterprise Neural Verification Kernel (v13.0)
+// LeadPure Enterprise Neural Verification Kernel (v14.0)
 // Combines RFC 5322 syntax validation, role filtering, disposable detection,
 // DNS MX resolution with RFC 7505 null MX, and live RFC 5321 SMTP mailbox probing.
 
