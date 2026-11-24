@@ -490,137 +490,9 @@ export async function verifySmtpDeliverability(
     }
   }
 
-  // 4. Direct Outbound SMTP Handshake (Port 25)
-  const smtpProbe = await executeSmtpSocketHandshake(email, mxHost);
-
-  // If Port 25 connected successfully, parse RFC 5321 codes and exact phrases
-  if (smtpProbe.connected && smtpProbe.code !== null) {
-    const code = smtpProbe.code;
-    const resp = smtpProbe.response;
-
-    // A. Check Provider Anti-probing Block (e.g. Microsoft Hotmail/Outlook S3150 / 550 5.7.1)
-    if (isProviderBlocked(resp, code)) {
-      return {
-        canConnect: true,
-        isDeliverable: false,
-        isCatchAll: false,
-        hasFullInbox: false,
-        isDisabled: false,
-        isGreylisted: false,
-        isBlocked: true,
-        code,
-        response: resp,
-        verifMethod: 'smtp',
-        transcript: smtpProbe.transcript
-      };
-    }
-
-    // B. Catch-All Detection
-    // For non-consumer domains, probe a random 16-char nonexistent local part to test if domain accepts everything
-    let isCatchAll = false;
-    if (!shouldSkipCatchAll(domain, mxHost)) {
-      const randIdentity = `leadpure_probe_${crypto.randomBytes(8).toString('hex')}`;
-      const controlEmail = `${randIdentity}@${domain}`;
-      const controlProbe = await executeSmtpSocketHandshake(controlEmail, mxHost);
-      if (controlProbe.connected && (controlProbe.isPositive || controlProbe.code === 250 || controlProbe.code === 251)) {
-        isCatchAll = true;
-      }
-    }
-
-    if (isServiceClosing(code)) {
-      return {
-        canConnect: true,
-        isDeliverable: false,
-        isCatchAll,
-        hasFullInbox: false,
-        isDisabled: false,
-        isGreylisted: false,
-        code,
-        response: resp,
-        verifMethod: 'smtp',
-        transcript: smtpProbe.transcript
-      };
-    }
-
-    if (isGreylisted(resp)) {
-      return {
-        canConnect: true,
-        isDeliverable: false,
-        isCatchAll,
-        hasFullInbox: false,
-        isDisabled: false,
-        isGreylisted: true,
-        code,
-        response: resp,
-        verifMethod: 'smtp',
-        transcript: smtpProbe.transcript
-      };
-    }
-
-    if (isDisabledAccount(resp)) {
-      return {
-        canConnect: true,
-        isDeliverable: false,
-        isCatchAll,
-        hasFullInbox: false,
-        isDisabled: true,
-        isGreylisted: false,
-        code,
-        response: resp,
-        verifMethod: 'smtp',
-        transcript: smtpProbe.transcript
-      };
-    }
-
-    if (isFullInbox(resp)) {
-      return {
-        canConnect: true,
-        isDeliverable: false,
-        isCatchAll,
-        hasFullInbox: true,
-        isDisabled: false,
-        isGreylisted: false,
-        code,
-        response: resp,
-        verifMethod: 'smtp',
-        transcript: smtpProbe.transcript
-      };
-    }
-
-    if (isInvalidRecipient(resp, email) || code === 550 || code === 551 || code === 552 || code === 554) {
-      return {
-        canConnect: true,
-        isDeliverable: false,
-        isCatchAll,
-        hasFullInbox: false,
-        isDisabled: false,
-        isGreylisted: false,
-        code,
-        response: resp,
-        verifMethod: 'smtp',
-        transcript: smtpProbe.transcript
-      };
-    }
-
-    if (smtpProbe.isPositive || code === 250 || code === 251) {
-      return {
-        canConnect: true,
-        isDeliverable: true,
-        isCatchAll,
-        hasFullInbox: false,
-        isDisabled: false,
-        isGreylisted: false,
-        code,
-        response: resp,
-        verifMethod: 'smtp',
-        transcript: smtpProbe.transcript
-      };
-    }
-  }
-
-  // 5. Host Network Restricts Port 25 / Firewalled / Serverless Environment
-  // When running on platforms like Vercel or local hosts where outbound TCP 25 is blocked:
-  // HONEST REPORTING: Never return fake deliverability! Return honest UNKNOWN.
+  // 4. Strict Serverless Policy: No SMTP Attempts Inside Vercel
+  // Outbound TCP Port 25 is blocked on Vercel and serverless platforms.
+  // When no external backend is configured, fail fast with explicit configuration guidance.
   return {
     canConnect: false,
     isDeliverable: false,
@@ -630,8 +502,11 @@ export async function verifySmtpDeliverability(
     isGreylisted: false,
     isBlocked: false,
     code: null,
-    response: `SMTP probe unreachable: Target mail server (${mxHost}) did not respond on Port 25. Outbound TCP port 25 is restricted on this host network. Connect an external SMTP backend via SMTP_BACKEND_URL for full mailbox verification.`,
+    response: 'External SMTP backend required. Outbound TCP port 25 is blocked on Vercel; SMTP_BACKEND_URL must point to a VPS with open port 25.',
     verifMethod: 'smtp_unreachable',
-    transcript: smtpProbe.transcript
+    transcript: [
+      '<- [Vercel Architecture Guard] Outbound TCP port 25 is strictly blocked by serverless infrastructure.',
+      '<- [Configuration Required] Please configure SMTP_BACKEND_URL in Vercel to delegate to a VPS host with port 25 open.'
+    ]
   };
 }
