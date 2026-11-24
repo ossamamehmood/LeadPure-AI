@@ -86,43 +86,69 @@ export default async function handler(req: any, res: any) {
         const resultArray = Array.isArray(rawJson) ? rawJson : [rawJson];
         const primary = resultArray[0] || {};
 
-        let hasSpf = false;
-        try {
-          const domain = primary.input?.split('@')[1];
-          if (domain) {
-            const txts = await dns.resolveTxt(domain);
-            hasSpf = txts.some(r => r.join('').toLowerCase().startsWith('v=spf1'));
+        const mappedList = await Promise.all(resultArray.map(async (item: any) => {
+          let hasSpf = false;
+          try {
+            const domain = item.input?.split('@')[1];
+            if (domain) {
+              const txts = await dns.resolveTxt(domain);
+              hasSpf = txts.some(r => r.join('').toLowerCase().startsWith('v=spf1'));
+            }
+          } catch {}
+
+          const score = calculatePhase2Score(item, hasSpf);
+          let ui_label = 'UNKNOWN — could not verify';
+          let ui_reason = item.smtp?.response || 'Could not verify mailbox';
+
+          if (item.is_reachable === 'safe') {
+            ui_label = 'SAFE — mailbox verified';
+            ui_reason = 'Mailbox verified deliverable: Recipient confirmed by target mail server (non-catch-all)';
+          } else if (item.is_reachable === 'risky') {
+            ui_label = 'RISKY';
+            const reasons = [];
+            if (item.smtp?.is_catch_all) reasons.push('Catch-All Domain (accepts any local part)');
+            if (item.misc?.is_role_account) reasons.push('Role Account (shared inbox)');
+            if (item.misc?.is_disposable) reasons.push('Disposable Email Domain');
+            if (item.smtp?.has_full_inbox) reasons.push('Mailbox Over Quota');
+            ui_reason = reasons.join(', ') || 'Domain or address characteristics present bounce risk';
+          } else if (item.is_reachable === 'invalid') {
+            ui_label = 'INVALID';
+            ui_reason = item.smtp?.is_disabled ? 'Account disabled by provider' : 'Mailbox does not exist (rejected by MX)';
           }
-        } catch {}
 
-        const score = calculatePhase2Score(primary, hasSpf);
+          const status = item.is_reachable === 'safe' ? 'VERIFIED' : (item.is_reachable === 'risky' ? 'RISKY' : (item.is_reachable === 'invalid' ? 'INVALID' : 'UNKNOWN'));
+          const verificationStatus = item.is_reachable === 'safe' ? 'safe' : (item.is_reachable === 'risky' ? 'risky' : (item.is_reachable === 'invalid' ? 'blocked' : 'unknown'));
 
-        let ui_label = 'UNKNOWN — could not verify';
-        let ui_reason = '';
+          return {
+            email: item.input,
+            status,
+            verificationStatus,
+            verificationReason: ui_reason,
+            confidenceScore: score,
+            bounceRisk: item.is_reachable === 'safe' ? 'Low' : (item.is_reachable === 'risky' ? 'Moderate' : (item.is_reachable === 'invalid' ? 'High' : 'Unknown')),
+            reputationImpact: item.is_reachable === 'safe' ? 'Safe' : (item.is_reachable === 'risky' ? 'Moderate' : (item.is_reachable === 'invalid' ? 'Critical' : 'Unknown')),
+            isCatchAll: !!item.smtp?.is_catch_all,
+            isDeliverable: !!item.smtp?.is_deliverable,
+            mxRecordFound: !!item.mx?.accepts_mail,
+            mxRecord: item.mx?.records?.[0] || '',
+            provider: item.misc?.is_b2c ? 'Consumer Node' : 'Enterprise Node',
+            isFreeEmail: !!item.misc?.is_b2c,
+            isDisposable: !!item.misc?.is_disposable,
+            isRoleBased: !!item.misc?.is_role_account,
+            spfExists: hasSpf,
+            smtpValid: !!item.smtp?.can_connect_smtp,
+            syntaxValid: item.syntax?.is_valid_syntax !== false,
+            ui_label,
+            ui_reason,
+            raw: item
+          };
+        }));
 
-        if (primary.is_reachable === 'safe') {
-          ui_label = 'SAFE — mailbox verified';
-          ui_reason = 'Mailbox verified deliverable: Recipient confirmed by target mail server (non-catch-all)';
-        } else if (primary.is_reachable === 'risky') {
-          ui_label = 'RISKY';
-          const reasons = [];
-          if (primary.smtp?.is_catch_all) reasons.push('Catch-All Domain (accepts any local part)');
-          if (primary.misc?.is_role_account) reasons.push('Role Account (shared inbox)');
-          if (primary.misc?.is_disposable) reasons.push('Disposable Email Domain');
-          if (primary.smtp?.has_full_inbox) reasons.push('Mailbox Over Quota');
-          ui_reason = reasons.join(', ') || 'Domain or address characteristics present bounce risk';
-        } else if (primary.is_reachable === 'invalid') {
-          ui_label = 'INVALID';
-          ui_reason = primary.smtp?.is_disabled ? 'Account disabled by provider' : 'Mailbox does not exist (rejected by MX)';
-        }
-
+        const primaryMapped = mappedList[0] || {};
         return res.json({
           status: 'completed',
-          ...primary,
-          confidenceScore: score,
-          ui_label,
-          ui_reason,
-          spfExists: hasSpf,
+          ...primaryMapped,
+          results: mappedList,
           requestId,
           timestamp: new Date().toISOString()
         });

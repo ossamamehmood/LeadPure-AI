@@ -641,24 +641,54 @@ export const verifyEmail = async (
   }
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 7500);
-
-    const response = await fetch('/api/validate-batch', {
+    const postRes = await fetch('/api/check', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        emails: [clean],
-        options
-      }),
-      signal: controller.signal
+      body: JSON.stringify({ email: clean })
     });
-    clearTimeout(timeoutId);
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    const { results } = await response.json();
-    return results[0] as Partial<ProcessedContact>;
+    const initialData = await postRes.json();
+    if (initialData.status === 'completed') {
+      return initialData as Partial<ProcessedContact>;
+    }
+
+    if (initialData.status === 'pending' && initialData.requestId) {
+      const reqId = initialData.requestId;
+      const startTime = Date.now();
+      const maxWaitMs = 240000;
+
+      while (Date.now() - startTime < maxWaitMs) {
+        await new Promise(r => setTimeout(r, 6000));
+        try {
+          const pollRes = await fetch(`/api/check?requestId=${encodeURIComponent(reqId)}`);
+          if (pollRes.ok) {
+            const pollData = await pollRes.json();
+            if (pollData.status === 'completed') {
+              return pollData as Partial<ProcessedContact>;
+            }
+          }
+        } catch {}
+      }
+    }
+
+    return {
+      verificationStatus: 'unknown',
+      verificationReason: 'Safety Timeout: Verification probe did not complete in time',
+      subStatus: 'timeout',
+      confidenceScore: 40,
+      bounceRisk: 'Unknown',
+      reputationImpact: 'Unknown',
+      mxRecordFound: false,
+      isCatchAll: false,
+      isDisposable: false,
+      isRoleBased: false,
+      isFreeEmail: false,
+      provider: 'Unknown',
+      smtpValid: false,
+      syntaxValid: true,
+      email: clean,
+      status: 'UNKNOWN'
+    };
   } catch (err: any) {
     console.error('[SINGLE_VALIDATION_ERROR]', err);
     return {
@@ -677,14 +707,7 @@ export const verifyEmail = async (
       smtpValid: false,
       syntaxValid: false,
       email: clean,
-      status: 'UNKNOWN',
-      sub_status: 'timeout',
-      failure_code: 'ERR_009',
-      smtp_code: null,
-      mx_ip: null,
-      timestamp,
-      is_catchall: false,
-      trace: `Safety Timeout -> Deflected to UNKNOWN (ERR_009) via wrapper: ${err.message}`
+      status: 'UNKNOWN'
     };
   }
 };
