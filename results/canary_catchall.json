@@ -4,17 +4,58 @@
     "is_reachable": "unknown",
     "misc": {
       "is_disposable": false,
-      "is_role_account": false
+      "is_role_account": false,
+      "is_b2c": false,
+      "gravatar_url": null,
+      "haveibeenpwned": null
     },
     "mx": {
       "accepts_mail": true,
-      "records": []
+      "records": [
+        "alt3.aspmx.l.google.com.",
+        "aspmx.l.google.com.",
+        "alt2.aspmx.l.google.com.",
+        "alt1.aspmx.l.google.com.",
+        "alt4.aspmx.l.google.com."
+      ]
     },
     "smtp": {
-      "can_connect_smtp": false,
-      "is_deliverable": false,
-      "is_catch_all": false,
-      "response": "SMTP connection timed out"
+      "error": {
+        "type": "IOError",
+        "message": "Network is unreachable (os error 101)"
+      }
+    },
+    "syntax": {
+      "address": "katie@studio-esthetics.com",
+      "domain": "studio-esthetics.com",
+      "is_valid_syntax": true,
+      "username": "katie",
+      "normalized_email": "katie@studio-esthetics.com",
+      "suggestion": null
+    },
+    "debug": {
+      "backend_name": "reacher-cli",
+      "reacher_version": "0.11.11",
+      "start_time": "2026-11-24T21:13:52.029474124Z",
+      "end_time": "2026-11-24T21:16:04.627637562Z",
+      "duration": {
+        "secs": 132,
+        "nanos": 598163438
+      },
+      "smtp": {
+        "verif_method": {
+          "type": "Smtp",
+          "host": "aspmx.l.google.com.",
+          "verif_method": {
+            "from_email": "verify@leadpure.ai",
+            "hello_name": "leadpure.ai",
+            "proxy": null,
+            "smtp_port": 25,
+            "smtp_timeout": null,
+            "retries": 1
+          }
+        }
+      }
     }
   }
 ]
