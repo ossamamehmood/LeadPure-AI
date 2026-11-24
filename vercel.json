@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "git": {
+    "deploymentEnabled": {
+      "results": false
+    }
+  },
   "functions": {
     "api/*.ts": {
       "maxDuration": 30

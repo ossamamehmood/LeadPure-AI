@@ -65,6 +65,10 @@ jobs:
             git commit --quiet -m "init results branch"
           fi
           mkdir -p results
+          if [ ! -f vercel.json ]; then
+            echo '{"ignoreCommand":"exit 0"}' > vercel.json
+            git add vercel.json
+          fi
           cp "$GITHUB_WORKSPACE/result.json" "results/${REQUEST_ID}.json"
           git add "results/${REQUEST_ID}.json"
           git commit --quiet -m "result ${REQUEST_ID}"
