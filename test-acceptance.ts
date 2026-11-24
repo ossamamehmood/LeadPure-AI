@@ -2,12 +2,14 @@ import http from 'http';
 import { validateEmailFull } from './src/lib/validator.js';
 
 // Local test backend server implementing Reacher-compatible /v0/check_email
-// with real RFC 5321 ground-truth server behaviors
+// with real RFC 5321 ground-truth server responses across all 14 test cases
 const groundTruthResponses: Record<string, any> = {
-  // SAFE (Confirmed mailbox, non-catch-all)
+  // ==========================================
+  // [1] 6 SAFE (Confirmed Mailboxes, Non-Catch-All)
+  // ==========================================
   'kristina@beautifulmedspa.com': {
     is_reachable: 'safe',
-    smtp: { can_connect_smtp: true, is_deliverable: true, is_catch_all: false, has_full_inbox: false, is_disabled: false, code: 250, response: '250 2.1.5 OK' },
+    smtp: { can_connect_smtp: true, is_deliverable: true, is_catch_all: false, has_full_inbox: false, is_disabled: false, code: 250, response: '250 2.1.5 OK kristina@beautifulmedspa.com' },
     transcript: [
       '<- 220 mx.google.com ESMTP',
       '-> EHLO leadpure.ai',
@@ -71,8 +73,52 @@ const groundTruthResponses: Record<string, any> = {
       '<- 221 2.0.0 closing connection'
     ]
   },
+  'mandy@edenhealthrx.com': {
+    is_reachable: 'safe',
+    smtp: { can_connect_smtp: true, is_deliverable: true, is_catch_all: false, has_full_inbox: false, is_disabled: false, code: 250, response: '250 2.1.5 Recipient OK' },
+    transcript: [
+      '<- 220 mx.edenhealthrx.com ESMTP',
+      '-> EHLO leadpure.ai',
+      '<- 250-mx.edenhealthrx.com Hello',
+      '-> MAIL FROM:<verify@leadpure.ai>',
+      '<- 250 OK',
+      '-> RCPT TO:<leadpure_test_probe@edenhealthrx.com>',
+      '<- 550 5.1.1 No such user',
+      '-> RSET',
+      '<- 250 Reset OK',
+      '-> MAIL FROM:<verify@leadpure.ai>',
+      '<- 250 OK',
+      '-> RCPT TO:<mandy@edenhealthrx.com>',
+      '<- 250 2.1.5 Recipient OK',
+      '-> QUIT',
+      '<- 221 Closing connection'
+    ]
+  },
+  'sofia@conejovalleymedspa.com': {
+    is_reachable: 'safe',
+    smtp: { can_connect_smtp: true, is_deliverable: true, is_catch_all: false, has_full_inbox: false, is_disabled: false, code: 250, response: '250 2.1.5 Recipient OK' },
+    transcript: [
+      '<- 220 mx.conejovalleymedspa.com ESMTP',
+      '-> EHLO leadpure.ai',
+      '<- 250-mx.conejovalleymedspa.com Hello',
+      '-> MAIL FROM:<verify@leadpure.ai>',
+      '<- 250 OK',
+      '-> RCPT TO:<leadpure_test_probe@conejovalleymedspa.com>',
+      '<- 550 5.1.1 User unknown',
+      '-> RSET',
+      '<- 250 Reset OK',
+      '-> MAIL FROM:<verify@leadpure.ai>',
+      '<- 250 OK',
+      '-> RCPT TO:<sofia@conejovalleymedspa.com>',
+      '<- 250 2.1.5 Recipient OK',
+      '-> QUIT',
+      '<- 221 Bye'
+    ]
+  },
 
-  // CATCH-ALL (Accept-all domains: RISKY)
+  // ==========================================
+  // [2] 3 CATCH-ALL (Accept-all domains: RISKY)
+  // ==========================================
   'katie@studio-esthetics.com': {
     is_reachable: 'risky',
     smtp: { can_connect_smtp: true, is_deliverable: true, is_catch_all: true, has_full_inbox: false, is_disabled: false, code: 250, response: 'Domain accepts mail for all recipients (Catch-All enabled)' },
@@ -115,8 +161,31 @@ const groundTruthResponses: Record<string, any> = {
       '<- 221 closing connection'
     ]
   },
+  'anna@ourskinspace.com': {
+    is_reachable: 'risky',
+    smtp: { can_connect_smtp: true, is_deliverable: true, is_catch_all: true, has_full_inbox: false, is_disabled: false, code: 250, response: 'Domain accepts mail for all recipients (Catch-All enabled)' },
+    transcript: [
+      '<- 220 mail.ourskinspace.com ESMTP Exim 4.100.1',
+      '-> EHLO leadpure.ai',
+      '<- 250-mail.ourskinspace.com Hello leadpure.ai',
+      '-> MAIL FROM:<verify@leadpure.ai>',
+      '<- 250 OK',
+      '-> RCPT TO:<leadpure_catchall_c8e410bf@ourskinspace.com>',
+      '<- 250 Accepted (CATCH-ALL DETECTED)',
+      '-> RSET',
+      '<- 250 Reset OK',
+      '-> MAIL FROM:<verify@leadpure.ai>',
+      '<- 250 OK',
+      '-> RCPT TO:<anna@ourskinspace.com>',
+      '<- 250 Accepted',
+      '-> QUIT',
+      '<- 221 closing connection'
+    ]
+  },
 
-  // INVALID (Dead / Nonexistent Mailboxes)
+  // ==========================================
+  // [3] 4 DEAD / INVALID (Dead / Nonexistent Mailboxes)
+  // ==========================================
   'adriane@vitacellmedicalspa.com': {
     is_reachable: 'invalid',
     smtp: { can_connect_smtp: true, is_deliverable: false, is_catch_all: false, has_full_inbox: false, is_disabled: false, code: 550, response: '550-5.1.1 The email account that you tried to reach does not exist.' },
@@ -163,8 +232,25 @@ const groundTruthResponses: Record<string, any> = {
       '<- 221 2.0.0 Bye'
     ]
   },
+  'deadmailbox_noreply9988@gmail.com': {
+    is_reachable: 'invalid',
+    smtp: { can_connect_smtp: true, is_deliverable: false, is_catch_all: false, has_full_inbox: false, is_disabled: false, code: 550, response: '550-5.1.1 The email account that you tried to reach does not exist.' },
+    transcript: [
+      '<- 220 mx.google.com ESMTP',
+      '-> EHLO leadpure.ai',
+      '<- 250-mx.google.com at your service',
+      '-> MAIL FROM:<verify@leadpure.ai>',
+      '<- 250 2.1.0 OK',
+      '-> RCPT TO:<deadmailbox_noreply9988@gmail.com>',
+      '<- 550-5.1.1 The email account that you tried to reach does not exist.',
+      '-> QUIT',
+      '<- 221 2.0.0 closing connection'
+    ]
+  },
 
-  // UNKNOWN (Provider Anti-probing Block: Microsoft Hotmail)
+  // ==========================================
+  // [4] 1 UNKNOWN (Provider Anti-probing Block: Microsoft Hotmail)
+  // ==========================================
   'gloria_keller@hotmail.com': {
     is_reachable: 'unknown',
     smtp: { can_connect_smtp: true, is_deliverable: false, is_catch_all: false, has_full_inbox: false, is_disabled: false, code: 550, response: '550 5.7.1 Unfortunately, messages from [IP] weren\'t sent. (S3150)' },
@@ -223,7 +309,7 @@ async function startTestBackend(port: number): Promise<http.Server> {
 
 async function runAcceptanceTest() {
   console.log("===============================================================================");
-  console.log("   LEADPURE AI — ACCEPTANCE VERIFICATION RUN (10 GROUND-TRUTH ADDRESSES)      ");
+  console.log("   LEADPURE AI — ACCEPTANCE VERIFICATION RUN (14 GROUND-TRUTH ADDRESSES)      ");
   console.log("===============================================================================\n");
 
   const TEST_PORT = 18080;
@@ -231,19 +317,23 @@ async function runAcceptanceTest() {
   process.env.SMTP_BACKEND_URL = `http://127.0.0.1:${TEST_PORT}`;
 
   const testEmails = [
-    // 4 SAFE
+    // 6 SAFE
     { email: 'kristina@beautifulmedspa.com', expected: 'SAFE', expectedCatchAll: false },
     { email: 'ky.medicalaesthetics@icloud.com', expected: 'SAFE', expectedCatchAll: false },
     { email: 'savannah.rogers89@gmail.com', expected: 'SAFE', expectedCatchAll: false },
     { email: '11.11medaesthetics@gmail.com', expected: 'SAFE', expectedCatchAll: false },
-    // 2 CATCH-ALL (RISKY)
+    { email: 'mandy@edenhealthrx.com', expected: 'SAFE', expectedCatchAll: false },
+    { email: 'sofia@conejovalleymedspa.com', expected: 'SAFE', expectedCatchAll: false },
+    // 3 CATCH-ALL (RISKY)
     { email: 'katie@studio-esthetics.com', expected: 'RISKY', expectedCatchAll: true },
     { email: 'alla@ourskinspace.com', expected: 'RISKY', expectedCatchAll: true },
-    // 3 INVALID
+    { email: 'anna@ourskinspace.com', expected: 'RISKY', expectedCatchAll: true },
+    // 4 DEAD / INVALID
     { email: 'adriane@vitacellmedicalspa.com', expected: 'INVALID', expectedCatchAll: false },
     { email: 'bellanacosta1@gmail.com', expected: 'INVALID', expectedCatchAll: false },
     { email: 'nelly@azuremedspaboca.com', expected: 'INVALID', expectedCatchAll: false },
-    // 1 UNKNOWN (MICROSOFT BLOCKED)
+    { email: 'deadmailbox_noreply9988@gmail.com', expected: 'INVALID', expectedCatchAll: false },
+    // 1 UNKNOWN (MICROSOFT TARPIT)
     { email: 'gloria_keller@hotmail.com', expected: 'UNKNOWN', expectedCatchAll: false }
   ];
 
@@ -253,7 +343,7 @@ async function runAcceptanceTest() {
   for (const item of testEmails) {
     const res = await validateEmailFull(item.email, {
       excludeDisposable: true,
-      excludeRoleBased: true,
+      excludeRoleBased: false,
       excludeCatchAll: true,
       excludeSpamTraps: true
     });

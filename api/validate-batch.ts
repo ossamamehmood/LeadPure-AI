@@ -31,7 +31,7 @@ export default async function handler(req: Request | any, res: Response | any) {
     const mergedOptions: ValidationOptions = { ...defaultOptions, ...(options || {}) };
 
     const startTime = Date.now();
-    const TIMEOUT_MS = 7500; // 7.5s serverless internal timeout safety threshold (Vercel max is 10s)
+    const TIMEOUT_MS = 25000; // 25s serverless internal timeout safety threshold (configured maxDuration is 30s)
 
     // Execute validations in parallel for maximum I/O throughput to different MX servers
     const results = await Promise.all(
