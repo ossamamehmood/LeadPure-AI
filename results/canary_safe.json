@@ -1,0 +1,62 @@
+[
+  {
+    "input": "bssesessional@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false,
+      "is_b2c": true,
+      "gravatar_url": null,
+      "haveibeenpwned": null
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com.",
+        "alt3.gmail-smtp-in.l.google.com.",
+        "alt4.gmail-smtp-in.l.google.com.",
+        "alt1.gmail-smtp-in.l.google.com.",
+        "alt2.gmail-smtp-in.l.google.com."
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "bssesessional@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "bssesessional",
+      "normalized_email": "bssesessional@gmail.com",
+      "suggestion": null
+    },
+    "debug": {
+      "backend_name": "reacher-cli",
+      "reacher_version": "0.11.11",
+      "start_time": "2026-11-24T21:08:46.610636537Z",
+      "end_time": "2026-11-24T21:08:47.061080639Z",
+      "duration": {
+        "secs": 0,
+        "nanos": 450444102
+      },
+      "smtp": {
+        "verif_method": {
+          "type": "Smtp",
+          "host": "gmail-smtp-in.l.google.com.",
+          "verif_method": {
+            "from_email": "verify@leadpure.ai",
+            "hello_name": "leadpure.ai",
+            "proxy": null,
+            "smtp_port": 25,
+            "smtp_timeout": null,
+            "retries": 1
+          }
+        }
+      }
+    }
+  }
+]
