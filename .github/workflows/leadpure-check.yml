@@ -22,6 +22,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Disable IPv6 (Force IPv4 for reliable SMTP)
+        run: |
+          sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1
+          sudo sysctl -w net.ipv6.conf.default.disable_ipv6=1
+          sudo sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+
       - name: Download Reacher Binary
         run: |
           curl -sSL -o reacher.tar.gz https://github.com/reacherhq/check-if-email-exists/releases/download/v0.11.11/check_if_email_exists-x86_64-unknown-linux-gnu.tar.gz
