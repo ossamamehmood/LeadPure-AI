@@ -49,8 +49,8 @@ jobs:
         env:
           REQUEST_ID: ${{ inputs.request_id }}
         run: |
-          git config user.name "leadpure-engine"
-          git config user.email "engine@leadpure.ai"
+          git config --global user.name "leadpure-engine"
+          git config --global user.email "engine@leadpure.ai"
           # Fetch or create the results branch in a scratch clone of this repo
           cd "$RUNNER_TEMP"
           git clone --quiet "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" pub
