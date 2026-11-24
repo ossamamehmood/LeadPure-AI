@@ -1,6 +1,9 @@
 # LeadPure AI | Enterprise Neural Email Verification Platform (v13.0.0)
 
 <div align="center">
+  <img src=".github/LeadPure_AI.gif" alt="Orbita AI Banner" width="100%" />
+
+<div align="center">
 
   <img src="https://img.shields.io/badge/Version-13.0.0-blueviolet?style=for-the-badge&logo=rocket" alt="Version 13.0.0" />
   <img src="https://img.shields.io/badge/Engine-LeadPure%20Neural%20Kernel%20v13-blue?style=for-the-badge&logo=shield" alt="LeadPure Engine" />
