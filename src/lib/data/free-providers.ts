@@ -40,15 +40,19 @@ export function isFreeEmailProvider(domain: string): boolean {
 export function shouldSkipCatchAll(domain: string, mxHost?: string): boolean {
   if (!domain) return false;
   const d = domain.toLowerCase().trim();
+  // Only public consumer mail domains (e.g. gmail.com, hotmail.com) never have catch-all.
+  // Custom business domains using Google Workspace or Microsoft 365 CAN and frequently DO enable catch-all!
   if (skipCatchAllDomains.has(d)) return true;
   
   if (mxHost) {
     const mx = mxHost.toLowerCase();
-    if (mx.includes('.google.com') || mx.includes('.googlemail.com')) return true;
-    if (mx.includes('.olc.protection.outlook.com')) return true;
-    if (mx.includes('.yahoodns.net')) return true;
-    if (mx.includes('.apple.com') || mx.includes('.icloud.com')) return true;
-    if (mx.includes('.protonmail.ch')) return true;
+    // Consumer-only MX gateways
+    if (mx.includes('gmail-smtp-in.l.google.com') && d === 'gmail.com') return true;
+    if (mx.includes('.olc.protection.outlook.com') && (d.includes('hotmail') || d.includes('outlook') || d.includes('live') || d.includes('msn'))) return true;
+    if (mx.includes('.yahoodns.net') && (d.includes('yahoo') || d.includes('ymail') || d.includes('rocketmail') || d.includes('aol'))) return true;
+    if (mx.includes('.apple.com') || mx.includes('.icloud.com')) {
+      if (d === 'icloud.com' || d === 'me.com' || d === 'mac.com') return true;
+    }
   }
   return false;
 }

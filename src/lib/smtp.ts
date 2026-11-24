@@ -1,4 +1,5 @@
 import net from 'net';
+import crypto from 'crypto';
 import { shouldSkipCatchAll } from './data/free-providers.js';
 
 export interface SmtpCheckResult {
@@ -8,9 +9,11 @@ export interface SmtpCheckResult {
   hasFullInbox: boolean;
   isDisabled: boolean;
   isGreylisted: boolean;
+  isBlocked?: boolean;
   code: number | null;
   response: string;
-  verifMethod: 'smtp' | 'yahoo_api' | 'microsoft365_api' | 'dns_fallback';
+  verifMethod: 'smtp' | 'yahoo_api' | 'microsoft365_api' | 'backend' | 'smtp_unreachable';
+  transcript?: string[];
 }
 
 // ----------------- LEADPURE SMTP RESPONSE PARSER -----------------
@@ -24,7 +27,9 @@ export function isGreylisted(response: string): boolean {
     e.includes('gray-list') ||
     e.includes('postgrey') ||
     e.includes('please come back later') ||
-    e.includes('try again later')
+    e.includes('try again later') ||
+    e.includes('temporary failure') ||
+    e.includes('try later')
   );
 }
 
@@ -56,10 +61,37 @@ export function isDisabledAccount(response: string): boolean {
   );
 }
 
+/**
+ * Detects whether the mail provider actively blocked the verification probe
+ * due to anti-spam, tarpitting, or IP reputation rules (e.g. Microsoft Hotmail/Outlook).
+ * RFC 3463: 5.7.1 = Delivery not authorized / refused by rule.
+ */
+export function isProviderBlocked(response: string, code: number | null): boolean {
+  const e = response.toLowerCase();
+  return (
+    code === 421 ||
+    e.includes('5.7.1') ||
+    e.includes('blocked') ||
+    e.includes('block list') ||
+    e.includes('blocklist') ||
+    e.includes('spamhaus') ||
+    e.includes('barracuda') ||
+    e.includes('reputation') ||
+    e.includes('access denied') ||
+    e.includes('service unavailable') ||
+    e.includes('too many connections') ||
+    e.includes('connection refused by rule') ||
+    e.includes('unfortunate') || // "Unfortunately, messages from [IP] weren't sent" (Microsoft Hotmail/Outlook)
+    e.includes('s3150') ||       // Microsoft NDR diagnostic code
+    e.includes('client host')
+  );
+}
+
 export function isInvalidRecipient(response: string, email: string): boolean {
   const e = response.toLowerCase();
   const cleanEmail = email.toLowerCase().trim();
 
+  // Notice: 5.7.1 is intentionally excluded here as it is a provider policy block, not a dead mailbox.
   return (
     e.includes('address rejected') ||
     e.includes('unrouteable') ||
@@ -106,8 +138,7 @@ export function isInvalidRecipient(response: string, email: string): boolean {
     e.includes('utilisateur inconnu') ||
     e.includes('no mail-enabled subscriptions') ||
     e.includes('permanent: 5.1.1') ||
-    e.includes('5.1.1') ||
-    e.includes('5.7.1')
+    e.includes('5.1.1')
   );
 }
 
@@ -175,15 +206,12 @@ export async function checkYahooViaApi(username: string): Promise<{
     const data: any = await postRes.json();
     if (data && data.fields && data.fields.userId) {
       const err = data.fields.userId.error;
-      // Proprietary probe logic: if IDENTIFIER_EXISTS, RESERVED_WORD_PRESENT, or IDENTIFIER_NOT_AVAILABLE, mailbox is taken/exists!
       if (err && (err.id === 'IDENTIFIER_EXISTS' || err.id === 'RESERVED_WORD_PRESENT' || err.id === 'IDENTIFIER_NOT_AVAILABLE')) {
         return { success: true, isDeliverable: true, reason: 'Yahoo verified active mailbox (LeadPure HTTPS probe)' };
       }
-      // If no error, username is available (does not exist)
       if (!err) {
         return { success: true, isDeliverable: false, reason: 'Yahoo mailbox does not exist (available to register)' };
       }
-      // If characters/length forbidden by Yahoo, mailbox cannot exist
       if (err.id === 'SOME_SPECIAL_CHARACTERS_NOT_ALLOWED' || err.id === 'INVALID_CHARACTERS' || err.id === 'LENGTH_TOO_SHORT' || err.id === 'LENGTH_TOO_LONG') {
         return { success: true, isDeliverable: false, reason: `Yahoo rejects username format: ${err.id}` };
       }
@@ -215,29 +243,29 @@ export async function checkMicrosoft365Tenant(email: string, domain: string): Pr
     });
     clearTimeout(timer);
 
-    // LeadPure signal: Status 403 on tenant endpoint confirms user exists on Microsoft 365
     if (res.status === 403) {
       return true;
     }
-    return null; // Inconclusive
+    return null;
   } catch {
     return null;
   }
 }
 
-// ----------------- LOW-LEVEL SMTP SOCKET HANDSHAKE (connect.rs) -----------------
+// ----------------- LOW-LEVEL SMTP SOCKET HANDSHAKE (RFC 5321) -----------------
 
 export async function executeSmtpSocketHandshake(
   email: string,
   mxRecord: string,
   fromEmail = 'verify@leadpure.ai',
-  timeoutMs = 5000
+  timeoutMs = 6000
 ): Promise<{
   connected: boolean;
   code: number | null;
   response: string;
   isPositive: boolean;
   timedOut: boolean;
+  transcript: string[];
 }> {
   return new Promise((resolve) => {
     const socket = new net.Socket();
@@ -245,6 +273,7 @@ export async function executeSmtpSocketHandshake(
     let currentStep = 0;
     let fullResponse = '';
     let lastCode: number | null = null;
+    const transcript: string[] = [];
 
     const timer = setTimeout(() => {
       finish('SMTP Connection Timeout', true);
@@ -261,7 +290,8 @@ export async function executeSmtpSocketHandshake(
         code: lastCode,
         response: fullResponse.trim() || reason,
         isPositive: lastCode === 250 || lastCode === 251,
-        timedOut
+        timedOut,
+        transcript
       });
     };
 
@@ -269,6 +299,7 @@ export async function executeSmtpSocketHandshake(
     socket.on('timeout', () => finish('TCP Socket Timeout', true));
     socket.on('error', (err) => {
       fullResponse += ` [Socket Error: ${err.message}]`;
+      transcript.push(`<- [Socket Error: ${err.message}]`);
       finish(err.message, false);
     });
 
@@ -276,6 +307,9 @@ export async function executeSmtpSocketHandshake(
       const text = chunk.toString();
       fullResponse += text;
       const lines = text.split('\r\n').map(l => l.trim()).filter(l => l.length > 0);
+      for (const line of lines) {
+        transcript.push(`<- ${line}`);
+      }
       if (lines.length === 0) return;
 
       const lastLine = lines[lines.length - 1];
@@ -292,17 +326,19 @@ export async function executeSmtpSocketHandshake(
           // 220 Service Ready
           if (code === 220) {
             currentStep++;
+            transcript.push('-> EHLO leadpure.ai');
             socket.write('EHLO leadpure.ai\r\n');
           } else {
             finish();
           }
         } else if (currentStep === 1) {
-          // EHLO Response
+          // EHLO / HELO Response
           if (code === 250) {
             currentStep++;
+            transcript.push(`-> MAIL FROM:<${fromEmail}>`);
             socket.write(`MAIL FROM:<${fromEmail}>\r\n`);
           } else {
-            // Fallback HELO
+            transcript.push('-> HELO leadpure.ai');
             socket.write('HELO leadpure.ai\r\n');
             currentStep++;
           }
@@ -310,6 +346,7 @@ export async function executeSmtpSocketHandshake(
           // MAIL FROM Response
           if (code === 250) {
             currentStep++;
+            transcript.push(`-> RCPT TO:<${email}>`);
             socket.write(`RCPT TO:<${email}>\r\n`);
           } else {
             finish();
@@ -317,6 +354,7 @@ export async function executeSmtpSocketHandshake(
         } else if (currentStep === 3) {
           // RCPT TO Response (Crucial deliverability verdict)
           currentStep++;
+          transcript.push('-> QUIT');
           socket.write('QUIT\r\n');
         } else if (currentStep >= 4 || code === 221) {
           finish();
@@ -329,6 +367,72 @@ export async function executeSmtpSocketHandshake(
     const cleanHost = mxRecord.replace(/\.$/, '');
     socket.connect(25, cleanHost);
   });
+}
+
+// ----------------- EXTERNAL SMTP BACKEND SERVICE INTEGRATION -----------------
+
+/**
+ * Checks if an external SMTP verification backend or self-hosted Reacher instance is configured.
+ * Compatible with reacherhq/check-if-email-exists JSON API specification.
+ */
+export async function queryExternalSmtpBackend(email: string): Promise<SmtpCheckResult | null> {
+  const backendUrl = process.env.SMTP_BACKEND_URL || process.env.REACHER_API_URL || process.env.VITE_SMTP_BACKEND_URL;
+  if (!backendUrl) return null;
+
+  try {
+    const url = backendUrl.replace(/\/+$/, '') + '/v0/check_email';
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const apiKey = process.env.SMTP_BACKEND_API_KEY || process.env.REACHER_API_KEY;
+    if (apiKey) {
+      headers['Authorization'] = apiKey;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ to_email: email }),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+
+    if (!res.ok) {
+      console.warn(`[LeadPure] SMTP backend error ${res.status}: ${res.statusText}`);
+      return null;
+    }
+
+    const data: any = await res.json();
+    const reachable = String(data.is_reachable || '').toLowerCase(); // 'safe' | 'risky' | 'invalid' | 'unknown'
+    const smtp = data.smtp || {};
+
+    const isCatchAll = smtp.is_catch_all === true || (reachable === 'risky' && !smtp.has_full_inbox && !smtp.is_disabled);
+    const isDeliverable = smtp.is_deliverable === true || reachable === 'safe';
+    const canConnect = smtp.can_connect_smtp !== false;
+    const hasFullInbox = smtp.has_full_inbox === true;
+    const isDisabled = smtp.is_disabled === true;
+    const isGreylisted = reachable === 'unknown' && canConnect;
+    const isBlocked = reachable === 'unknown' && (!canConnect || smtp.is_blocked);
+    const code = reachable === 'invalid' ? 550 : (reachable === 'safe' ? 250 : (smtp.code || null));
+
+    return {
+      canConnect,
+      isDeliverable,
+      isCatchAll,
+      hasFullInbox,
+      isDisabled,
+      isGreylisted,
+      isBlocked,
+      code,
+      response: smtp.response || `SMTP Backend Verdict: ${reachable.toUpperCase()}`,
+      verifMethod: 'backend',
+      transcript: data.transcript || []
+    };
+  } catch (err: any) {
+    console.warn(`[LeadPure] Failed to reach external SMTP backend at ${backendUrl}: ${err.message}`);
+    return null;
+  }
 }
 
 /**
@@ -344,14 +448,20 @@ export async function verifySmtpDeliverability(
   const atIdx = email.indexOf('@');
   const username = atIdx > -1 ? email.substring(0, atIdx) : email;
 
-  // 1. Direct Yahoo HTTPS Probe (Works 100% over HTTPS even on Vercel)
+  // 1. Check if external SMTP backend service is configured (VPS or self-hosted Reacher instance)
+  const backendResult = await queryExternalSmtpBackend(email);
+  if (backendResult) {
+    return backendResult;
+  }
+
+  // 2. Direct Yahoo HTTPS Probe (Works 100% over HTTPS even on Vercel)
   if (provider === 'yahoo') {
     const yahooRes = await checkYahooViaApi(username);
     if (yahooRes.success) {
       return {
         canConnect: true,
         isDeliverable: yahooRes.isDeliverable,
-        isCatchAll: false, // Major consumer domains never catch all
+        isCatchAll: false,
         hasFullInbox: false,
         isDisabled: false,
         isGreylisted: false,
@@ -362,7 +472,7 @@ export async function verifySmtpDeliverability(
     }
   }
 
-  // 2. Microsoft 365 Tenant Check
+  // 3. Microsoft 365 Tenant Check
   if (provider === 'microsoft' && !shouldSkipCatchAll(domain, mxHost)) {
     const msExists = await checkMicrosoft365Tenant(email, domain);
     if (msExists === true) {
@@ -380,7 +490,7 @@ export async function verifySmtpDeliverability(
     }
   }
 
-  // 3. Direct Outbound SMTP Handshake
+  // 4. Direct Outbound SMTP Handshake (Port 25)
   const smtpProbe = await executeSmtpSocketHandshake(email, mxHost);
 
   // If Port 25 connected successfully, parse RFC 5321 codes and exact phrases
@@ -388,13 +498,31 @@ export async function verifySmtpDeliverability(
     const code = smtpProbe.code;
     const resp = smtpProbe.response;
 
-    // Check Catch-All (Skip for major providers as per LeadPure heuristics)
+    // A. Check Provider Anti-probing Block (e.g. Microsoft Hotmail/Outlook S3150 / 550 5.7.1)
+    if (isProviderBlocked(resp, code)) {
+      return {
+        canConnect: true,
+        isDeliverable: false,
+        isCatchAll: false,
+        hasFullInbox: false,
+        isDisabled: false,
+        isGreylisted: false,
+        isBlocked: true,
+        code,
+        response: resp,
+        verifMethod: 'smtp',
+        transcript: smtpProbe.transcript
+      };
+    }
+
+    // B. Catch-All Detection
+    // For non-consumer domains, probe a random 16-char nonexistent local part to test if domain accepts everything
     let isCatchAll = false;
-    if (options?.checkCatchAll && !shouldSkipCatchAll(domain, mxHost)) {
-      const randIdentity = `false_positive_test_${Math.random().toString(36).substring(2, 10)}`;
+    if (!shouldSkipCatchAll(domain, mxHost)) {
+      const randIdentity = `leadpure_probe_${crypto.randomBytes(8).toString('hex')}`;
       const controlEmail = `${randIdentity}@${domain}`;
       const controlProbe = await executeSmtpSocketHandshake(controlEmail, mxHost);
-      if (controlProbe.isPositive || controlProbe.code === 250 || controlProbe.code === 251) {
+      if (controlProbe.connected && (controlProbe.isPositive || controlProbe.code === 250 || controlProbe.code === 251)) {
         isCatchAll = true;
       }
     }
@@ -409,7 +537,8 @@ export async function verifySmtpDeliverability(
         isGreylisted: false,
         code,
         response: resp,
-        verifMethod: 'smtp'
+        verifMethod: 'smtp',
+        transcript: smtpProbe.transcript
       };
     }
 
@@ -423,7 +552,8 @@ export async function verifySmtpDeliverability(
         isGreylisted: true,
         code,
         response: resp,
-        verifMethod: 'smtp'
+        verifMethod: 'smtp',
+        transcript: smtpProbe.transcript
       };
     }
 
@@ -437,7 +567,8 @@ export async function verifySmtpDeliverability(
         isGreylisted: false,
         code,
         response: resp,
-        verifMethod: 'smtp'
+        verifMethod: 'smtp',
+        transcript: smtpProbe.transcript
       };
     }
 
@@ -451,7 +582,8 @@ export async function verifySmtpDeliverability(
         isGreylisted: false,
         code,
         response: resp,
-        verifMethod: 'smtp'
+        verifMethod: 'smtp',
+        transcript: smtpProbe.transcript
       };
     }
 
@@ -465,7 +597,8 @@ export async function verifySmtpDeliverability(
         isGreylisted: false,
         code,
         response: resp,
-        verifMethod: 'smtp'
+        verifMethod: 'smtp',
+        transcript: smtpProbe.transcript
       };
     }
 
@@ -479,22 +612,26 @@ export async function verifySmtpDeliverability(
         isGreylisted: false,
         code,
         response: resp,
-        verifMethod: 'smtp'
+        verifMethod: 'smtp',
+        transcript: smtpProbe.transcript
       };
     }
   }
 
-  // 4. Serverless / Firewalled Environment (Port 25 blocked)
-  // When running on platforms like Vercel where outbound TCP 25 is blocked:
+  // 5. Host Network Restricts Port 25 / Firewalled / Serverless Environment
+  // When running on platforms like Vercel or local hosts where outbound TCP 25 is blocked:
+  // HONEST REPORTING: Never return fake deliverability! Return honest UNKNOWN.
   return {
     canConnect: false,
-    isDeliverable: true, // In serverless mode, valid MX & active DNS infrastructure confirms domain deliverability
+    isDeliverable: false,
     isCatchAll: false,
     hasFullInbox: false,
     isDisabled: false,
     isGreylisted: false,
+    isBlocked: false,
     code: null,
-    response: `Serverless Mode: Active DNS & MX infrastructure confirmed on ${mxHost}`,
-    verifMethod: 'dns_fallback'
+    response: `SMTP probe unreachable: Target mail server (${mxHost}) did not respond on Port 25. Outbound TCP port 25 is restricted on this host network. Connect an external SMTP backend via SMTP_BACKEND_URL for full mailbox verification.`,
+    verifMethod: 'smtp_unreachable',
+    transcript: smtpProbe.transcript
   };
 }

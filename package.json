@@ -10,6 +10,7 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "test": "tsx test-engine.ts",
+    "test:acceptance": "tsx test-acceptance.ts",
     "test-engine": "tsx test-determinism.ts"
   },
   "engines": {

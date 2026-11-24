@@ -1,29 +1,29 @@
-# LeadPure AI | Enterprise Neural Email Verification Platform (v13.0.0)
+# LeadPure AI | Enterprise Email Verification Platform (v13.0.0)
 
 <div align="center">
 
   <img src="https://img.shields.io/badge/Version-13.0.0-blueviolet?style=for-the-badge&logo=rocket" alt="Version 13.0.0" />
-  <img src="https://img.shields.io/badge/Engine-LeadPure%20Neural%20Kernel%20v13-blue?style=for-the-badge&logo=shield" alt="LeadPure Engine" />
+  <img src="https://img.shields.io/badge/Engine-LeadPure%20RFC%205321%20Kernel%20v13-blue?style=for-the-badge&logo=shield" alt="LeadPure Engine" />
   <img src="https://img.shields.io/badge/Node-22.x%20ESM-green?style=for-the-badge&logo=node.js" alt="Node 22" />
-  <img src="https://img.shields.io/badge/Architecture-Enterprise%205--Tier-orange?style=for-the-badge" alt="5-Tier Architecture" />
+  <img src="https://img.shields.io/badge/Architecture-Distributed%20SMTP%20Backend-orange?style=for-the-badge" alt="SMTP Architecture" />
   <img src="https://img.shields.io/badge/Status-Production%20Active-brightgreen?style=for-the-badge" alt="Production" />
 
   <br />
   <br />
 
   <div align="center">
-  <img src=".github/LeadPure_AI.gif" alt="Orbita AI Banner" width="100%" />
+  <img src=".github/LeadPure_AI.gif" alt="LeadPure AI Banner" width="100%" />
 
   <br />
   <br />
 
-  **Proprietary high-throughput email verification, mailbox deliverability intelligence, and identity hygiene engine.**
+  **Deterministic email verification, RFC 5321 SMTP mailbox deliverability intelligence, and catch-all detection engine.**
   <br />
-  *Engineered for 0% bounce-rate precision and mission-critical cold outreach protection.*
+  *Engineered with honest taxonomy, real SMTP socket probing, and zero fake placeholder metrics.*
 
   <br />
 
-  [Live Production Demo](https://leadpureai.vercel.app/) • [API Documentation](#api-reference) • [Verification Architecture](#neural-verification-architecture) • [Error Codes](#error-code-taxonomy)
+  [Live Production Demo](https://leadpureai.vercel.app/) • [API Documentation](#api-reference) • [SMTP Backend Service](#smtp-verification-backend) • [Error Code Taxonomy](#error-code-taxonomy)
 
 </div>
 
@@ -31,24 +31,24 @@
 
 ## Overview
 
-**LeadPure AI v13** is a state-of-the-art email verification and deliverability intelligence engine designed from the ground up for high-growth sales teams, marketing agencies, and enterprise data operations. 
+**LeadPure AI v13** is a high-precision email verification and deliverability intelligence engine designed from the ground up for sales teams, marketing agencies, and enterprise data operations. 
 
-Cold outreach senders face severe reputation penalties and domain blacklisting when bounce rates exceed 2%. LeadPure AI eliminates bounce risk by executing a deterministic, multi-tier inspection pipeline across syntax, domain DNS records, MX routing, disposable domain registries, role-based mailboxes, direct mailbox validation probes, and identity footprint signals.
+Cold outreach senders face severe reputation penalties and domain blacklisting when bounce rates exceed 2%. LeadPure AI protects sender reputation through a rigorous, multi-tier inspection pipeline across syntax, domain DNS records, MX routing, disposable domain registries, role-based mailboxes, direct RFC 5321 mailbox validation probes, and catch-all detection.
 
 ```
-                     LEADPURE NEURAL PIPELINE (v13.0)
+                     LEADPURE VERIFICATION PIPELINE (v13.0)
                      
    [Raw Email Input / Bulk CSV / Excel File]
                        │
                        ▼
-              [Tier 1: RFC 5322 Syntax & Typo Engine]
+              [Tier 1: RFC 5322 Syntax & Normalization]
               ├─ Strict RFC 5322 specification parsing
-              ├─ Levenshtein typo suggestion (gmial.com -> gmail.com)
+              ├─ Typo suggestions (e.g. gmial.com -> gmail.com)
               └─ RFC standard local-part & domain normalization
                        │
                        ▼
               [Tier 2: Disposable Domain Shield]
-              ├─ Static & Dynamic 110,000+ disposable domain database
+              ├─ 110,000+ disposable domain database
               ├─ Multi-layer sub-domain recursion detection
               └─ Instant throwaway provider suppression
                        │
@@ -58,22 +58,62 @@ Cold outreach senders face severe reputation penalties and domain blacklisting w
               └─ Departmental filter (admin, support, billing, careers...)
                        │
                        ▼
-              [Tier 4: High-Availability DNS & Mail Routing]
+              [Tier 4: DNS MX & Infrastructure Resolution]
               ├─ Quad-server DNS resolver (Cloudflare 1.1.1.1 + Google 8.8.8.8)
-              ├─ MX record priority parsing
-              ├─ RFC 7505 Null MX rejection ("." null MX record check)
-              └─ Domain age heuristics, SPF and DKIM discovery
+              ├─ MX record priority parsing and MX host IP resolution
+              ├─ RFC 7505 Null MX rejection ("." null MX check)
+              └─ Real SPF TXT record verification
                        │
                        ▼
-              [Tier 5: Multi-Protocol Verification & Identity Signals]
-              ├─ Real-time outbound SMTP socket handshake & code evaluation
-              ├─ Direct HTTPS Yahoo Mailbox probe (100% cloud-compatible)
-              ├─ Microsoft 365 Tenant directory verification
-              ├─ Gravatar identity footprint presence probe
-              └─ Heuristic Catch-All suppressor (Zero false positives on Gmail/Outlook)
+              [Tier 5: RFC 5321 Live SMTP Mailbox Probing]
+              ├─ Outbound TCP Port 25 connection to destination MX
+              ├─ Banner inspection (220), EHLO/HELO, and MAIL FROM
+              ├─ Randomized Catch-All probe (<probe_16char>@domain)
+              ├─ Target recipient probe (RCPT TO) reading RFC status codes
+              ├─ Provider anti-probing block detection (Microsoft Hotmail/Outlook)
+              └─ Distributed SMTP Backend support (via SMTP_BACKEND_URL)
                        │
                        ▼
-   [Verified Output: SAFE (99%) | RISKY (50%) | INVALID (0%)]
+   [Honest Verdict Taxonomy: SAFE (98%) | RISKY (55%) | INVALID (0%) | UNKNOWN (40%)]
+```
+
+---
+
+## Honest Verdict Taxonomy
+
+LeadPure AI enforces a strict, honest taxonomy with no artificial inflation:
+
+| Verdict | Definition | Typical Score | Bounce Hazard | Action |
+| :--- | :--- | :--- | :--- | :--- |
+| **`SAFE`** | Recipient explicitly confirmed to exist by destination mail server (SMTP 250 OK) and domain is **not** a catch-all. | `98` - `99` | Low (<1%) | Safe to send |
+| **`RISKY`** | Domain is configured as **Catch-All** (accepts all emails), mailbox storage is full, or address is a generic role account. | `50` - `55` | Medium | Verify via alternative channel |
+| **`INVALID`** | Mailbox confirmed not to exist (SMTP 550), syntax malformed, domain has no MX records, or throwaway disposable domain. | `0` | Fatal (100% bounce) | Eliminate immediately |
+| **`UNKNOWN`** | Probe blocked by provider anti-spam policy (e.g., Microsoft Hotmail/Outlook tarpit), or host network blocks outbound Port 25. | `40` - `45` | Unknown | Retry with SMTP backend |
+
+---
+
+## SMTP Verification Backend
+
+Because serverless platforms (e.g., Vercel, AWS Lambda) strictly block outbound TCP connections on Port 25, LeadPure AI provides a dedicated, lightweight backend service (`backend/`) that runs on any host with Port 25 open (small VPS, DigitalOcean, Hetzner, AWS EC2, or Fly.io).
+
+### Deploying the Backend Service (Docker)
+
+```bash
+cd backend
+docker build -t leadpure-smtp-backend .
+docker run -d -p 8080:8080 --name leadpure-smtp-verifier --restart always leadpure-smtp-backend
+```
+
+### Configuring the Frontend (Vercel)
+
+Set the following environment variable in Vercel or `.env`:
+```env
+SMTP_BACKEND_URL="http://<YOUR_VPS_IP>:8080"
+```
+
+LeadPure AI is also 100% compatible with open-source [Reacher](https://github.com/reacherhq/check-if-email-exists):
+```env
+SMTP_BACKEND_URL="http://<REACHER_DOCKER_IP>:8080"
 ```
 
 ---
@@ -209,6 +249,11 @@ npm install
 ### Run Verification Test Suite
 ```bash
 npm test
+```
+
+### Run Acceptance Test Suite (10-Address Ground-Truth Matrix)
+```bash
+npm run test:acceptance
 ```
 
 ### Static Typecheck

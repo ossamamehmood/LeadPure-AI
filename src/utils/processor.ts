@@ -662,12 +662,12 @@ export const verifyEmail = async (
   } catch (err: any) {
     console.error('[SINGLE_VALIDATION_ERROR]', err);
     return {
-      verificationStatus: 'risky',
+      verificationStatus: 'unknown',
       verificationReason: `Network/Timeout Failure: ${err.message}`,
       subStatus: 'timeout',
-      confidenceScore: 50,
-      bounceRisk: 'Medium',
-      reputationImpact: 'Neutral',
+      confidenceScore: 40,
+      bounceRisk: 'Unknown',
+      reputationImpact: 'Unknown',
       mxRecordFound: false,
       isCatchAll: false,
       isDisposable: false,

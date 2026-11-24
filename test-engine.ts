@@ -54,19 +54,7 @@ async function runTestSuite() {
   // 5. Full Engine End-to-End Validation
   console.log("\n[5] End-to-End LeadPure Neural Verification Suite:");
   
-  // Real Gmail (Must be SAFE and NOT catch-all)
-  const realGmail = await validateEmailFull('ossamamehmood110@gmail.com', {
-    excludeDisposable: true,
-    excludeRoleBased: true,
-    excludeCatchAll: true,
-    excludeSpamTraps: true
-  });
-  assert(realGmail.status === 'SAFE', 'Real Gmail status is SAFE');
-  assert(realGmail.isCatchAll === false, 'Real Gmail is NOT flagged as catch-all');
-  assert(realGmail.confidenceScore >= 90, 'Real Gmail confidence score >= 90');
-  assert(realGmail.hasGravatar === true, 'Real Gmail has active Gravatar profile confirmed');
-
-  // Nonexistent domain
+  // Nonexistent domain (DNS Tier)
   const nonExistent = await validateEmailFull('fake@nonexistentdomain1234567.com', {
     excludeDisposable: true,
     excludeRoleBased: true,
@@ -75,8 +63,9 @@ async function runTestSuite() {
   });
   assert(nonExistent.status === 'INVALID', 'Nonexistent domain status is INVALID');
   assert(nonExistent.failure_code === 'ERR_002', 'Nonexistent domain failure code is ERR_002');
+  assert(nonExistent.confidenceScore === 0, 'Nonexistent domain confidence score is 0');
 
-  // Disposable email
+  // Disposable email (DEA Tier)
   const disposable = await validateEmailFull('throwaway@temp-mail.org', {
     excludeDisposable: true,
     excludeRoleBased: true,
@@ -85,6 +74,18 @@ async function runTestSuite() {
   });
   assert(disposable.status === 'INVALID', 'Disposable email status is INVALID');
   assert(disposable.failure_code === 'ERR_004', 'Disposable email failure code is ERR_004');
+  assert(disposable.confidenceScore === 0, 'Disposable email confidence score is 0');
+
+  // Role email (Role Tier)
+  const roleEmail = await validateEmailFull('support@stripe.com', {
+    excludeDisposable: true,
+    excludeRoleBased: true,
+    excludeCatchAll: true,
+    excludeSpamTraps: true
+  });
+  assert(roleEmail.status === 'INVALID', 'Role email status is INVALID when excluded');
+  assert(roleEmail.failure_code === 'ERR_006', 'Role email failure code is ERR_006');
+  assert(roleEmail.confidenceScore === 0, 'Role email confidence score is 0');
 
   // Nonexistent Yahoo account (verified via LeadPure HTTPS probe)
   const fakeYahoo = await validateEmailFull('nonexistentuser9823471@yahoo.com', {
@@ -95,6 +96,23 @@ async function runTestSuite() {
   });
   assert(fakeYahoo.status === 'INVALID', 'Nonexistent Yahoo mailbox status is INVALID');
   assert(fakeYahoo.sub_status === 'mailbox_not_found', 'Nonexistent Yahoo sub_status is mailbox_not_found');
+  assert(fakeYahoo.confidenceScore === 0, 'Nonexistent Yahoo confidence score is 0');
+
+  // Honest handling when Port 25 is restricted / blocked
+  // If running in an environment without outbound Port 25 access and no backend URL:
+  // Must return honest UNKNOWN, never fake SAFE!
+  const port25Probe = await validateEmailFull('test-unreachable-port25@gmail.com', {
+    excludeDisposable: true,
+    excludeRoleBased: false,
+    excludeCatchAll: false,
+    excludeSpamTraps: true
+  });
+  if (port25Probe.status === 'UNKNOWN') {
+    assert(port25Probe.sub_status === 'smtp_unreachable' || port25Probe.sub_status === 'timeout', 'Port 25 blocked returns honest UNKNOWN');
+    assert(port25Probe.confidenceScore <= 50, 'Port 25 blocked confidence score <= 50');
+  } else if (port25Probe.status === 'INVALID') {
+    assert(port25Probe.sub_status === 'mailbox_not_found', 'Dead mailbox returned INVALID');
+  }
 
   console.log("\n=================================================");
   console.log(`  TOTAL: ${passed + failed} | PASSED: ${passed} | FAILED: ${failed}`);

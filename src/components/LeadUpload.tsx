@@ -27,10 +27,10 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
           <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <div className="flex justify-between items-start mb-6">
             <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Protocol</p>
-            <span className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-[9px] rounded-full uppercase font-black tracking-widest border border-brand-blue/20">0% Bounces</span>
+            <span className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-[9px] rounded-full uppercase font-black tracking-widest border border-brand-blue/20">RFC 5321</span>
           </div>
           <h3 className="text-2xl font-black text-app-text tracking-widest uppercase italic transition-all duration-500 group-hover:translate-x-1">Gold Standard</h3>
-          <p className="text-slate-600 dark:text-slate-400 text-xs mt-3 leading-relaxed font-medium">Our proprietary validation logic ensures maximum deliverability by purging dead nodes.</p>
+          <p className="text-slate-600 dark:text-slate-400 text-xs mt-3 leading-relaxed font-medium">Real-time SMTP mailbox probing and catch-all detection verify deliverability before sending.</p>
         </GlossyCard>
         
         <GlossyCard glow="blue" className="p-8 rounded-[32px] group">

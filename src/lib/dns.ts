@@ -22,9 +22,6 @@ export interface MxCheckResult {
   provider: 'google' | 'microsoft' | 'yahoo' | 'apple' | 'proton' | 'mimecast' | 'proofpoint' | 'zoho' | 'other';
   isB2C: boolean;
   spfExists?: boolean;
-  dkimExists?: boolean;
-  domainAge?: string;
-  domainAgeDays?: number;
   error?: string;
 }
 
@@ -151,11 +148,6 @@ export async function checkMx(domain: string): Promise<MxCheckResult> {
         }
       } catch {}
 
-      const isMajor = provider !== 'other';
-      const dkimExists = isMajor || spfExists;
-      const domainAgeDays = isMajor ? 7300 : 1825;
-      const domainAge = isMajor ? 'Established Domain' : 'Active Domain';
-
       return {
         hasMx: true,
         acceptsMail: true,
@@ -164,10 +156,7 @@ export async function checkMx(domain: string): Promise<MxCheckResult> {
         primaryMxIp,
         provider,
         isB2C,
-        spfExists: isMajor ? true : spfExists,
-        dkimExists,
-        domainAge,
-        domainAgeDays
+        spfExists
       };
     }
 
@@ -183,10 +172,7 @@ export async function checkMx(domain: string): Promise<MxCheckResult> {
           primaryMxIp: aRecords[0],
           provider: 'other',
           isB2C: false,
-          spfExists: false,
-          dkimExists: false,
-          domainAge: 'Active Host',
-          domainAgeDays: 365
+          spfExists: false
         };
       }
     } catch {
@@ -201,9 +187,6 @@ export async function checkMx(domain: string): Promise<MxCheckResult> {
       provider: 'other',
       isB2C: false,
       spfExists: false,
-      dkimExists: false,
-      domainAge: 'Unregistered / Inactive',
-      domainAgeDays: 0,
       error: 'No MX or A records found: domain cannot receive mail'
     };
   } catch (err: any) {
@@ -214,9 +197,6 @@ export async function checkMx(domain: string): Promise<MxCheckResult> {
       provider: 'other',
       isB2C: false,
       spfExists: false,
-      dkimExists: false,
-      domainAge: 'Unregistered / Inactive',
-      domainAgeDays: 0,
       error: `DNS resolution error: ${err.message}`
     };
   }

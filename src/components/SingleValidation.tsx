@@ -227,10 +227,12 @@ export function SingleValidation() {
                         </div>
                       </div>
                       <div className="flex justify-between items-center group/item hover:bg-app-bg/10 -mx-2 px-2 py-1 rounded-lg transition-colors">
-                        <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Legacy</span>
+                        <span className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Mail Security</span>
                         <div className="text-right">
-                          <p className="text-[10px] font-black text-brand-blue uppercase">{result.domainAge}</p>
-                          <p className="text-[8px] text-slate-500 font-mono mt-0.5">{result.domainAgeDays} Days Registered</p>
+                          <p className={cn("text-[10px] font-black uppercase", result.spfExists ? "text-emerald-500" : "text-amber-500")}>
+                            {result.spfExists ? 'SPF Authenticated' : 'No SPF Record'}
+                          </p>
+                          <p className="text-[8px] text-slate-500 font-mono mt-0.5">{result.mx_ip ? `IP: ${result.mx_ip}` : 'DNS Validated'}</p>
                         </div>
                       </div>
                     </div>
