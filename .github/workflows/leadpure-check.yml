@@ -101,6 +101,7 @@ jobs:
           git config user.name "LeadPure Bot"
           git config user.email "bot@leadpure.ai"
           cp "results/${{ inputs.request_id }}.json" /tmp/result.json
+          rm -rf results
           
           if git ls-remote --exit-code --heads origin results; then
             git fetch origin results
