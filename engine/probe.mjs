@@ -9,8 +9,8 @@ import fs from 'fs';
 
 const FROM_EMAIL = 'verify@leadpure.ai';
 const HELLO_NAME = 'leadpure.ai';
-const CONNECT_TIMEOUT_MS = 20000;
-const SESSION_TIMEOUT_MS = 30000;
+const CONNECT_TIMEOUT_MS = 8000;
+const SESSION_TIMEOUT_MS = 15000;
 
 const ROLE_LOCALPARTS = new Set([
   'info','contact','hello','support','admin','sales','office','help','team',
@@ -155,17 +155,29 @@ async function probeEmail(emailRaw) {
     return result;
   }
 
-  const mxHost = mxRecords[0].exchange;
-
-  // Real mailbox probe (one retry for greylisting 4xx)
-  let probe = await smtpRcptProbe(mxHost, email);
-  if (probe.code && probe.code >= 400 && probe.code < 500) {
-    await new Promise(r => setTimeout(r, 8000));
-    probe = await smtpRcptProbe(mxHost, email);
+  let probe = null;
+  let activeMxHost = '';
+  // Try up to 3 MX hosts if the first one cannot connect
+  for (const record of mxRecords.slice(0, 3)) {
+    const host = record.exchange.replace(/\.$/, '');
+    activeMxHost = host;
+    probe = await smtpRcptProbe(host, email);
+    if (probe.code && probe.code >= 400 && probe.code < 500) {
+      await new Promise(r => setTimeout(r, 4000));
+      probe = await smtpRcptProbe(host, email);
+    }
+    if (probe.connected && probe.code != null) {
+      break;
+    }
   }
-  result.smtp.can_connect_smtp = !!probe.connected;
 
-  if (!probe.connected || probe.code == null) {
+  result.smtp.can_connect_smtp = !!(probe && probe.connected);
+  result.debug.mx_host = activeMxHost;
+  result.debug.probe_code = probe ? probe.code : null;
+  result.debug.probe_error = probe ? probe.error : 'no_probe';
+  console.log(`[PROBE] ${email} -> ${activeMxHost}: connected=${probe?.connected}, code=${probe?.code}, error=${probe?.error}`);
+
+  if (!probe || !probe.connected || probe.code == null) {
     result.is_reachable = 'unknown'; // server unreachable / timed out: honest unknown, never guessed
     return result;
   }
@@ -186,7 +198,7 @@ async function probeEmail(emailRaw) {
   // 2xx: server accepted the recipient. Now the catch-all probe with a random local part.
   result.smtp.is_deliverable = true;
   const randomLocal = 'lp' + Math.random().toString(36).slice(2, 12) + 'x';
-  const caProbe = await smtpRcptProbe(mxHost, `${randomLocal}@${domain}`);
+  const caProbe = await smtpRcptProbe(activeMxHost, `${randomLocal}@${domain}`);
   if (caProbe.code && caProbe.code >= 200 && caProbe.code < 300) {
     result.smtp.is_catch_all = true;
   }
