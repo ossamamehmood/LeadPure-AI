@@ -53,25 +53,25 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: 'requestId parameter is required' });
     }
 
-    if (!token) {
-      return res.json({
-        status: 'error',
-        is_reachable: 'unknown',
-        confidenceScore: null,
-        ui_label: 'UNKNOWN — verification backend unreachable',
-        ui_reason: 'Backend token (REACHER_GH_TOKEN) not configured in Vercel'
-      });
-    }
-
     try {
-      const resultUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}.json?ref=results`;
-      const pollRes = await fetch(resultUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github.raw+json',
-          'User-Agent': 'LeadPure-AI-Engine'
-        }
-      });
+      let pollRes: any;
+      if (token) {
+        const resultUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}.json?ref=results`;
+        pollRes = await fetch(resultUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.raw+json',
+            'User-Agent': 'LeadPure-AI-Engine'
+          }
+        });
+      } else {
+        const rawUrl = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/results/${requestId}.json`;
+        pollRes = await fetch(rawUrl, {
+          headers: {
+            'User-Agent': 'LeadPure-AI-Engine'
+          }
+        });
+      }
 
       if (pollRes.status === 404) {
         return res.json({
