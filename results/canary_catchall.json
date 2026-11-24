@@ -1,0 +1,20 @@
+[
+  {
+    "input": "katie@studio-esthetics.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": []
+    },
+    "smtp": {
+      "can_connect_smtp": false,
+      "is_deliverable": false,
+      "is_catch_all": false,
+      "response": "SMTP connection timed out"
+    }
+  }
+]
