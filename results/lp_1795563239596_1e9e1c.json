@@ -1,0 +1,39 @@
+[
+  {
+    "input": "HELLO@OSSAMAMEHMOOD.COM",
+    "is_reachable": "invalid",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": true,
+      "is_b2c": false,
+      "gravatar_url": null,
+      "haveibeenpwned": null
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx1.improvmx.com.",
+        "mx2.improvmx.com."
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "HELLO@OSSAMAMEHMOOD.COM",
+      "domain": "OSSAMAMEHMOOD.COM",
+      "is_valid_syntax": true,
+      "username": "HELLO",
+      "normalized_email": "HELLO@OSSAMAMEHMOOD.COM",
+      "suggestion": null
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.0.0"
+    }
+  }
+]
