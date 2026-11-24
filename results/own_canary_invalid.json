@@ -1,7 +1,7 @@
 [
   {
     "input": "bellanacosta1@gmail.com",
-    "is_reachable": "unknown",
+    "is_reachable": "invalid",
     "misc": {
       "is_disposable": false,
       "is_role_account": false,
@@ -20,7 +20,7 @@
       ]
     },
     "smtp": {
-      "can_connect_smtp": false,
+      "can_connect_smtp": true,
       "has_full_inbox": false,
       "is_catch_all": false,
       "is_deliverable": false,
