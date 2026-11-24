@@ -1,7 +1,7 @@
 [
   {
     "input": "katie@studio-esthetics.com",
-    "is_reachable": "unknown",
+    "is_reachable": "risky",
     "misc": {
       "is_disposable": false,
       "is_role_account": false,
@@ -12,18 +12,19 @@
     "mx": {
       "accepts_mail": true,
       "records": [
-        "alt3.aspmx.l.google.com.",
-        "aspmx.l.google.com.",
-        "alt2.aspmx.l.google.com.",
+        "alt4.aspmx.l.google.com.",
         "alt1.aspmx.l.google.com.",
-        "alt4.aspmx.l.google.com."
+        "alt2.aspmx.l.google.com.",
+        "aspmx.l.google.com.",
+        "alt3.aspmx.l.google.com."
       ]
     },
     "smtp": {
-      "error": {
-        "type": "IOError",
-        "message": "Network is unreachable (os error 101)"
-      }
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": true,
+      "is_deliverable": true,
+      "is_disabled": false
     },
     "syntax": {
       "address": "katie@studio-esthetics.com",
@@ -36,11 +37,11 @@
     "debug": {
       "backend_name": "reacher-cli",
       "reacher_version": "0.11.11",
-      "start_time": "2026-11-24T21:13:52.029474124Z",
-      "end_time": "2026-11-24T21:16:04.627637562Z",
+      "start_time": "2026-11-24T21:17:07.781027110Z",
+      "end_time": "2026-11-24T21:17:08.356528345Z",
       "duration": {
-        "secs": 132,
-        "nanos": 598163438
+        "secs": 0,
+        "nanos": 575501235
       },
       "smtp": {
         "verif_method": {
