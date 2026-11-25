@@ -10,6 +10,7 @@ export function SingleValidation() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [result, setResult] = useState<Partial<ProcessedContact> | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -24,6 +25,7 @@ export function SingleValidation() {
     
     setIsVerifying(true);
     setResult(null);
+    setErrorMsg(null);
     setElapsedSeconds(0);
     
     const timer = setInterval(() => {
@@ -41,24 +43,7 @@ export function SingleValidation() {
 
       if (initialData.status === 'error') {
         clearInterval(timer);
-        setResult({
-          email: clean,
-          verificationStatus: 'unknown',
-          verificationReason: initialData.ui_reason || 'Verification backend unreachable',
-          subStatus: 'backend_error',
-          confidenceScore: 40,
-          bounceRisk: 'Unknown',
-          reputationImpact: 'Unknown',
-          mxRecordFound: false,
-          isCatchAll: false,
-          isDisposable: false,
-          isRoleBased: false,
-          isFreeEmail: false,
-          provider: 'Unknown',
-          smtpValid: false,
-          syntaxValid: true,
-          spfExists: false
-        });
+        setErrorMsg(initialData.ui_reason || 'Verification backend unreachable');
         setIsVerifying(false);
         return;
       }
@@ -73,7 +58,7 @@ export function SingleValidation() {
       if (initialData.status === 'pending' && initialData.requestId) {
         const reqId = initialData.requestId;
         const startTime = Date.now();
-        const maxWaitMs = 240000; // 4 minutes
+        const maxWaitMs = 1200000; // 20 minutes
 
         while (Date.now() - startTime < maxWaitMs) {
           await new Promise(r => setTimeout(r, 6000));
@@ -95,47 +80,13 @@ export function SingleValidation() {
         }
       }
 
-      // Timeout or unknown fail-closed
+      // 20-minute cap hit without engine result: never stamp fake UNKNOWN
       clearInterval(timer);
-      setResult({
-        email: clean,
-        verificationStatus: 'unknown',
-        verificationReason: 'Verification backend did not answer within timeout window',
-        subStatus: 'timeout',
-        confidenceScore: 40,
-        bounceRisk: 'Unknown',
-        reputationImpact: 'Unknown',
-        mxRecordFound: false,
-        isCatchAll: false,
-        isDisposable: false,
-        isRoleBased: false,
-        isFreeEmail: false,
-        provider: 'Unknown',
-        smtpValid: false,
-        syntaxValid: true,
-        spfExists: false
-      });
+      setErrorMsg('STILL CHECKING / TIMED OUT — re-run to complete');
     } catch (err: any) {
       clearInterval(timer);
       console.error('[SINGLE_VERIFY_ERR]', err);
-      setResult({
-        email: clean,
-        verificationStatus: 'unknown',
-        verificationReason: `Verification probe failed: ${err.message || 'Network error'}`,
-        subStatus: 'unreachable',
-        confidenceScore: 40,
-        bounceRisk: 'Unknown',
-        reputationImpact: 'Unknown',
-        mxRecordFound: false,
-        isCatchAll: false,
-        isDisposable: false,
-        isRoleBased: false,
-        isFreeEmail: false,
-        provider: 'Unknown',
-        smtpValid: false,
-        syntaxValid: true,
-        spfExists: false
-      });
+      setErrorMsg(`Verification request failed: ${err.message || 'Network error'}`);
     } finally {
       clearInterval(timer);
       setIsVerifying(false);
@@ -234,7 +185,21 @@ export function SingleValidation() {
 
         <div className="lg:col-span-7">
           <AnimatePresence mode="wait">
-            {!result && !isVerifying ? (
+            {errorMsg && !isVerifying && !result ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="h-full min-h-[300px] flex items-center justify-center border-2 border-dashed border-amber-500/30 bg-amber-500/5 rounded-[40px] p-8"
+              >
+                <div className="text-center max-w-md">
+                  <div className="w-16 h-16 rounded-3xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 mx-auto mb-6 shadow-sm">
+                    <ShieldAlert className="w-8 h-8 text-amber-400" />
+                  </div>
+                  <p className="text-xs text-amber-400 font-black uppercase tracking-[0.2em] italic">{errorMsg}</p>
+                </div>
+              </motion.div>
+            ) : !result && !isVerifying ? (
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

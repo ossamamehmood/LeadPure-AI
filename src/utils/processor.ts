@@ -366,6 +366,10 @@ export const processContacts = async (
     });
 
     const initialData = await postRes.json();
+    if (initialData.status === 'error') {
+      throw new Error(initialData.ui_reason || 'Verification backend unreachable');
+    }
+
     let results: any[] = [];
 
     if (initialData.status === 'completed' && Array.isArray(initialData.results)) {
@@ -373,15 +377,15 @@ export const processContacts = async (
     } else if (initialData.status === 'pending' && initialData.requestId) {
       const reqId = initialData.requestId;
       const startTime = Date.now();
-      const maxWaitMs = 600000; // 10 minutes max for bulk verification
+      const maxWaitMs = 1200000; // 20 minutes cap for bulk verification
 
       while (Date.now() - startTime < maxWaitMs && !signal?.aborted) {
         await new Promise(r => setTimeout(r, 6000));
         const elapsedSec = Math.round((Date.now() - startTime) / 1000);
         if (onProgress) {
           onProgress(
-            Math.min(95, 10 + Math.round((elapsedSec / 120) * 85)),
-            `Probing mailboxes on Port 25 runner (${elapsedSec}s elapsed)...`
+            Math.min(95, 10 + Math.round((elapsedSec / 180) * 85)),
+            `Probing ${total} mailboxes on Port 25 runner (${elapsedSec}s elapsed)...`
           );
         }
 
@@ -391,7 +395,9 @@ export const processContacts = async (
             const pollData = await pollRes.json();
             if (pollData.status === 'completed' && Array.isArray(pollData.results)) {
               results = pollData.results;
-              break;
+              if (results.length >= total) {
+                break;
+              }
             }
           }
         } catch (pollErr) {
@@ -400,34 +406,34 @@ export const processContacts = async (
       }
     }
 
-    // Merge results back into items or fallback to fail-closed UNKNOWN
+    // Build summary counts and outputs ONLY from arrived engine results.
+    // Rows still missing after 20-minute cap show "STILL CHECKING / TIMED OUT — re-run to complete", never a fake UNKNOWN.
+    const arrivedByEmail = new Map<string, any>();
+    results.forEach((r: any) => {
+      if (r && r.email) arrivedByEmail.set(String(r.email).toLowerCase().trim(), r);
+    });
+
     preProcessedData.forEach((item, idx) => {
       const emailVal = emailsToVerify[idx];
-      const verificationResult = results[idx] || {
-        email: emailVal,
-        status: 'UNKNOWN' as const,
-        sub_status: 'timeout',
-        failure_code: 'ERR_009' as const,
-        smtp_code: null,
-        mx_ip: null,
-        timestamp: new Date().toISOString(),
-        is_catchall: false,
-        verificationStatus: 'unknown' as const,
-        verificationReason: initialData.ui_reason || 'Verification backend did not answer within timeout window',
-        confidenceScore: 40,
-        bounceRisk: 'Unknown' as const,
-        reputationImpact: 'Unknown' as const,
-        mxRecordFound: false,
-        isDisposable: false,
-        isRoleBased: false,
-        isFreeEmail: false,
-        isSpamTrap: false,
-        provider: 'Unknown',
-        smtpValid: false,
-        syntaxValid: true,
-        didyouseeme: false,
-        trace: 'Timeout -> Deflected to UNKNOWN (ERR_009)'
-      };
+      const verificationResult = results[idx] || arrivedByEmail.get(emailVal);
+
+      if (!verificationResult) {
+        eliminated.push({
+          ...item,
+          email: emailVal,
+          status: 'STILL CHECKING / TIMED OUT — re-run to complete',
+          verificationStatus: 'unknown',
+          verificationReason: 'STILL CHECKING / TIMED OUT — re-run to complete',
+          reason: 'STILL CHECKING / TIMED OUT — re-run to complete',
+          subStatus: 'timed_out_missing',
+          bounceRisk: 'Unknown',
+          reputationImpact: 'Unknown',
+          isTimedOutMissing: true,
+          originalIndex: idx,
+          __originalData: item
+        });
+        return;
+      }
 
       const status = verificationResult.status;
       const isSafe = status === 'SAFE' || status === 'VERIFIED';
@@ -585,10 +591,14 @@ export const verifyEmail = async (
       return initialData as Partial<ProcessedContact>;
     }
 
+    if (initialData.status === 'error') {
+      throw new Error(initialData.ui_reason || 'Verification backend unreachable');
+    }
+
     if (initialData.status === 'pending' && initialData.requestId) {
       const reqId = initialData.requestId;
       const startTime = Date.now();
-      const maxWaitMs = 240000;
+      const maxWaitMs = 1200000;
 
       while (Date.now() - startTime < maxWaitMs) {
         await new Promise(r => setTimeout(r, 6000));
@@ -604,43 +614,9 @@ export const verifyEmail = async (
       }
     }
 
-    return {
-      verificationStatus: 'unknown',
-      verificationReason: 'Safety Timeout: Verification probe did not complete in time',
-      subStatus: 'timeout',
-      confidenceScore: 40,
-      bounceRisk: 'Unknown',
-      reputationImpact: 'Unknown',
-      mxRecordFound: false,
-      isCatchAll: false,
-      isDisposable: false,
-      isRoleBased: false,
-      isFreeEmail: false,
-      provider: 'Unknown',
-      smtpValid: false,
-      syntaxValid: true,
-      email: clean,
-      status: 'UNKNOWN'
-    };
+    throw new Error('STILL CHECKING / TIMED OUT — re-run to complete');
   } catch (err: any) {
     console.error('[SINGLE_VALIDATION_ERROR]', err);
-    return {
-      verificationStatus: 'unknown',
-      verificationReason: `Network/Timeout Failure: ${err.message}`,
-      subStatus: 'timeout',
-      confidenceScore: 40,
-      bounceRisk: 'Unknown',
-      reputationImpact: 'Unknown',
-      mxRecordFound: false,
-      isCatchAll: false,
-      isDisposable: false,
-      isRoleBased: false,
-      isFreeEmail: false,
-      provider: 'Unknown',
-      smtpValid: false,
-      syntaxValid: false,
-      email: clean,
-      status: 'UNKNOWN'
-    };
+    throw err;
   }
 };

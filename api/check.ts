@@ -36,7 +36,7 @@ function isValidSyntax(email: string): boolean {
 }
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('X-LeadPure-Version', 'v15.0.0');
+  res.setHeader('X-LeadPure-Version', 'v16.0.0');
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
   const token = process.env.REACHER_GH_TOKEN || process.env.GITHUB_TOKEN;
@@ -110,10 +110,13 @@ export default async function handler(req: any, res: any) {
             if (item.misc?.is_role_account) reasons.push('Role Account (shared inbox)');
             if (item.misc?.is_disposable) reasons.push('Disposable Email Domain');
             if (item.smtp?.has_full_inbox) reasons.push('Mailbox Over Quota');
+            if (item.debug?.forwarding_alias_accepted) reasons.push('Forwarding provider accepted alias (final mailbox unverifiable)');
             ui_reason = reasons.join(', ') || 'Domain or address characteristics present bounce risk';
           } else if (item.is_reachable === 'invalid') {
             ui_label = 'INVALID';
             ui_reason = item.smtp?.is_disabled ? 'Account disabled by provider' : 'Mailbox does not exist (rejected by MX)';
+          } else if (item.is_reachable === 'unknown' && item.debug?.forwarding_rcpt_rejected) {
+            ui_reason = `Forwarding provider rejected RCPT (${item.debug.forwarding_rcpt_rejected}); final mailbox unverifiable`;
           }
 
           const status = item.is_reachable === 'safe' ? 'SAFE' : (item.is_reachable === 'risky' ? 'RISKY' : (item.is_reachable === 'invalid' ? 'INVALID' : 'UNKNOWN'));
@@ -142,8 +145,8 @@ export default async function handler(req: any, res: any) {
             isDeliverable: !!item.smtp?.is_deliverable,
             mxRecordFound: !!item.mx?.accepts_mail,
             mxRecord: item.mx?.records?.[0] || '',
-            provider: item.misc?.is_b2c ? 'Consumer Node' : 'Enterprise Node',
-            isFreeEmail: !!item.misc?.is_b2c,
+            provider: (item.misc?.is_b2c || item.debug?.freemail) ? 'Consumer Node' : 'Enterprise Node',
+            isFreeEmail: !!(item.misc?.is_b2c || item.debug?.freemail),
             isDisposable: !!item.misc?.is_disposable,
             isRoleBased: !!item.misc?.is_role_account,
             spfExists: hasSpf,

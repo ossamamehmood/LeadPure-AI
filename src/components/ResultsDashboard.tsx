@@ -39,7 +39,7 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
           (contact.confidenceScore || 0) >= 99 ? "bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink bg-clip-text text-transparent" : 
           (contact.confidenceScore || 0) > 95 ? "text-brand-blue" : "text-brand-pink"
         )}>
-          {contact.confidenceScore || 0}% Accuracy
+          {contact.isTimedOutMissing ? 'Pending' : `${contact.confidenceScore || 0}% Accuracy`}
         </span>
         <div className="flex-1 md:w-full h-1 bg-white/[0.03] rounded-full overflow-hidden border border-white/5 max-w-[100px] md:max-w-none">
           <div 
@@ -56,6 +56,7 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
       <div className="md:px-10 py-2 md:py-4 w-full md:w-[15%]">
         <div className={cn(
           "inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border",
+          contact.isTimedOutMissing ? "text-amber-400 bg-amber-400/5 border-amber-400/20" :
           (contact.verificationStatus === 'safe' || contact.verificationStatus === 'verified') ? "text-brand-blue bg-brand-blue/5 border-brand-blue/20" :
           contact.verificationStatus === 'usable' ? "text-blue-400 bg-blue-400/5 border-blue-400/20" :
           contact.verificationStatus === 'risky' ? "text-amber-400 bg-amber-400/5 border-amber-400/20" :
@@ -63,25 +64,27 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any, mappings:
         )}>
           <div className={cn(
             "w-1.5 h-1.5 rounded-full",
+            contact.isTimedOutMissing ? "bg-amber-400" :
             (contact.verificationStatus === 'safe' || contact.verificationStatus === 'verified') ? "bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-pink shadow-sm" :
             contact.verificationStatus === 'usable' ? "bg-blue-400" :
             contact.verificationStatus === 'risky' ? "bg-amber-400" :
             "bg-brand-pink"
           )} />
-          {contact.verificationStatus || 'SAFE'}
+          {contact.isTimedOutMissing ? 'TIMED OUT' : (contact.verificationStatus || 'SAFE')}
         </div>
       </div>
 
       <div className="md:px-10 py-2 md:py-4 w-full md:w-[30%] overflow-hidden">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
+            contact.isTimedOutMissing ? 'bg-amber-400/10 text-amber-400' :
             (contact.confidenceScore || 0) >= 86 ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/20' : 
             (contact.confidenceScore || 0) >= 65 ? 'bg-blue-400/10 text-blue-400' : 
             (contact.confidenceScore || 0) >= 31 ? 'bg-amber-400/10 text-amber-400' : 'bg-brand-pink/10 text-brand-pink'
           }`}>
-            {contact.confidenceScore}% Confidence
+            {contact.isTimedOutMissing ? 'Pending Result' : `${contact.confidenceScore}% Confidence`}
           </span>
-          <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{contact.verificationStatus === 'safe' ? 'Verified Safe' : contact.verificationStatus}</span>
+          <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{contact.isTimedOutMissing ? 'Re-run to complete' : (contact.verificationStatus === 'safe' ? 'Verified Safe' : contact.verificationStatus)}</span>
         </div>
         <p className="text-[9px] font-black bg-gradient-to-r from-slate-400 to-slate-500 bg-clip-text text-transparent uppercase tracking-wider line-clamp-1 italic">
           {contact.provider === 'google' ? 'Google Cloud Intelligence: Trusted Identity' : 

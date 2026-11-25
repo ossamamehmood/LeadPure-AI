@@ -29,7 +29,7 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
         <div className="hidden md:flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
           <span className="flex items-center gap-2 px-3 py-1 bg-brand-blue/5 rounded-full border border-brand-blue/15 text-slate-600 dark:text-slate-400">
             <span className="w-1.5 h-1.5 rounded-full gradient-bg" />
-            v15 Enterprise Release (Real SMTP Mailbox Engine)
+            V16 ENTERPRISE RELEASE (OWN SMTP ENGINE 1.2)
           </span>
         </div>
       </div>

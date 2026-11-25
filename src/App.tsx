@@ -193,9 +193,10 @@ export default function App() {
     const extension = (rawExt === '.csv' || rawExt === '.xlsx' || rawExt === '.xls') ? rawExt : '.xlsx';
     const baseName = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : (fileName || 'leads');
     
+    const arrivedEliminated = processor.eliminatedData.filter((item: any) => !item.isTimedOutMissing);
     const filteredData = tier === 'all' 
-      ? processor.eliminatedData 
-      : processor.eliminatedData.filter(item => {
+      ? arrivedEliminated 
+      : arrivedEliminated.filter(item => {
           if (tier === 'risky') return item.status === 'RISKY' || item.status === 'risky' || item.bounceRisk === 'Medium';
           if (tier === 'dangerous') return item.status === 'INVALID' || item.status === 'dangerous' || item.bounceRisk === 'Dangerous' || item.bounceRisk === 'High';
           return true;
@@ -233,8 +234,8 @@ export default function App() {
     const extension = (rawExt === '.csv' || rawExt === '.xlsx' || rawExt === '.xls') ? rawExt : '.xlsx';
     const baseName = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : (fileName || 'leads');
     
-    // Export normalized lead data
-    const exportData = processor.processedData.map(item => item.__originalData || item);
+    // Export normalized lead data ONLY from arrived engine results
+    const exportData = processor.processedData.filter((item: any) => !item.isTimedOutMissing).map(item => item.__originalData || item);
 
     if (exportData.length === 0) {
       toast('NO VALID LEADS TO EXPORT', 'info');
