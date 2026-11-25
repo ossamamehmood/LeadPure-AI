@@ -15,8 +15,8 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
   const isResults = appState === 'results' || appState === 'processing';
 
   return (
-    <header className="h-20 sm:h-24 border-b border-app-border flex items-center justify-between px-4 sm:px-8 lg:px-10 bg-app-bg/40 backdrop-blur-3xl shrink-0 sticky top-0 z-50">
-      <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+    <header className="h-20 sm:h-24 border-b border-app-border flex items-center justify-between px-4 sm:px-8 lg:px-10 bg-app-bg/40 backdrop-blur-3xl shrink-0 sticky top-0 z-50 gap-3">
+      <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
         <div className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer shrink-0">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12">
             <Zap className="w-4 h-4 fill-white" />
@@ -26,10 +26,12 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
           </h1>
         </div>
         <div className="h-6 w-px bg-app-border hidden md:block shrink-0" />
-        <div className="hidden md:flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
-          <span className="flex items-center gap-2 px-3 py-1 bg-brand-blue/5 rounded-full border border-brand-blue/15 text-slate-600 dark:text-slate-400 whitespace-nowrap">
-            <span className="w-1.5 h-1.5 rounded-full gradient-bg" />
-            V17 Enterprise Release (Own SMTP Engine 1.3)
+        <div className="hidden md:flex items-center text-[10px] font-black uppercase tracking-[0.14em] xl:tracking-[0.2em] text-slate-500 min-w-0">
+          <span className="flex items-center gap-2 px-3 py-1 bg-brand-blue/5 rounded-full border border-brand-blue/15 text-slate-600 dark:text-slate-400 truncate">
+            <span className="w-1.5 h-1.5 rounded-full gradient-bg shrink-0" />
+            <span className="truncate">
+              V17 Enterprise Release <span className="hidden xl:inline">(Own SMTP Engine 1.3)</span>
+            </span>
           </span>
         </div>
       </div>

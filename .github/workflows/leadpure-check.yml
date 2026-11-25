@@ -1,8 +1,9 @@
 name: leadpure-check
 
-# LeadPure OWN engine — runs probe.mjs (LeadPure's own SMTP probe) on a GitHub
-# Actions runner (outbound port 25 open) and commits the raw result JSON to
-# the `results` branch of THIS repo. Supports single-email checks and chunked bulk runs.
+# LeadPure OWN engine — verifies emails on a GitHub Actions runner with Port 25 open.
+# GitHub schedules ubuntu-latest across Azure (Port 25 open) and AWS (Port 25 blocked).
+# Fast Port-25 check before running probe fails AWS nodes in <4s and immediately retries
+# on a fresh runner VM until an open-port-25 node is assigned.
 
 on:
   workflow_dispatch:
@@ -25,87 +26,86 @@ permissions:
   contents: write
 
 jobs:
-  probe:
+  probe_1:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
+      - name: Check Port 25 egress
+        run: nc -4 -z -w 4 gmail-smtp-in.l.google.com 25 || nc -4 -z -w 4 alt1.gmail-smtp-in.l.google.com 25
+      - uses: actions/checkout@v4
         with:
           ref: main
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Force IPv4 (avoid IPv6 SMTP drops)
-        run: sudo sysctl -w net.ipv6.conf.all.disable_ipv6=1 || true
-
-      - name: Write email list safely
-        env:
-          EMAILS_INPUT: ${{ inputs.emails }}
-        run: |
-          printf '%s\n' "$EMAILS_INPUT" > emails.txt
-          wc -l emails.txt
-
-      - name: Run LeadPure probe
-        run: node engine/probe.mjs emails.txt result.json
-
-      - name: Publish result to results branch
+      - name: Probe and publish results
         env:
           REQUEST_ID: ${{ inputs.request_id }}
           CHUNK_INDEX: ${{ inputs.chunk_index }}
-        run: |
-          if ! [[ "$REQUEST_ID" =~ ^[a-zA-Z0-9_-]+$ ]]; then
-            echo "Invalid request_id" >&2
-            exit 1
-          fi
-          if [ -n "$CHUNK_INDEX" ] && ! [[ "$CHUNK_INDEX" =~ ^[0-9]+$ ]]; then
-            echo "Invalid chunk_index" >&2
-            exit 1
-          fi
+          EMAILS_INPUT: ${{ inputs.emails }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash engine/run-ci-probe.sh
 
-          git config --global user.name "leadpure-engine"
-          git config --global user.email "engine@leadpure.ai"
+  probe_2:
+    needs: probe_1
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check Port 25 egress (Retry 1)
+        run: nc -4 -z -w 4 gmail-smtp-in.l.google.com 25 || nc -4 -z -w 4 alt1.gmail-smtp-in.l.google.com 25
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Probe and publish results
+        env:
+          REQUEST_ID: ${{ inputs.request_id }}
+          CHUNK_INDEX: ${{ inputs.chunk_index }}
+          EMAILS_INPUT: ${{ inputs.emails }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash engine/run-ci-probe.sh
 
-          cd "$RUNNER_TEMP"
-          git clone --quiet "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" pub
-          cd pub
-          if git ls-remote --exit-code --heads origin results >/dev/null 2>&1; then
-            git checkout --quiet results
-          else
-            git checkout --quiet --orphan results
-            git rm -rf . >/dev/null 2>&1 || true
-            echo "# LeadPure verification results" > README.md
-            git add README.md
-            git commit --quiet -m "init results branch"
-          fi
+  probe_3:
+    needs: probe_2
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check Port 25 egress (Retry 2)
+        run: nc -4 -z -w 4 gmail-smtp-in.l.google.com 25 || nc -4 -z -w 4 alt1.gmail-smtp-in.l.google.com 25
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Probe and publish results
+        env:
+          REQUEST_ID: ${{ inputs.request_id }}
+          CHUNK_INDEX: ${{ inputs.chunk_index }}
+          EMAILS_INPUT: ${{ inputs.emails }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash engine/run-ci-probe.sh
 
-          mkdir -p results
-          if [ ! -f vercel.json ]; then
-            echo '{"ignoreCommand":"exit 0"}' > vercel.json
-            git add vercel.json
-          fi
-
-          if [ -n "$CHUNK_INDEX" ]; then
-            TARGET_PATH="results/${REQUEST_ID}/chunk-${CHUNK_INDEX}.json"
-            mkdir -p "results/${REQUEST_ID}"
-          else
-            TARGET_PATH="results/${REQUEST_ID}.json"
-          fi
-
-          cp "$GITHUB_WORKSPACE/result.json" "$TARGET_PATH"
-          git add "$TARGET_PATH"
-          git commit --quiet -m "result ${REQUEST_ID}${CHUNK_INDEX:+ chunk-${CHUNK_INDEX}}"
-
-          for attempt in 1 2 3 4 5; do
-            git pull --rebase --quiet origin results || true
-            if git push --quiet origin results; then
-              echo "Published $TARGET_PATH"
-              exit 0
-            fi
-            sleep $((attempt * 2))
-          done
-          echo "Failed to push results" >&2
-          exit 1
+  probe_fallback:
+    needs: probe_3
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Probe and publish results (Fallback)
+        env:
+          REQUEST_ID: ${{ inputs.request_id }}
+          CHUNK_INDEX: ${{ inputs.chunk_index }}
+          EMAILS_INPUT: ${{ inputs.emails }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash engine/run-ci-probe.sh

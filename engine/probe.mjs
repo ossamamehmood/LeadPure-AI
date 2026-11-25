@@ -49,9 +49,11 @@ function smtpProbe(ip, mxHost, targetEmail) {
     let buf = '';
     let settled = false;
     const done = (v) => { if (!settled) { settled = true; try { socket.destroy(); } catch {} resolve(v); } };
-    socket.setTimeout(SESSION_TIMEOUT_MS, () => done({ connected: stage !== 'banner', code: null, error: 'session_timeout' }));
+    socket.setTimeout(CONNECT_TIMEOUT_MS, () => done({ connected: stage !== 'banner', code: null, error: 'connect_or_session_timeout' }));
     socket.once('error', (e) => done({ connected: false, code: null, error: String(e.code || e.message || e) }));
-    socket.connect(25, ip, () => {});
+    socket.connect(25, ip, () => {
+      socket.setTimeout(SESSION_TIMEOUT_MS);
+    });
     socket.on('data', (chunk) => {
       buf += chunk.toString('utf8');
       let idx;
