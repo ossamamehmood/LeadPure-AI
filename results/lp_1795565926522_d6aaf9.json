@@ -1,0 +1,38 @@
+[
+  {
+    "input": "kristin@ccaestheticboutique.com",
+    "is_reachable": "risky",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false,
+      "is_b2c": false,
+      "gravatar_url": null,
+      "haveibeenpwned": null
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "smtp.google.com."
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": true,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "kristin@ccaestheticboutique.com",
+      "domain": "ccaestheticboutique.com",
+      "is_valid_syntax": true,
+      "username": "kristin",
+      "normalized_email": "kristin@ccaestheticboutique.com",
+      "suggestion": null
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.1.0"
+    }
+  }
+]
