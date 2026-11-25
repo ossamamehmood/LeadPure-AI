@@ -1,0 +1,39 @@
+[
+  {
+    "input": "nelly@azuremedspaboca.com",
+    "is_reachable": "invalid",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false,
+      "is_b2c": false,
+      "gravatar_url": null,
+      "haveibeenpwned": null
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx1-us1.ppe-hosted.com.",
+        "mx2-us1.ppe-hosted.com."
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "nelly@azuremedspaboca.com",
+      "domain": "azuremedspaboca.com",
+      "is_valid_syntax": true,
+      "username": "nelly",
+      "normalized_email": "nelly@azuremedspaboca.com",
+      "suggestion": null
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.1.0"
+    }
+  }
+]
