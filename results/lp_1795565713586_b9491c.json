@@ -1,0 +1,42 @@
+[
+  {
+    "input": "ann@eastonadvancedaesthetics.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false,
+      "is_b2c": false,
+      "gravatar_url": null,
+      "haveibeenpwned": null
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com.",
+        "alt1.aspmx.l.google.com.",
+        "alt2.aspmx.l.google.com.",
+        "alt3.aspmx.l.google.com.",
+        "alt4.aspmx.l.google.com."
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": false,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "ann@eastonadvancedaesthetics.com",
+      "domain": "eastonadvancedaesthetics.com",
+      "is_valid_syntax": true,
+      "username": "ann",
+      "normalized_email": "ann@eastonadvancedaesthetics.com",
+      "suggestion": null
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.1.0"
+    }
+  }
+]
