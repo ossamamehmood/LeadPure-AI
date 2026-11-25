@@ -10,7 +10,7 @@ export function Footer() {
         </div>
         <div className="flex items-center gap-2.5">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span className="text-slate-600 dark:text-slate-400">Own SMTP Engine 1.3</span>
+          <span className="text-slate-600 dark:text-slate-400">Own SMTP Engine 1.3.1</span>
         </div>
       </div>
 

@@ -93,7 +93,10 @@ async function mapProbeResults(resultArray: any[]) {
       verdict = 'UNKNOWN';
       verificationStatus = 'unknown';
       ui_label = 'UNKNOWN';
-      if (item.debug?.forwarding_rcpt_rejected) {
+      if (item.debug?.policy_rejection) {
+        const pr = item.debug.policy_rejection;
+        ui_reason = `Mail server refused probe by policy (${pr.code}${pr.enhanced ? ' ' + pr.enhanced : ''}); mailbox status unverifiable`;
+      } else if (item.debug?.forwarding_rcpt_rejected) {
         ui_reason = `Forwarding provider rejected RCPT (${item.debug.forwarding_rcpt_rejected}); final mailbox unverifiable`;
       } else if (item.debug?.greylisted_or_temp) {
         ui_reason = `Temporary 4xx / greylisting (${item.debug.greylisted_or_temp}) after retry`;

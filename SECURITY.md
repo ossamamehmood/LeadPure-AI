@@ -5,7 +5,7 @@
 LeadPure AI is designed as a stateless verification orchestrator with minimal data retention:
 
 1. **Client-Side Spreadsheet Parsing:** Uploaded CSV and Excel (`.xlsx` / `.xls`) files are parsed locally inside the user's browser via `src/workers/parseLeads.worker.ts`. Unselected spreadsheet columns and phone numbers are never persisted on a backend database.
-2. **Ephemeral SMTP Runners:** Live DNS/MX and Port-25 SMTP checks execute inside isolated, short-lived GitHub Actions Ubuntu containers (`engine/probe.mjs` v1.3.0) triggered via `.github/workflows/leadpure-check.yml`.
+2. **Ephemeral SMTP Runners:** Live DNS/MX and Port-25 SMTP checks execute inside isolated, short-lived GitHub Actions Ubuntu containers (`engine/probe.mjs` v1.3.1) triggered via `.github/workflows/leadpure-check.yml`.
 3. **Command-Injection Protection:** User-supplied email strings and request IDs are validated by `api/check.ts` before dispatch and passed into workflow scripts strictly through GitHub Actions `env:` variables—never interpolated directly into shell command strings.
 4. **Automatic 7-Day Result Pruning:** Per-request manifest and chunk result files (`results/<requestId>/manifest.json` and `chunk-<n>.json`) on the `results` branch are automatically deleted once older than **7 days** by the weekly `.github/workflows/cleanup-results.yml` workflow.
 
@@ -23,7 +23,7 @@ LeadPure AI is designed as a stateless verification orchestrator with minimal da
 
 | Version | Status | Notes |
 | :--- | :--- | :--- |
-| **17.x** | Active Support | Own SMTP Engine `1.3.0`, chunked `/api/check`, 7-day auto-cleanup |
+| **17.x** | Active Support | Own SMTP Engine `1.3.1`, chunked `/api/check`, 7-day auto-cleanup |
 | **&lt;= 16.x** | End of Life | Upgrade to `17.x`; `/api/validate-batch` is retired (`HTTP 410`) |
 
 ---

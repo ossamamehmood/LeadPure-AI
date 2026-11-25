@@ -82,7 +82,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
             </div>
             <div>
               <span className="text-[10px] uppercase font-black text-app-text block">LeadPure V17</span>
-              <span className="text-[8px] uppercase font-bold text-brand-blue tracking-widest">Probe 1.3 (Chunked)</span>
+              <span className="text-[8px] uppercase font-bold text-brand-blue tracking-widest">Probe 1.3.1 (Chunked)</span>
             </div>
           </div>
           <div className="w-full bg-slate-100 dark:bg-app-bg h-1.5 rounded-full mt-4 overflow-hidden border border-app-border">

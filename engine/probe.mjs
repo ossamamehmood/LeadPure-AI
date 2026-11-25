@@ -1,9 +1,16 @@
-// LeadPure own verification engine — probe.mjs v1.3
+// LeadPure own verification engine — probe.mjs v1.3.1
 // Reacher's system, rebuilt as LeadPure's own code. Zero dependencies (Node 20 stdlib only).
 // Pipeline per address: syntax -> MX -> SMTP RCPT probe across ALL MX candidates ->
 // catch-all probe (random local part) -> safe / risky / invalid / unknown.
-// v1.3 changes: adds a 4-worker parallel pool in main() for 100-email chunks while preserving
-// all v1.2 verdict logic (2-pass retry, 30s greylist wait, forwarding-provider handling).
+// v1.2 changes: (1) up to 2 full passes when the first ends in a connection failure,
+// (2) greylist retry waits 30s, (3) forwarding-provider MX (ImprovMX / ForwardEmail /
+// Cloudflare Email Routing) can never produce INVALID from an RCPT 5xx — the forwarder
+// answers for the domain, not the real mailbox — such results become unknown/risky with
+// an explicit forwarding note instead of a false "mailbox does not exist".
+// v1.3 changes: adds a 4-worker parallel pool in main() for 100-email chunks.
+// v1.3.1 change: INVALID now requires an enhanced status code 5.1.x in the RCPT reply
+// (5.1.1 = user unknown). Policy-style 5xx replies (5.7.x etc., common from Apple iCloud /
+// Proofpoint PPE / PrivateEmail hosts rejecting the probe itself) become UNKNOWN, never INVALID.
 // Usage: node engine/probe.mjs <emails.txt> <result.json>
 // Output: JSON array, one Reacher-shaped object per input email.
 
@@ -74,7 +81,7 @@ function smtpProbe(ip, mxHost, targetEmail) {
             stage = 'rcpt'; socket.write(`RCPT TO:<${targetEmail}>\r\n`);
           } else if (stage === 'rcpt') {
             try { socket.write('QUIT\r\n'); } catch {}
-            return done({ connected: true, code, error: null });
+            return done({ connected: true, code, error: null, reply: line });
           }
         } catch (e) { return done({ connected: true, code: null, error: String(e) }); }
       }
@@ -120,7 +127,7 @@ async function probeOnce(email) {
       is_deliverable: false, is_disabled: false,
     },
     syntax: { address: email, domain, is_valid_syntax: checkSyntax(email), username: local },
-    debug: { backend_name: 'leadpure-own-engine', engine_version: '1.3.0' },
+    debug: { backend_name: 'leadpure-own-engine', engine_version: '1.3.1' },
   };
   if (!out.syntax.is_valid_syntax) { out.is_reachable = 'invalid'; return out; }
   if (out.misc.is_disposable) { out.is_reachable = 'invalid'; out.debug.disposable_domain = true; return out; }
@@ -156,6 +163,13 @@ async function probeOnce(email) {
   if (rcpt.code === null) { out.debug.connect_error = rcpt.error || 'no_rcpt_code'; return out; }
   if (rcpt.code >= 400 && rcpt.code < 500) { out.debug.greylisted_or_temp = rcpt.code; return out; }
   if (rcpt.code >= 500) {
+    const enhanced = ((rcpt.reply || '').match(/(?:^|\s)(5\.\d+\.\d+)/) || [])[1] || '';
+    if (!enhanced.startsWith('5.1.')) {
+      // Policy rejection of the probe itself (5.7.x etc.) — the server refused the
+      // conversation, it did not prove the mailbox is gone. Stay honest: unknown.
+      out.debug.policy_rejection = { code: rcpt.code, enhanced: enhanced || null };
+      return out;
+    }
     if (isForwarding) {
       // The forwarder rejected at RCPT, but it answers for the domain, not the real
       // mailbox — this cannot prove the mailbox does not exist. Stay honest: unknown.
@@ -214,7 +228,7 @@ async function main() {
       try {
         results[idx] = await probeEmail(e);
       } catch (err) {
-        results[idx] = { input: e, is_reachable: 'unknown', debug: { backend_name: 'leadpure-own-engine', engine_version: '1.3.0', error: String(err && err.message || err) } };
+        results[idx] = { input: e, is_reachable: 'unknown', debug: { backend_name: 'leadpure-own-engine', engine_version: '1.3.1', error: String(err && err.message || err) } };
       }
     }
   };
