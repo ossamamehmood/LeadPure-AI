@@ -1,0 +1,34 @@
+[
+  {
+    "input": "gloria_keller@hotmail.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "hotmail-com.olc.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "gloria_keller@hotmail.com",
+      "domain": "hotmail.com",
+      "is_valid_syntax": true,
+      "username": "gloria_keller"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.0",
+      "connect_error": "mailfrom_550"
+    }
+  }
+]
