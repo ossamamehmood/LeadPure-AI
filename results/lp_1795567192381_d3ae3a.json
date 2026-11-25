@@ -1,0 +1,36 @@
+[
+  {
+    "input": "hello@ossamamehmood.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": true
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx1.improvmx.com",
+        "mx2.improvmx.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "hello@ossamamehmood.com",
+      "domain": "ossamamehmood.com",
+      "is_valid_syntax": true,
+      "username": "hello"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.2.0",
+      "forwarding_provider": true,
+      "connect_error": "mailfrom_503"
+    }
+  }
+]
