@@ -1,32 +1,11 @@
 import crypto from 'crypto';
 import dns from 'dns/promises';
 
-// Strict score calculation per Phase 2d
-export function calculatePhase2Score(reacherResult: any, hasSpf: boolean = false): number {
-  const syntax = reacherResult.syntax || {};
-  const mx = reacherResult.mx || {};
-  const smtp = reacherResult.smtp || {};
-  const misc = reacherResult.misc || {};
-  const reachable = reacherResult.is_reachable;
-
-  if (syntax.is_valid_syntax === false) return 0;
-  if (mx.accepts_mail === false || (mx.records && mx.records.length === 0)) return 5;
-
-  let score = 20;
-  if (!misc.is_disposable) score += 10;
-  if (!misc.is_role_account) score += 10;
-  if (hasSpf) score += 5;
-  if (smtp.is_deliverable) score += 45;
-  if (smtp.is_catch_all) score -= 25;
-  if (smtp.has_full_inbox) score -= 15;
-  if (smtp.is_disabled) score = Math.min(score, 10);
-  if (reachable === 'unknown') score = Math.min(score, 45);
-
-  return Math.max(0, Math.min(95, score));
-}
+export type CanonicalVerdict = 'SAFE' | 'RISKY' | 'INVALID' | 'UNKNOWN';
+export type CanonicalUiStatus = 'safe' | 'risky' | 'invalid' | 'unknown';
 
 function isValidSyntax(email: string): boolean {
-  if (!email || typeof email !== 'string') return false;
+  if (!email || typeof email !== 'string' || email.length > 254) return false;
   const parts = email.split('@');
   if (parts.length !== 2) return false;
   const [local, domain] = parts;
@@ -35,247 +14,532 @@ function isValidSyntax(email: string): boolean {
   return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(email);
 }
 
+function isValidRequestId(id: unknown): id is string {
+  return typeof id === 'string' && /^[a-zA-Z0-9_-]{3,80}$/.test(id);
+}
+
+function identifyProviderName(mxHost: string, isFree: boolean): string {
+  const host = (mxHost || '').toLowerCase();
+  if (host.includes('google.com') || host.includes('googlemail.com')) return isFree ? 'Google (Gmail)' : 'Google Workspace';
+  if (host.includes('outlook.com') || host.includes('mx.microsoft')) return isFree ? 'Microsoft Consumer' : 'Microsoft 365';
+  if (host.includes('yahoodns')) return 'Yahoo Mail';
+  if (host.includes('icloud.com') || host.includes('apple.com')) return 'Apple iCloud';
+  if (host.includes('protonmail')) return 'Proton Mail';
+  if (host.includes('zoho.com')) return 'Zoho Mail';
+  if (host.includes('improvmx')) return 'ImprovMX (Forwarding)';
+  if (host.includes('forwardemail')) return 'ForwardEmail (Forwarding)';
+  if (host.includes('mx.cloudflare.net') || host.includes('email-routing')) return 'Cloudflare Email Routing';
+  if (host.includes('mimecast')) return 'Mimecast Gateway';
+  if (host.includes('pphosted')) return 'Proofpoint Gateway';
+  return mxHost ? mxHost.replace(/\.$/, '') : (isFree ? 'Consumer Provider' : 'Custom MX');
+}
+
+async function mapProbeResults(resultArray: any[]) {
+  const spfPromiseCache = new Map<string, Promise<boolean>>();
+
+  const getSpf = (domain: string): Promise<boolean> => {
+    if (!domain) return Promise.resolve(false);
+    const key = domain.toLowerCase();
+    if (!spfPromiseCache.has(key)) {
+      spfPromiseCache.set(
+        key,
+        dns.resolveTxt(key)
+          .then(txts => txts.some(r => r.join('').toLowerCase().startsWith('v=spf1')))
+          .catch(() => false)
+      );
+    }
+    return spfPromiseCache.get(key)!;
+  };
+
+  return Promise.all(resultArray.map(async (item: any) => {
+    const emailInput = String(item.input || '').trim();
+    const domain = emailInput.split('@')[1] || '';
+    const hasSpf = await getSpf(domain);
+    const reachable = String(item.is_reachable || 'unknown').toLowerCase();
+    const primaryMx = (item.mx?.records?.[0] || '').replace(/\.$/, '');
+    const isFree = !!(item.misc?.is_b2c || item.debug?.freemail);
+
+    let verdict: CanonicalVerdict = 'UNKNOWN';
+    let verificationStatus: CanonicalUiStatus = 'unknown';
+    let ui_label = 'UNKNOWN';
+    let ui_reason = 'Mail server unreachable or probe inconclusive';
+
+    if (reachable === 'safe') {
+      verdict = 'SAFE';
+      verificationStatus = 'safe';
+      ui_label = 'SAFE';
+      ui_reason = 'Mailbox confirmed deliverable by mail server (non-catch-all)';
+    } else if (reachable === 'risky') {
+      verdict = 'RISKY';
+      verificationStatus = 'risky';
+      ui_label = 'RISKY';
+      const reasons: string[] = [];
+      if (item.smtp?.is_catch_all) reasons.push('Catch-all domain (accepts any local part)');
+      if (item.misc?.is_role_account) reasons.push('Role-based address');
+      if (item.misc?.is_disposable) reasons.push('Disposable email domain');
+      if (item.smtp?.has_full_inbox) reasons.push('Mailbox over quota');
+      if (item.debug?.forwarding_alias_accepted) reasons.push('Forwarding provider accepted alias (final mailbox unverifiable)');
+      ui_reason = reasons.join(', ') || 'Domain or address characteristics indicate delivery risk';
+    } else if (reachable === 'invalid') {
+      verdict = 'INVALID';
+      verificationStatus = 'invalid';
+      ui_label = 'INVALID';
+      if (item.syntax?.is_valid_syntax === false) ui_reason = 'Invalid email syntax';
+      else if (item.debug?.disposable_domain || item.misc?.is_disposable) ui_reason = 'Disposable email domain';
+      else if (item.debug?.no_mx || item.mx?.accepts_mail === false) ui_reason = 'Domain does not accept mail (no active MX records)';
+      else if (item.smtp?.is_disabled) ui_reason = 'Account disabled by provider';
+      else ui_reason = 'Mailbox does not exist (rejected by mail server)';
+    } else {
+      verdict = 'UNKNOWN';
+      verificationStatus = 'unknown';
+      ui_label = 'UNKNOWN';
+      if (item.debug?.forwarding_rcpt_rejected) {
+        ui_reason = `Forwarding provider rejected RCPT (${item.debug.forwarding_rcpt_rejected}); final mailbox unverifiable`;
+      } else if (item.debug?.greylisted_or_temp) {
+        ui_reason = `Temporary 4xx / greylisting (${item.debug.greylisted_or_temp}) after retry`;
+      } else if (item.debug?.connect_error) {
+        ui_reason = `SMTP connection inconclusive (${item.debug.connect_error})`;
+      }
+    }
+
+    let sub_status = 'ok';
+    if (item.syntax?.is_valid_syntax === false) sub_status = 'invalid_syntax';
+    else if (item.misc?.is_disposable || item.debug?.disposable_domain) sub_status = 'disposable';
+    else if (!item.mx?.accepts_mail || item.debug?.no_mx) sub_status = 'domain_not_found';
+    else if (item.misc?.is_role_account) sub_status = 'role_based';
+    else if (item.smtp?.is_catch_all) sub_status = 'catch_all';
+    else if (verdict === 'INVALID') sub_status = 'mailbox_not_found';
+    else if (verdict === 'UNKNOWN') sub_status = 'unreachable';
+
+    return {
+      email: emailInput,
+      status: verdict,
+      verdict,
+      sub_status,
+      subStatus: sub_status,
+      verificationStatus,
+      verificationReason: ui_reason,
+      bounceRisk: verdict === 'SAFE' ? 'Safe' : (verdict === 'RISKY' ? 'Medium' : (verdict === 'INVALID' ? 'High' : 'Unknown')),
+      reputationImpact: verdict === 'SAFE' ? 'Positive' : (verdict === 'RISKY' ? 'Neutral' : (verdict === 'INVALID' ? 'Critical' : 'Unknown')),
+      isCatchAll: !!item.smtp?.is_catch_all,
+      isDeliverable: !!item.smtp?.is_deliverable,
+      mxRecordFound: !!item.mx?.accepts_mail,
+      mxRecord: primaryMx,
+      provider: identifyProviderName(primaryMx, isFree),
+      isFreeEmail: isFree,
+      isDisposable: !!(item.misc?.is_disposable || item.debug?.disposable_domain),
+      isRoleBased: !!item.misc?.is_role_account,
+      spfExists: hasSpf,
+      smtpValid: !!item.smtp?.can_connect_smtp,
+      syntaxValid: item.syntax?.is_valid_syntax !== false,
+      ui_label,
+      ui_reason,
+      raw: item
+    };
+  }));
+}
+
+async function fetchGithubContent(url: string, token?: string, acceptRaw = false) {
+  const headers: Record<string, string> = {
+    'User-Agent': 'LeadPure-AI-Engine',
+    'Accept': acceptRaw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json'
+  };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return fetch(url, { headers });
+}
+
+async function putGithubFile(url: string, token: string, message: string, jsonObj: any, sha?: string) {
+  const content = Buffer.from(JSON.stringify(jsonObj, null, 2), 'utf8').toString('base64');
+  const payload: any = { message, content, branch: 'results' };
+  if (sha) payload.sha = sha;
+  return fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'User-Agent': 'LeadPure-AI-Engine'
+    },
+    body: JSON.stringify(payload)
+  });
+}
+
+async function dispatchWorkflow(
+  repoOwner: string,
+  repoName: string,
+  workflowFile: string,
+  token: string,
+  requestId: string,
+  emailsText: string,
+  chunkIndex?: number
+) {
+  const dispatchUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/actions/workflows/${workflowFile}/dispatches`;
+  const inputs: Record<string, string> = {
+    request_id: requestId,
+    emails: emailsText
+  };
+  if (typeof chunkIndex === 'number') {
+    inputs.chunk_index = String(chunkIndex);
+  }
+  return fetch(dispatchUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+      'User-Agent': 'LeadPure-AI-Engine'
+    },
+    body: JSON.stringify({ ref: 'main', inputs })
+  });
+}
+
 export default async function handler(req: any, res: any) {
-  res.setHeader('X-LeadPure-Version', 'v16.0.0');
+  res.setHeader('X-LeadPure-Version', 'v17.0.0');
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
-  const token = process.env.REACHER_GH_TOKEN || process.env.GITHUB_TOKEN;
-  const repoOwner = process.env.REACHER_REPO_OWNER || 'ossamamehmood';
-  const repoName = process.env.REACHER_REPO_NAME || 'LeadPure-AI';
+  // Prefer LEADPURE_* env vars, preserving REACHER_* fallback for backwards compatibility
+  const token = process.env.LEADPURE_GH_TOKEN || process.env.REACHER_GH_TOKEN || process.env.GITHUB_TOKEN;
+  const repoOwner = process.env.LEADPURE_REPO_OWNER || process.env.REACHER_REPO_OWNER || 'ossamamehmood';
+  const repoName = process.env.LEADPURE_REPO_NAME || process.env.REACHER_REPO_NAME || 'LeadPure-AI';
   const workflowFile = 'leadpure-check.yml';
 
   // -------------------------------------------------------------
-  // GET /api/check?requestId=... (Polling for completed result)
+  // GET /api/check?requestId=... [&chunk=N | &mode=manifest]
   // -------------------------------------------------------------
   if (req.method === 'GET') {
-    const { requestId } = req.query || {};
-    if (!requestId || typeof requestId !== 'string') {
-      return res.status(400).json({ error: 'requestId parameter is required' });
+    const { requestId, chunk, mode } = req.query || {};
+    if (!isValidRequestId(requestId)) {
+      return res.status(400).json({ error: 'Valid requestId parameter is required' });
+    }
+
+    if (chunk !== undefined && !/^\d+$/.test(String(chunk))) {
+      return res.status(400).json({ error: 'Invalid chunk parameter' });
     }
 
     try {
-      let pollRes: any;
-      if (token) {
-        const resultUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}.json?ref=results`;
-        pollRes = await fetch(resultUrl, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.raw+json',
-            'User-Agent': 'LeadPure-AI-Engine'
-          }
-        });
-      } else {
-        const rawUrl = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/results/${requestId}.json`;
-        pollRes = await fetch(rawUrl, {
-          headers: {
-            'User-Agent': 'LeadPure-AI-Engine'
-          }
-        });
-      }
-
-      if (pollRes.status === 404) {
-        return res.json({
-          status: 'pending',
-          requestId,
-          message: 'Checking — a real SMTP probe is running on GitHub Actions; this takes 1–3 minutes'
-        });
-      }
-
-      if (pollRes.ok) {
-        const rawJson: any = await pollRes.json();
+      // 1. Specific chunk download: GET /api/check?requestId=...&chunk=N
+      if (chunk !== undefined) {
+        const chunkUrl = token
+          ? `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}/chunk-${chunk}.json?ref=results`
+          : `https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/results/${requestId}/chunk-${chunk}.json`;
+        const chunkRes = await fetchGithubContent(chunkUrl, token, true);
+        if (chunkRes.status === 404) {
+          return res.json({ status: 'pending', requestId, chunkIndex: Number(chunk) });
+        }
+        if (!chunkRes.ok) {
+          return res.json({
+            status: 'error',
+            ui_reason: `Failed to fetch chunk ${chunk} (HTTP ${chunkRes.status})`
+          });
+        }
+        const rawJson: any = await chunkRes.json();
         const resultArray = Array.isArray(rawJson) ? rawJson : [rawJson];
-        const primary = resultArray[0] || {};
-
-        const mappedList = await Promise.all(resultArray.map(async (item: any) => {
-          let hasSpf = false;
-          try {
-            const domain = item.input?.split('@')[1];
-            if (domain) {
-              const txts = await dns.resolveTxt(domain);
-              hasSpf = txts.some(r => r.join('').toLowerCase().startsWith('v=spf1'));
-            }
-          } catch {}
-
-          const score = calculatePhase2Score(item, hasSpf);
-          let ui_label = 'UNKNOWN — could not verify';
-          let ui_reason = item.smtp?.response || 'Could not verify mailbox';
-
-          if (item.is_reachable === 'safe') {
-            ui_label = 'SAFE — mailbox verified';
-            ui_reason = 'Mailbox verified deliverable: Recipient confirmed by target mail server (non-catch-all)';
-          } else if (item.is_reachable === 'risky') {
-            ui_label = 'RISKY';
-            const reasons = [];
-            if (item.smtp?.is_catch_all) reasons.push('Catch-All Domain (accepts any local part)');
-            if (item.misc?.is_role_account) reasons.push('Role Account (shared inbox)');
-            if (item.misc?.is_disposable) reasons.push('Disposable Email Domain');
-            if (item.smtp?.has_full_inbox) reasons.push('Mailbox Over Quota');
-            if (item.debug?.forwarding_alias_accepted) reasons.push('Forwarding provider accepted alias (final mailbox unverifiable)');
-            ui_reason = reasons.join(', ') || 'Domain or address characteristics present bounce risk';
-          } else if (item.is_reachable === 'invalid') {
-            ui_label = 'INVALID';
-            ui_reason = item.smtp?.is_disabled ? 'Account disabled by provider' : 'Mailbox does not exist (rejected by MX)';
-          } else if (item.is_reachable === 'unknown' && item.debug?.forwarding_rcpt_rejected) {
-            ui_reason = `Forwarding provider rejected RCPT (${item.debug.forwarding_rcpt_rejected}); final mailbox unverifiable`;
-          }
-
-          const status = item.is_reachable === 'safe' ? 'SAFE' : (item.is_reachable === 'risky' ? 'RISKY' : (item.is_reachable === 'invalid' ? 'INVALID' : 'UNKNOWN'));
-          const verificationStatus = item.is_reachable === 'safe' ? 'safe' : (item.is_reachable === 'risky' ? 'risky' : (item.is_reachable === 'invalid' ? 'blocked' : 'unknown'));
-
-          let sub_status = 'ok';
-          if (item.syntax?.is_valid_syntax === false) sub_status = 'invalid_syntax';
-          else if (!item.mx?.accepts_mail) sub_status = 'domain_not_found';
-          else if (item.misc?.is_disposable) sub_status = 'disposable';
-          else if (item.misc?.is_role_account) sub_status = 'role_based';
-          else if (item.smtp?.is_catch_all) sub_status = 'catch_all';
-          else if (item.is_reachable === 'invalid') sub_status = 'mailbox_not_found';
-          else if (item.is_reachable === 'unknown') sub_status = 'unreachable';
-
-          return {
-            email: item.input,
-            status,
-            sub_status,
-            subStatus: sub_status,
-            verificationStatus,
-            verificationReason: ui_reason,
-            confidenceScore: score,
-            bounceRisk: item.is_reachable === 'safe' ? 'Safe' : (item.is_reachable === 'risky' ? 'Medium' : (item.is_reachable === 'invalid' ? 'High' : 'Unknown')),
-            reputationImpact: item.is_reachable === 'safe' ? 'Positive' : (item.is_reachable === 'risky' ? 'Neutral' : (item.is_reachable === 'invalid' ? 'Critical' : 'Unknown')),
-            isCatchAll: !!item.smtp?.is_catch_all,
-            isDeliverable: !!item.smtp?.is_deliverable,
-            mxRecordFound: !!item.mx?.accepts_mail,
-            mxRecord: item.mx?.records?.[0] || '',
-            provider: (item.misc?.is_b2c || item.debug?.freemail) ? 'Consumer Node' : 'Enterprise Node',
-            isFreeEmail: !!(item.misc?.is_b2c || item.debug?.freemail),
-            isDisposable: !!item.misc?.is_disposable,
-            isRoleBased: !!item.misc?.is_role_account,
-            spfExists: hasSpf,
-            smtpValid: !!item.smtp?.can_connect_smtp,
-            syntaxValid: item.syntax?.is_valid_syntax !== false,
-            ui_label,
-            ui_reason,
-            raw: item
-          };
-        }));
-
-        const primaryMapped = mappedList[0] || {};
+        const mappedList = await mapProbeResults(resultArray);
         return res.json({
-          ...primaryMapped,
           status: 'completed',
-          results: mappedList,
           requestId,
+          chunkIndex: Number(chunk),
+          results: mappedList,
           timestamp: new Date().toISOString()
         });
       }
 
+      // 2. Single-email check fast path (skip if explicitly requesting manifest)
+      if (mode !== 'manifest') {
+        const singleUrl = token
+          ? `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}.json?ref=results`
+          : `https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/results/${requestId}.json`;
+        const singleRes = await fetchGithubContent(singleUrl, token, true);
+
+        if (singleRes.ok) {
+          const rawJson: any = await singleRes.json();
+          const resultArray = Array.isArray(rawJson) ? rawJson : [rawJson];
+          const mappedList = await mapProbeResults(resultArray);
+          const primaryMapped = mappedList[0] || {};
+          return res.json({
+            ...primaryMapped,
+            status: 'completed',
+            results: mappedList,
+            requestId,
+            timestamp: new Date().toISOString()
+          });
+        }
+
+        if (singleRes.status !== 404) {
+          return res.json({
+            status: 'error',
+            ui_reason: `Verification storage returned status ${singleRes.status}`
+          });
+        }
+      }
+
+      // 3. Bulk Manifest & Chunk Directory Polling
+      const manifestApiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}/manifest.json?ref=results`;
+      const manifestUrl = token
+        ? manifestApiUrl
+        : `https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/results/${requestId}/manifest.json`;
+
+      const dirUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}?ref=results`;
+
+      const [manifestRes, dirRes] = await Promise.all([
+        fetchGithubContent(manifestUrl, token, false),
+        token ? fetchGithubContent(dirUrl, token, false) : Promise.resolve(null)
+      ]);
+
+      if (manifestRes.status === 404) {
+        return res.json({
+          status: 'pending',
+          requestId,
+          message: 'SMTP probe queued or running on worker...'
+        });
+      }
+
+      if (!manifestRes.ok) {
+        return res.json({
+          status: 'error',
+          ui_reason: `Manifest read failed (${manifestRes.status})`
+        });
+      }
+
+      let manifestData: any = null;
+      let manifestSha: string | undefined = undefined;
+      if (token) {
+        const fileObj: any = await manifestRes.json();
+        manifestSha = fileObj.sha;
+        manifestData = JSON.parse(Buffer.from(fileObj.content, 'base64').toString('utf8'));
+      } else {
+        manifestData = await manifestRes.json();
+      }
+
+      const completedChunks: number[] = [];
+      if (dirRes && dirRes.ok) {
+        const dirEntries: any[] = await dirRes.json();
+        if (Array.isArray(dirEntries)) {
+          for (const entry of dirEntries) {
+            const m = String(entry.name || '').match(/^chunk-(\d+)\.json$/);
+            if (m) completedChunks.push(Number(m[1]));
+          }
+        }
+      } else if (!token) {
+        // Fallback probe if unauthenticated raw endpoint is used
+        for (let i = 0; i < (manifestData.chunkCount || 1); i++) {
+          const r = await fetch(`https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/results/${requestId}/chunk-${i}.json`);
+          if (r.ok) completedChunks.push(i);
+        }
+      }
+
+      completedChunks.sort((a, b) => a - b);
+      const chunksDone = completedChunks.length;
+      const chunkCount = manifestData.chunkCount || 1;
+      const allDone = chunksDone >= chunkCount;
+
+      if (allDone && manifestData.status !== 'completed' && token && manifestSha) {
+        manifestData.status = 'completed';
+        manifestData.completedChunks = completedChunks;
+        manifestData.completedAt = new Date().toISOString();
+        // Best-effort manifest status update
+        putGithubFile(manifestApiUrl, token, `manifest completed ${requestId}`, manifestData, manifestSha).catch(() => {});
+      }
+
+      // Convenience fallback: if external single-poll caller hit bulk with <=1 chunk and didn't pass mode=manifest
+      if (mode !== 'manifest' && allDone && chunkCount === 1) {
+        const cUrl = token
+          ? `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}/chunk-0.json?ref=results`
+          : `https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/results/${requestId}/chunk-0.json`;
+        const cRes = await fetchGithubContent(cUrl, token, true);
+        if (cRes.ok) {
+          const rawJson: any = await cRes.json();
+          const resultArray = Array.isArray(rawJson) ? rawJson : [rawJson];
+          const mappedList = await mapProbeResults(resultArray);
+          return res.json({
+            ...(mappedList[0] || {}),
+            status: 'completed',
+            results: mappedList,
+            manifest: { ...manifestData, completedChunks, chunksDone },
+            requestId,
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+
       return res.json({
-        status: 'error',
-        is_reachable: 'unknown',
-        confidenceScore: null,
-        ui_label: 'UNKNOWN — verification backend unreachable',
-        ui_reason: `GitHub API returned status ${pollRes.status}`
+        status: allDone ? 'completed' : 'pending',
+        requestId,
+        manifest: {
+          ...manifestData,
+          status: allDone ? 'completed' : 'pending',
+          completedChunks,
+          chunksDone
+        }
       });
     } catch (err: any) {
       return res.json({
         status: 'error',
-        is_reachable: 'unknown',
-        confidenceScore: null,
-        ui_label: 'UNKNOWN — verification backend unreachable',
         ui_reason: `Polling error: ${err.message}`
       });
     }
   }
 
   // -------------------------------------------------------------
-  // POST /api/check (Dispatch verification request)
+  // POST /api/check (Single Check, Bulk Init, or Chunk Dispatch)
   // -------------------------------------------------------------
   if (req.method === 'POST') {
-    const { email, emails } = req.body || {};
-    const rawList: string[] = emails ? (Array.isArray(emails) ? emails : [emails]) : (email ? [email] : []);
-
-    if (rawList.length === 0) {
-      return res.status(400).json({ error: 'email or emails array required' });
-    }
-
-    const targetEmail = rawList[0].trim();
-    const domain = targetEmail.split('@')[1] || '';
-
-    // 1. Local Syntax Fast-Check
-    if (!isValidSyntax(targetEmail)) {
-      return res.json({
-        status: 'completed',
-        input: targetEmail,
-        is_reachable: 'invalid',
-        confidenceScore: 0,
-        ui_label: 'INVALID',
-        ui_reason: 'RFC syntax invalid',
-        syntax: { is_valid_syntax: false, domain, username: targetEmail.split('@')[0] },
-        misc: { is_disposable: false, is_role_account: false },
-        mx: { accepts_mail: false, records: [] },
-        smtp: { can_connect_smtp: false, is_deliverable: false, is_catch_all: false }
-      });
-    }
+    const { email, emails, action, requestId: existingReqId, chunkIndex } = req.body || {};
 
     if (!token) {
       return res.json({
         status: 'error',
-        input: targetEmail,
-        is_reachable: 'unknown',
-        confidenceScore: null,
-        ui_label: 'UNKNOWN — verification backend unreachable',
-        ui_reason: 'REACHER_GH_TOKEN not configured in Vercel environment'
+        ui_reason: 'GitHub workflow token (LEADPURE_GH_TOKEN / REACHER_GH_TOKEN) is not configured on server'
       });
     }
 
-    const requestId = `lp_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+    // Sub-action: dispatch subsequent 100-email chunk for an existing bulk request
+    if (action === 'dispatch_chunk') {
+      if (!isValidRequestId(existingReqId)) {
+        return res.status(400).json({ error: 'Invalid requestId' });
+      }
+      if (typeof chunkIndex !== 'number' || chunkIndex < 0 || !Number.isInteger(chunkIndex)) {
+        return res.status(400).json({ error: 'Invalid chunkIndex' });
+      }
+      const chunkList = (Array.isArray(emails) ? emails : [])
+        .map((e: any) => String(e || '').replace(/[\r\n]+/g, '').trim())
+        .filter(Boolean);
 
-    try {
-      const dispatchUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/actions/workflows/${workflowFile}/dispatches`;
-      const dispatchRes = await fetch(dispatchUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github+json',
-          'Content-Type': 'application/json',
-          'User-Agent': 'LeadPure-AI-Engine'
-        },
-        body: JSON.stringify({
-          ref: 'main',
-          inputs: {
-            request_id: requestId,
-            emails: rawList.join('\n')
-          }
-        })
-      });
+      if (chunkList.length === 0 || chunkList.length > 100) {
+        return res.status(400).json({ error: 'Chunk must contain between 1 and 100 emails' });
+      }
 
-      if (!dispatchRes.ok) {
-        const errText = await dispatchRes.text();
-        return res.json({
-          status: 'error',
+      try {
+        const dispatchRes = await dispatchWorkflow(
+          repoOwner, repoName, workflowFile, token, existingReqId, chunkList.join('\n'), chunkIndex
+        );
+        if (!dispatchRes.ok) {
+          const errText = await dispatchRes.text();
+          return res.json({
+            status: 'error',
+            ui_reason: `Chunk ${chunkIndex} dispatch failed (${dispatchRes.status}): ${errText.slice(0, 120)}`
+          });
+        }
+        return res.json({ status: 'dispatched', requestId: existingReqId, chunkIndex });
+      } catch (err: any) {
+        return res.json({ status: 'error', ui_reason: `Chunk dispatch error: ${err.message}` });
+      }
+    }
+
+    // Determine single vs bulk request
+    const isBulk = Array.isArray(emails) || action === 'init_bulk';
+    const rawList: string[] = (Array.isArray(emails) ? emails : (email ? [email] : []))
+      .map((e: any) => String(e || '').replace(/[\r\n]+/g, '').trim())
+      .filter(Boolean);
+
+    if (rawList.length === 0) {
+      return res.status(400).json({ error: 'email or non-empty emails array required' });
+    }
+
+    if (rawList.length > 5000) {
+      return res.status(400).json({ error: 'Maximum list limit is 5,000 emails per scan' });
+    }
+
+    // Single email path (kept simple and backwards compatible)
+    if (!isBulk && rawList.length === 1) {
+      const targetEmail = rawList[0];
+      if (!isValidSyntax(targetEmail)) {
+        const invalidMapped = await mapProbeResults([{
           input: targetEmail,
-          is_reachable: 'unknown',
-          confidenceScore: null,
-          ui_label: 'UNKNOWN — verification backend unreachable',
-          ui_reason: `Workflow dispatch failed (${dispatchRes.status}): ${errText.slice(0, 100)}`
+          is_reachable: 'invalid',
+          misc: { is_disposable: false, is_role_account: false },
+          mx: { accepts_mail: false, records: [] },
+          smtp: { can_connect_smtp: false, is_deliverable: false, is_catch_all: false },
+          syntax: { address: targetEmail, is_valid_syntax: false }
+        }]);
+        return res.json({
+          ...invalidMapped[0],
+          status: 'completed',
+          results: invalidMapped,
+          timestamp: new Date().toISOString()
         });
       }
 
-      // Return pending state with requestId so client can poll
+      const requestId = `lp_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+      try {
+        const dispatchRes = await dispatchWorkflow(repoOwner, repoName, workflowFile, token, requestId, targetEmail);
+        if (!dispatchRes.ok) {
+          const errText = await dispatchRes.text();
+          return res.json({
+            status: 'error',
+            ui_reason: `Workflow dispatch failed (${dispatchRes.status}): ${errText.slice(0, 120)}`
+          });
+        }
+        return res.json({
+          status: 'pending',
+          requestId,
+          targetEmail,
+          message: 'SMTP probe running on worker...'
+        });
+      } catch (err: any) {
+        return res.json({ status: 'error', ui_reason: `Dispatch error: ${err.message}` });
+      }
+    }
+
+    // Bulk path: Split into chunks of 100 emails, write manifest.json, dispatch first 3 chunks max
+    const requestId = `lp_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`;
+    const CHUNK_SIZE = 100;
+    const chunks: string[][] = [];
+    for (let i = 0; i < rawList.length; i += CHUNK_SIZE) {
+      chunks.push(rawList.slice(i, i + CHUNK_SIZE));
+    }
+
+    const manifest = {
+      requestId,
+      version: '17',
+      totalEmails: rawList.length,
+      chunkSize: CHUNK_SIZE,
+      chunkCount: chunks.length,
+      completedChunks: [],
+      chunksDone: 0,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      const manifestApiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}/manifest.json`;
+      const putRes = await putGithubFile(manifestApiUrl, token, `init manifest ${requestId}`, manifest);
+      if (!putRes.ok) {
+        const errText = await putRes.text();
+        return res.json({
+          status: 'error',
+          ui_reason: `Failed to initialize scan manifest (${putRes.status}): ${errText.slice(0, 120)}`
+        });
+      }
+
+      const initialConcurrent = Math.min(3, chunks.length);
+      const dispatchedChunks: number[] = [];
+      for (let idx = 0; idx < initialConcurrent; idx++) {
+        const dRes = await dispatchWorkflow(
+          repoOwner, repoName, workflowFile, token, requestId, chunks[idx].join('\n'), idx
+        );
+        if (!dRes.ok) {
+          const errText = await dRes.text();
+          return res.json({
+            status: 'error',
+            ui_reason: `Initial chunk ${idx} dispatch failed (${dRes.status}): ${errText.slice(0, 120)}`
+          });
+        }
+        dispatchedChunks.push(idx);
+      }
+
       return res.json({
         status: 'pending',
+        mode: 'bulk',
         requestId,
-        targetEmail,
-        message: 'Checking — a real SMTP probe is running on GitHub Actions; this takes 1–3 minutes'
+        totalEmails: rawList.length,
+        chunkSize: CHUNK_SIZE,
+        chunkCount: chunks.length,
+        dispatchedChunks,
+        message: `Dispatched ${dispatchedChunks.length} of ${chunks.length} chunk(s)`
       });
     } catch (err: any) {
-      return res.json({
-        status: 'error',
-        input: targetEmail,
-        is_reachable: 'unknown',
-        confidenceScore: null,
-        ui_label: 'UNKNOWN — verification backend unreachable',
-        ui_reason: `Dispatch error: ${err.message}`
-      });
+      return res.json({ status: 'error', ui_reason: `Bulk init error: ${err.message}` });
     }
   }
 

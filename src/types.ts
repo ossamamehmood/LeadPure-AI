@@ -29,21 +29,21 @@ export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
   trace?: string;
 
   // ---- Existing auxiliary diagnostics (retained for UI compatibility) ----
-  verificationStatus?: 'verified' | 'risky' | 'rejected' | 'blocked' | 'unknown' | 'safe' | 'usable' | 'dangerous';
+  verificationStatus?: 'safe' | 'risky' | 'invalid' | 'unknown' | 'verified' | 'rejected' | 'blocked';
   verificationReason?: string;
   subStatus?: string;
   provider?: string;
   isFreeEmail?: boolean;
   domainAgeDays?: number;
   mxRecord?: string;
-  confidenceScore: number; // 0-100
+  confidenceScore?: number;
   bounceRisk: 'Safe' | 'Medium' | 'High' | 'Dangerous' | 'Unknown';
   reputationImpact: 'Positive' | 'Neutral' | 'Negative' | 'Critical' | 'Unknown';
   mxRecordFound: boolean;
   isCatchAll?: boolean;
   isDisposable?: boolean;
   isRoleBased?: boolean;
-  isSpamtrapProbability?: number; // 0 to 1
+  isSpamtrapProbability?: number;
   smtpValid?: boolean;
   syntaxValid?: boolean;
   domainAge?: string;
@@ -51,6 +51,7 @@ export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
   dkimExists?: boolean;
   hasGravatar?: boolean;
   gravatarUrl?: string;
+  isTimedOutMissing?: boolean;
   originalIndex: number;
   __originalData?: any;
 }

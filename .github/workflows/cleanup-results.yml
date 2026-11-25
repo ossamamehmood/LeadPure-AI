@@ -1,0 +1,50 @@
+name: cleanup-results
+
+on:
+  schedule:
+    - cron: '0 3 * * 0' # Weekly on Sunday 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout results branch
+        uses: actions/checkout@v4
+        with:
+          ref: results
+          fetch-depth: 0
+
+      - name: Prune results older than 7 days
+        run: |
+          git config --global user.name "leadpure-engine"
+          git config --global user.email "engine@leadpure.ai"
+          if [ -d "results" ]; then
+            node -e '
+              const { execSync } = require("node:child_process");
+              const fs = require("node:fs");
+              const path = require("node:path");
+              const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+              let deleted = 0;
+              for (const entry of fs.readdirSync("results")) {
+                const full = path.join("results", entry);
+                const ts = execSync(`git log -1 --format=%ct -- "${full}"`, { encoding: "utf8" }).trim();
+                const mtimeMs = ts ? parseInt(ts, 10) * 1000 : 0;
+                if (mtimeMs > 0 && mtimeMs < cutoff) {
+                  fs.rmSync(full, { recursive: true, force: true });
+                  deleted++;
+                }
+              }
+              console.log(`Pruned ${deleted} result entry/entries older than 7 days.`);
+            '
+            git add -A results/
+            if ! git diff --cached --quiet; then
+              git commit --quiet -m "chore(cleanup): delete verification results older than 7 days"
+              git push --quiet origin results
+            else
+              echo "No verification results older than 7 days."
+            fi
+          fi

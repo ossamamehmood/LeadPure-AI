@@ -11,62 +11,41 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
   const isUploadActive = ['upload', 'mapping', 'processing', 'results'].includes(currentTab);
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-6 pb-6 pt-2 bg-gradient-to-t from-app-bg via-app-bg/90 to-transparent">
-      <nav className="flex items-center justify-around h-16 bg-app-card/80 backdrop-blur-2xl border border-app-border rounded-3xl px-2 shadow-2xl">
-        <button 
-          onClick={() => {
-            if ((document as any).startViewTransition) {
-              (document as any).startViewTransition(() => setTab('upload'));
-            } else {
-              setTab('upload');
-            }
-          }}
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pb-4 pt-2 bg-gradient-to-t from-app-bg via-app-bg/95 to-transparent">
+      <nav className="flex items-center justify-around h-14 bg-app-card/90 backdrop-blur-2xl border border-app-border rounded-2xl px-2 shadow-2xl">
+        <button
+          onClick={() => setTab('upload')}
           className={cn(
-            "flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all gap-1 active:scale-90",
-            isUploadActive ? "text-brand-blue" : "text-slate-500"
+            'flex flex-col items-center justify-center flex-1 h-11 rounded-xl transition-all gap-1 active:scale-90',
+            isUploadActive ? 'text-brand-blue' : 'text-slate-500'
           )}
         >
-          <Upload className={cn("w-5 h-5", isUploadActive && "shadow-sm")} />
-          <span className="text-[8px] font-black uppercase tracking-widest">Ingest</span>
-          {isUploadActive && <div className="w-1 h-1 rounded-full gradient-bg shadow-sm" />}
+          <Upload className="w-4 h-4" />
+          <span className="text-[8px] font-black uppercase tracking-widest">Verify</span>
         </button>
 
-        <button 
-          onClick={() => {
-            if ((document as any).startViewTransition) {
-              (document as any).startViewTransition(() => setTab('rules'));
-            } else {
-              setTab('rules');
-            }
-          }}
+        <button
+          onClick={() => setTab('rules')}
           className={cn(
-            "flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all gap-1 active:scale-90",
-            currentTab === 'rules' ? "text-brand-blue" : "text-slate-500"
+            'flex flex-col items-center justify-center flex-1 h-11 rounded-xl transition-all gap-1 active:scale-90',
+            currentTab === 'rules' ? 'text-brand-blue' : 'text-slate-500'
           )}
         >
-          <Settings2 className={cn("w-5 h-5", currentTab === 'rules' && "shadow-sm")} />
-          <span className="text-[8px] font-black uppercase tracking-widest">Protocols</span>
-          {currentTab === 'rules' && <div className="w-1 h-1 rounded-full gradient-bg shadow-sm" />}
+          <Settings2 className="w-4 h-4" />
+          <span className="text-[8px] font-black uppercase tracking-widest">Rules</span>
         </button>
 
-        <button 
-          onClick={() => {
-            if ((document as any).startViewTransition) {
-              (document as any).startViewTransition(() => setTab('history'));
-            } else {
-              setTab('history');
-            }
-          }}
+        <button
+          onClick={() => setTab('history')}
           className={cn(
-            "flex flex-col items-center justify-center flex-1 h-12 rounded-2xl transition-all gap-1 active:scale-90",
-            currentTab === 'history' ? "text-brand-blue" : "text-slate-500"
+            'flex flex-col items-center justify-center flex-1 h-11 rounded-xl transition-all gap-1 active:scale-90',
+            currentTab === 'history' ? 'text-brand-blue' : 'text-slate-500'
           )}
         >
-          <Clock className={cn("w-5 h-5", currentTab === 'history' && "shadow-sm")} />
-          <span className="text-[8px] font-black uppercase tracking-widest">Logs</span>
-          {currentTab === 'history' && <div className="w-1 h-1 rounded-full gradient-bg shadow-sm" />}
+          <Clock className="w-4 h-4" />
+          <span className="text-[8px] font-black uppercase tracking-widest">History</span>
         </button>
       </nav>
     </div>
   );
-} 
+}

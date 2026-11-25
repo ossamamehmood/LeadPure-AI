@@ -11,86 +11,75 @@ interface RulesSectionProps {
 
 export function RulesSection({ rules, onToggle }: RulesSectionProps) {
   return (
-    <div className="max-w-5xl mx-auto w-full px-2 sm:px-0">
-      <GlossyCard className="p-6 md:p-14 rounded-[32px] md:rounded-[48px] shadow-2xl relative overflow-hidden border-app-border">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-blue/5 blur-[120px] rounded-full -mr-64 -mt-64 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-brand-blue/5 blur-[100px] rounded-full -ml-32 -mb-32 pointer-events-none" />
-        
-        <div className="relative z-10 mb-16">
-          <div className="flex items-center gap-6">
+    <div className="max-w-5xl mx-auto w-full px-1 sm:px-0">
+      <GlossyCard className="p-5 sm:p-8 md:p-14 rounded-3xl sm:rounded-[48px] shadow-2xl relative overflow-hidden border-app-border">
+        <div className="relative z-10 mb-10 sm:mb-14">
+          <div className="flex items-center gap-4 sm:gap-6">
             <div className="w-1.5 h-10 bg-gradient-to-b from-brand-cyan via-brand-blue to-brand-pink rounded-full shadow-lg" />
             <div>
-              <h2 className="text-2xl md:text-4xl font-black text-app-text uppercase italic tracking-tighter leading-none transition-colors duration-500">Security Protocols</h2>
-              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.5em] mt-3 italic flex items-center gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-pink animate-pulse" />
-                Zero-Bounce Neutralization ACTIVE
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-app-text uppercase italic tracking-tighter leading-none">Verification Rules</h2>
+              <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.35em] mt-3 italic flex items-center gap-3">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                LeadPure V17 Standards Active
               </p>
             </div>
           </div>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-          <RuleToggle 
-            domain="Deliverability"
-            title="Real-Time MX Verification" 
-            description="Forces DNS verification of Mail Exchange servers to ensure domain can receive mail. Prevents hard bounces."
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 relative z-10">
+          <RuleToggle
+            domain="Infrastructure"
+            title="DNS & MX Lookup"
+            description="Verifies that each recipient domain publishes active Mail Exchange (MX) records capable of receiving mail."
             active={true}
-            onToggle={() => {}} // Always active for this version
+            onToggle={() => {}}
           />
-          <RuleToggle 
+          <RuleToggle
             domain="Deliverability"
-            title="Purge Catch-All Domains" 
-            description="Domains that accept everything are high-risk. Disabling this saves your SMTP reputation from unknown bounces."
+            title="Flag Catch-All Domains"
+            description="Probes a nonexistent mailbox on every custom domain. Servers that accept any address are flagged RISKY."
             active={rules.excludeCatchAll}
             onToggle={() => onToggle('excludeCatchAll')}
           />
-          <RuleToggle 
-            domain="Security"
-            title="Spamtrap Decoy Filter" 
-            description="Identify and eliminate static honeypots and recycled traps that burn domain records instantly."
-            active={rules.excludeSpamTraps}
-            onToggle={() => onToggle('excludeSpamTraps')}
-          />
-          <RuleToggle 
+          <RuleToggle
             domain="Reputation"
-            title="Disposable Asset Block" 
-            description="Automatically eliminate temporary, high-risk, and burnable mailboxes that destroy sender reputation."
+            title="Disposable Domain Check"
+            description="Identifies temporary and throwaway inbox domains and flags them so they do not pollute campaign lists."
             active={rules.excludeDisposable}
             onToggle={() => onToggle('excludeDisposable')}
           />
-          <RuleToggle 
-            domain="Intelligence"
-            title="Role-Based Filter" 
-            description="Detect generic roles (support@, info@) that often result in low engagement and high complaint rates."
+          <RuleToggle
+            domain="Audience"
+            title="Role-Based Detection"
+            description="Flags shared or generic role inboxes (such as info@, support@, admin@) as RISKY."
             active={rules.excludeRoleBased}
             onToggle={() => onToggle('excludeRoleBased')}
           />
-          <RuleToggle 
-            domain="Integrity"
-            title="Global Normalization" 
-            description="Standardize identity attributes across the dataset for optimal CRM ingestion and personalization."
+          <RuleToggle
+            domain="Formatting"
+            title="Contact Normalization"
+            description="Trims whitespace and standardizes contact name, city, and country fields during export."
             active={rules.strictTitleCase}
             onToggle={() => onToggle('strictTitleCase')}
           />
-          <RuleToggle 
-            domain="Protocol"
-            title="E.164 Identity Standard" 
-            description="Force international telecommunication standards (+). Mandatory for high-volume SMS throughput."
+          <RuleToggle
+            domain="Phone"
+            title="E.164 Phone Formatting"
+            description="Formats valid phone numbers using international E.164 notation when a phone column is mapped."
             active={rules.forcePlusSign}
             onToggle={() => onToggle('forcePlusSign')}
           />
         </div>
 
-        <div className="mt-12 md:mt-16 p-6 md:p-8 bg-app-card rounded-[24px] md:rounded-[32px] border border-app-border relative z-10 backdrop-blur-sm transition-colors duration-500 overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-pink/5 blur-2xl rounded-full -mr-16 -mt-16" />
-          <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
-            <div className="bg-brand-pink/10 p-4 rounded-2xl shrink-0 h-fit border border-brand-pink/20">
-              <ShieldCheck className="w-8 h-8 text-brand-pink" />
+        <div className="mt-10 sm:mt-14 p-5 sm:p-8 bg-app-card rounded-2xl sm:rounded-[32px] border border-app-border relative z-10">
+          <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+            <div className="bg-brand-blue/10 p-4 rounded-2xl shrink-0 h-fit border border-brand-blue/20">
+              <ShieldCheck className="w-8 h-8 text-brand-blue" />
             </div>
             <div className="text-center md:text-left">
-              <p className="font-black text-app-text uppercase tracking-[0.2em] text-sm italic transition-colors duration-500">Military-Grade Encryption Loop Active</p>
-              <p className="text-slate-500 mt-3 leading-relaxed font-medium text-xs max-w-xl">
-                All validation occurs in a stateless secure environment. Zero data persistence protocols ensure your lead lists never exit the temporary processing sandbox.
+              <p className="font-black text-app-text uppercase tracking-[0.2em] text-sm italic">Automated Result Retention</p>
+              <p className="text-slate-500 mt-2.5 leading-relaxed font-medium text-xs max-w-2xl">
+                Spreadsheet parsing runs in a browser Web Worker. SMTP mailbox checks execute on isolated Port 25 workflow runners and probe outputs are automatically pruned after 7 days.
               </p>
             </div>
           </div>

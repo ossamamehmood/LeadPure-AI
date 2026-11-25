@@ -1,65 +1,99 @@
 import { parsePhoneNumberWithError, CountryCode } from 'libphonenumber-js';
-import { ProcessedContact } from '../types';
+import { ProcessedContact, ValidationRules } from '../types';
 
-// Forensic telemetry CSV writing engine (active only in Node environments)
-let fs: any = null;
-const csvPath = typeof process !== 'undefined' && process.cwd ? `${process.cwd()}/debug-results.csv` : '';
-
-if (typeof process !== 'undefined' && process.versions && process.versions.node) {
-  import('fs').then(mod => {
-    fs = mod.default || mod;
-    try {
-      if (!fs.existsSync(csvPath)) {
-        fs.writeFileSync(csvPath, 'email,status,failure_code,smtp_code,mx_ip,trace\n', 'utf-8');
-      }
-    } catch (e) {
-      console.warn('[TELEMETRY] Failed to initialize debug-results.csv:', e);
-    }
-  }).catch(() => {});
+export interface BulkProgressUpdate {
+  progress: number;
+  logMessage?: string;
+  emailsDone?: number;
+  emailsTotal?: number;
+  chunksDone?: number;
+  chunksTotal?: number;
+  etaSeconds?: number | null;
+  requestId?: string;
+  validSnapshot?: ProcessedContact[];
+  eliminatedSnapshot?: any[];
 }
 
-/**
- * Clean text: trim, remove extra spaces, and enforce Proper Title Case
- */
+export interface SavedScanState {
+  requestId: string;
+  fileName: string;
+  startedAt: string;
+  totalRows: number;
+  emails: string[];
+  mappings: any;
+  rules: ValidationRules;
+  rows?: any[];
+}
+
+export const LAST_SCAN_STORAGE_KEY = 'leadpure_last_scan_v17';
+
+export function saveScanState(state: SavedScanState) {
+  try {
+    const serialized = JSON.stringify(state);
+    if (serialized.length < 3_500_000) {
+      localStorage.setItem(LAST_SCAN_STORAGE_KEY, serialized);
+    } else {
+      // If original rows with extra columns are huge, save minimal resume payload
+      const minimal: SavedScanState = { ...state, rows: undefined };
+      localStorage.setItem(LAST_SCAN_STORAGE_KEY, JSON.stringify(minimal));
+    }
+  } catch (e) {
+    console.warn('[STORAGE] Unable to persist scan state:', e);
+  }
+}
+
+export function loadSavedScanState(): SavedScanState | null {
+  try {
+    const raw = localStorage.getItem(LAST_SCAN_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed.requestId === 'string' && Array.isArray(parsed.emails)) {
+      return parsed;
+    }
+  } catch {}
+  return null;
+}
+
+export function clearSavedScanState() {
+  try {
+    localStorage.removeItem(LAST_SCAN_STORAGE_KEY);
+  } catch {}
+}
+
 export const cleanText = (text: string | any, applyTitleCase: boolean = true): string => {
   if (typeof text !== 'string') return String(text || '').trim();
   let cleaned = text.trim().replace(/\s+/g, ' ');
-  
+
   if (cleaned.length > 0 && applyTitleCase) {
     const lower = cleaned.toLowerCase();
     const normalizationMap: Record<string, string> = {
-      'florida': 'FL', 'illinois': 'IL', 'california': 'CA', 'new york': 'NY', 
+      'florida': 'FL', 'illinois': 'IL', 'california': 'CA', 'new york': 'NY',
       'texas': 'TX', 'virginia': 'VA', 'virgenia': 'VA', 'georgia': 'GA',
       'ontario': 'ON', 'british columbia': 'BC', 'quebec': 'QC'
     };
     if (normalizationMap[lower]) return normalizationMap[lower];
 
     cleaned = lower.replace(/\w\S*/g, (txt) => {
-      // Handle double-barreled names and special suffixes
       if (txt.includes('-')) {
         return txt.replace(/(?:^|-)[a-z]/g, match => match.toUpperCase());
       }
-      // Handle Irish/Scottish names (O', Mc, Mac)
       if (/^(O'|Mc|Mac)/i.test(txt)) {
-        if (txt.toLowerCase().startsWith("mc")) return "Mc" + txt.charAt(2).toUpperCase() + txt.slice(3);
-        if (txt.toLowerCase().startsWith("mac")) return "Mac" + txt.charAt(3).toUpperCase() + txt.slice(4);
+        if (txt.toLowerCase().startsWith('mc')) return 'Mc' + txt.charAt(2).toUpperCase() + txt.slice(3);
+        if (txt.toLowerCase().startsWith('mac')) return 'Mac' + txt.charAt(3).toUpperCase() + txt.slice(4);
         if (txt.toLowerCase().startsWith("o'")) return "O'" + txt.charAt(2).toUpperCase() + txt.slice(3);
       }
       return txt.charAt(0).toUpperCase() + txt.slice(1);
     });
   }
-  
+
   return cleaned;
 };
 
-/**
- * Attempt to format a phone number with country code - Always ensuring + sign
- */
 const phoneCache = new Map<string, string>();
 
 export const formatPhone = (phone: string, country?: string, forcePlus: boolean = true): string => {
-  let raw = String(phone).trim();
-  let cleaned = raw.replace(/\D/g, '');
+  const raw = String(phone).trim();
+  const cleaned = raw.replace(/\D/g, '');
   if (!cleaned) return '';
 
   const cacheKey = `${raw}-${country || ''}-${forcePlus}`;
@@ -79,40 +113,25 @@ export const formatPhone = (phone: string, country?: string, forcePlus: boolean 
       const parsed = parsePhoneNumberWithError(cleaned, countryCode);
       formatted = parsed.format('E.164');
     } catch {
-      if (cleaned.startsWith('00')) {
-        formatted = '+' + cleaned.slice(2);
-      } else {
-        formatted = '+' + cleaned;
-      }
+      formatted = cleaned.startsWith('00') ? '+' + cleaned.slice(2) : '+' + cleaned;
     }
   }
 
-  // Final cleanup to ensure absolutely NO spaces or special characters in the identity string
   formatted = formatted.replace(/[\s\(\)\-\.]/g, '');
-
   if (forcePlus && !formatted.startsWith('+')) {
     formatted = '+' + formatted.replace(/\D/g, '');
   }
 
   phoneCache.set(cacheKey, formatted);
   if (phoneCache.size > 10000) phoneCache.clear();
-
   return formatted;
 };
 
-/**
- * Advanced Email Auto-Correction (v10.0 Engine)
- * Strips spaces, fixes missing @ signs, and corrects common TLD typos.
- */
 export const autoCorrectEmail = (email: string): string => {
   let cleaned = String(email || '').toLowerCase().trim();
-  
-  // 1. Strip all hidden spaces/characters
-  cleaned = cleaned.normalize("NFC").replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF\s]/g, "");
-  
+  cleaned = cleaned.normalize('NFC').replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF\s]/g, '');
   if (!cleaned) return '';
 
-  // 2. TLD Typo Corrections
   const typoRegex = /\.(cm|con|cpm|copm|coom|comm|com\.com)$/;
   if (typoRegex.test(cleaned)) {
     cleaned = cleaned.replace(typoRegex, '.com');
@@ -120,186 +139,62 @@ export const autoCorrectEmail = (email: string): string => {
     cleaned = cleaned.replace('.net.net', '.net');
   } else if (cleaned.endsWith('.org.org')) {
     cleaned = cleaned.replace('.org.org', '.org');
-  } else {
-    // Specific domain typos
-    const domainTypos: Record<string, string> = {
-      'gmial.com': 'gmail.com', 'gmal.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gmail.co': 'gmail.com',
-      'yahho.com': 'yahoo.com', 'yaho.com': 'yahoo.com',
-      'hotmial.com': 'hotmail.com', 'hotmal.com': 'hotmail.com',
-      'outlok.com': 'outlook.com'
-    };
-    
-    const parts = cleaned.split('@');
-    if (parts.length > 1) {
-      const domain = parts[parts.length - 1];
-      if (domainTypos[domain]) {
-        cleaned = parts.slice(0, -1).join('@') + '@' + domainTypos[domain];
-      }
-    }
-  }
-
-  // 3. Missing dot before com
-  if (cleaned.endsWith('gmailcom')) cleaned = cleaned.replace('gmailcom', 'gmail.com');
-  if (cleaned.endsWith('yahoocom')) cleaned = cleaned.replace('yahoocom', 'yahoo.com');
-  if (cleaned.endsWith('hotmailcom')) cleaned = cleaned.replace('hotmailcom', 'hotmail.com');
-  if (cleaned.endsWith('outlookcom')) cleaned = cleaned.replace('outlookcom', 'outlook.com');
-  if (cleaned.endsWith('aolcom')) cleaned = cleaned.replace('aolcom', 'aol.com');
-  if (cleaned.endsWith('icloudcom')) cleaned = cleaned.replace('icloudcom', 'icloud.com');
-
-  // 4. Missing @ sign for major providers
-  const majorProviders = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com'];
-  if (!cleaned.includes('@')) {
-    for (const provider of majorProviders) {
-      if (cleaned.endsWith(provider) && cleaned.length > provider.length) {
-        cleaned = cleaned.slice(0, -provider.length) + '@' + provider;
-        break;
-      }
-    }
   }
 
   return cleaned;
 };
 
-/**
- * Process the entire list with strict filtration via the Backend Enterprise Engine
- */
 export const processContacts = async (
   data: any[],
   mappings: any,
-  rules: any,
-  onProgress?: (progress: number, logMessage?: string) => void,
-  signal?: AbortSignal
-): Promise<{ valid: any[]; eliminated: any[]; stats: any }> => {
-  const valid: any[] = [];
-  const eliminated: any[] = [];
-  
-  console.log(`[PROCESSOR_V14.0.0] ENTERPRISE_INIT: Ingesting ${data.length} identities.`);
-  
+  rules: ValidationRules,
+  onProgress?: (update: BulkProgressUpdate) => void,
+  signal?: AbortSignal,
+  resumeContext?: { requestId: string; fileName: string },
+  uploadFileName?: string
+): Promise<{ valid: ProcessedContact[]; eliminated: any[]; stats: any; timedOut: boolean; requestId?: string }> => {
+  console.log(`[PROCESSOR_V17.0.0] Initializing verification scan (${data.length} input rows).`);
+
   const stats = {
     totalInput: data.length,
     sanitizedRows: 0,
     emptyIdentities: 0,
     duplicateEntries: 0,
-    invalidSyntax: 0,
-    dnsFailure: 0,
+    arrivedCount: 0,
+    safeCount: 0,
+    riskyCount: 0,
+    invalidCount: 0,
+    unknownCount: 0,
+    timedOutMissingCount: 0,
+    catchAllMatch: 0,
     disposableMatch: 0,
     roleBasedMatch: 0,
-    catchAllMatch: 0,
-    toxicPatternMatch: 0,
-    greylistedMatch: 0,
-    highBounceRisk: 0,
     verifiedLeads: 0
   };
 
-  // Stage 1: Local Normalization & Deduplication
+  // Stage 1: Prepare unique email identities (preserving original row mapping)
   const seenEmails = new Set<string>();
   const seenPhones = new Set<string>();
-  
-  const preProcessedData = data.filter((item, index) => {
+  const preProcessedData: any[] = [];
+  const emailsToVerify: string[] = [];
+
+  data.forEach((item) => {
     if (!item || typeof item !== 'object') {
       stats.sanitizedRows++;
-      eliminated.push({
-        email: '',
-        status: 'INVALID',
-        sub_status: 'sanitized_row',
-        failure_code: 'ERR_001',
-        verificationReason: 'Null or non-object row sanitized',
-        confidenceScore: 0,
-        bounceRisk: 'Dangerous',
-        reputationImpact: 'Critical',
-        mxRecordFound: false,
-        isCatchAll: false,
-        isDisposable: false,
-        isRoleBased: false,
-        isFreeEmail: false,
-        isSpamTrap: false,
-        provider: 'Unknown',
-        smtpValid: false,
-        syntaxValid: false,
-        originalIndex: index,
-        __originalData: item,
-        trace: 'Sanitization -> Eliminated null row (ERR_001)'
-      });
-      
-      if (fs) {
-        try {
-          fs.appendFileSync(csvPath, ',INVALID,ERR_001,,,"Sanitization -> Eliminated null row (ERR_001)"\n', 'utf-8');
-        } catch (e) {}
-      }
-      return false;
+      return;
     }
 
     const emailKey = mappings.emailKey;
-    let rawEmail = String(item[emailKey] || '').toLowerCase().trim();
-    rawEmail = autoCorrectEmail(rawEmail);
+    const rawEmail = autoCorrectEmail(String(item[emailKey] || ''));
 
     if (!rawEmail) {
       stats.emptyIdentities++;
-      eliminated.push({
-        ...item,
-        email: '',
-        status: 'INVALID',
-        sub_status: 'empty_email',
-        failure_code: 'ERR_001',
-        verificationReason: 'Empty email identity suppressed',
-        confidenceScore: 0,
-        bounceRisk: 'Dangerous',
-        reputationImpact: 'Critical',
-        mxRecordFound: false,
-        isCatchAll: false,
-        isDisposable: false,
-        isRoleBased: false,
-        isFreeEmail: false,
-        isSpamTrap: false,
-        provider: 'Unknown',
-        smtpValid: false,
-        syntaxValid: false,
-        originalIndex: index,
-        __originalData: item,
-        trace: 'Pre-process -> Empty Email Identity Suppressed (ERR_001)'
-      });
-      
-      if (fs) {
-        try {
-          fs.appendFileSync(csvPath, ',INVALID,ERR_001,,,"Pre-process -> Empty Email Identity Suppressed (ERR_001)"\n', 'utf-8');
-        } catch (e) {}
-      }
-      return false;
+      return;
     }
 
     if (seenEmails.has(rawEmail)) {
       stats.duplicateEntries++;
-      eliminated.push({
-        ...item,
-        email: rawEmail,
-        status: 'INVALID',
-        sub_status: 'duplicate',
-        failure_code: 'ERR_001',
-        verificationReason: 'Deterministic Protocol: Duplicate Email Suppressed',
-        confidenceScore: 0,
-        bounceRisk: 'Dangerous',
-        reputationImpact: 'Critical',
-        mxRecordFound: false,
-        isCatchAll: false,
-        isDisposable: false,
-        isRoleBased: false,
-        isFreeEmail: false,
-        isSpamTrap: false,
-        provider: 'Unknown',
-        smtpValid: false,
-        syntaxValid: false,
-        originalIndex: index,
-        __originalData: item,
-        trace: `Pre-process -> Duplicate Email Identity Suppressed (${rawEmail}) (ERR_001)`
-      });
-
-      if (fs) {
-        try {
-          const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
-          fs.appendFileSync(csvPath, `${escapeCsv(rawEmail)},INVALID,ERR_001,,,"Pre-process -> Duplicate Email Identity Suppressed (ERR_001)"\n`, 'utf-8');
-        } catch (e) {}
-      }
-      return false;
+      return;
     }
 
     const phoneKey = mappings.phoneKey;
@@ -309,173 +204,131 @@ export const processContacts = async (
         const normalizedPhone = formatPhone(rawPhone, item[mappings.countryKey], rules.forcePlusSign);
         if (normalizedPhone && seenPhones.has(normalizedPhone)) {
           stats.duplicateEntries++;
-          eliminated.push({
-            ...item,
-            email: rawEmail,
-            status: 'INVALID',
-            sub_status: 'duplicate_phone',
-            failure_code: 'ERR_001',
-            verificationReason: 'Deterministic Protocol: Duplicate Phone Suppressed',
-            confidenceScore: 0,
-            bounceRisk: 'Dangerous',
-            reputationImpact: 'Critical',
-            mxRecordFound: false,
-            isCatchAll: false,
-            isDisposable: false,
-            isRoleBased: false,
-            isFreeEmail: false,
-            isSpamTrap: false,
-            provider: 'Unknown',
-            smtpValid: false,
-            syntaxValid: false,
-            originalIndex: index,
-            __originalData: item,
-            trace: `Pre-process -> Duplicate Phone Identity Suppressed (${normalizedPhone}) (ERR_001)`
-          });
-
-          if (fs) {
-            try {
-              const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
-              fs.appendFileSync(csvPath, `${escapeCsv(rawEmail)},INVALID,ERR_001,,,"Pre-process -> Duplicate Phone Suppressed (${normalizedPhone})"\n`, 'utf-8');
-            } catch (e) {}
-          }
-          return false;
+          return;
         }
         if (normalizedPhone) seenPhones.add(normalizedPhone);
       }
     }
-    
+
     seenEmails.add(rawEmail);
-    return true;
+    preProcessedData.push(item);
+    emailsToVerify.push(rawEmail);
   });
 
-  console.log(`[PROCESSOR] STAGE_1_CLEAN: ${preProcessedData.length} unique identities. (${stats.duplicateEntries} duplicates suppressed)`);
-
-  // Stage 2: Verification Engine (Single batch via /api/check on Port 25 runner)
   const total = preProcessedData.length;
-  const emailsToVerify = preProcessedData.map(item => String(item[mappings.emailKey] || '').toLowerCase().trim());
+  if (total === 0) {
+    return {
+      valid: [],
+      eliminated: [],
+      stats: { ...stats, definitiveRate: 0, finalDeliverable: 0, finalFiltered: 0 },
+      timedOut: false
+    };
+  }
 
-  if (total > 0 && !signal?.aborted) {
-    if (onProgress) onProgress(5, `Submitting ${total} identities to LeadPure verification engine...`);
+  if (total > 5000) {
+    throw new Error(`Unique email count (${total}) exceeds 5,000 limit per scan.`);
+  }
 
-    const postRes = await fetch('/api/check', {
+  // Split into 100-email chunks
+  const CHUNK_SIZE = 100;
+  const chunkSlices: string[][] = [];
+  for (let i = 0; i < total; i += CHUNK_SIZE) {
+    chunkSlices.push(emailsToVerify.slice(i, i + CHUNK_SIZE));
+  }
+  const chunkCount = chunkSlices.length;
+
+  let reqId = resumeContext?.requestId || '';
+  const dispatchedChunks = new Set<number>();
+  const fetchedChunks = new Set<number>();
+  const chunkResultsMap = new Map<number, any[]>();
+
+  if (!resumeContext) {
+    if (onProgress) {
+      onProgress({
+        progress: 2,
+        emailsDone: 0,
+        emailsTotal: total,
+        chunksDone: 0,
+        chunksTotal: chunkCount,
+        etaSeconds: null,
+        logMessage: `Initializing ${chunkCount} chunk(s) (${total} unique emails)...`
+      });
+    }
+
+    const initRes = await fetch('/api/check', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emails: emailsToVerify }),
+      body: JSON.stringify({ action: 'init_bulk', emails: emailsToVerify }),
       signal
     });
 
-    const initialData = await postRes.json();
-    if (initialData.status === 'error') {
-      throw new Error(initialData.ui_reason || 'Verification backend unreachable');
+    const initData = await initRes.json();
+    if (initData.status === 'error' || !initData.requestId) {
+      throw new Error(initData.ui_reason || initData.error || 'Failed to dispatch bulk verification');
     }
 
-    let results: any[] = [];
+    reqId = initData.requestId;
+    (initData.dispatchedChunks || [0]).forEach((idx: number) => dispatchedChunks.add(idx));
 
-    if (initialData.status === 'completed' && Array.isArray(initialData.results)) {
-      results = initialData.results;
-    } else if (initialData.status === 'pending' && initialData.requestId) {
-      const reqId = initialData.requestId;
-      const startTime = Date.now();
-      const maxWaitMs = 1200000; // 20 minutes cap for bulk verification
-
-      while (Date.now() - startTime < maxWaitMs && !signal?.aborted) {
-        await new Promise(r => setTimeout(r, 6000));
-        const elapsedSec = Math.round((Date.now() - startTime) / 1000);
-        if (onProgress) {
-          onProgress(
-            Math.min(95, 10 + Math.round((elapsedSec / 180) * 85)),
-            `Probing ${total} mailboxes on Port 25 runner (${elapsedSec}s elapsed)...`
-          );
-        }
-
-        try {
-          const pollRes = await fetch(`/api/check?requestId=${encodeURIComponent(reqId)}`);
-          if (pollRes.ok) {
-            const pollData = await pollRes.json();
-            if (pollData.status === 'completed' && Array.isArray(pollData.results)) {
-              results = pollData.results;
-              if (results.length >= total) {
-                break;
-              }
-            }
-          }
-        } catch (pollErr) {
-          console.warn('[BULK_POLL_ERR]', pollErr);
-        }
-      }
-    }
-
-    // Build summary counts and outputs ONLY from arrived engine results.
-    // Rows still missing after 20-minute cap show "STILL CHECKING / TIMED OUT — re-run to complete", never a fake UNKNOWN.
-    const arrivedByEmail = new Map<string, any>();
-    results.forEach((r: any) => {
-      if (r && r.email) arrivedByEmail.set(String(r.email).toLowerCase().trim(), r);
+    saveScanState({
+      requestId: reqId,
+      fileName: uploadFileName || 'LeadPure_Upload.csv',
+      startedAt: new Date().toISOString(),
+      totalRows: total,
+      emails: emailsToVerify,
+      mappings,
+      rules,
+      rows: preProcessedData
     });
+  } else {
+    if (onProgress) {
+      onProgress({
+        progress: 5,
+        emailsDone: 0,
+        emailsTotal: total,
+        chunksDone: 0,
+        chunksTotal: chunkCount,
+        etaSeconds: null,
+        requestId: reqId,
+        logMessage: `Resuming scan ${reqId} from manifest...`
+      });
+    }
+  }
 
-    preProcessedData.forEach((item, idx) => {
-      const emailVal = emailsToVerify[idx];
-      const verificationResult = results[idx] || arrivedByEmail.get(emailVal);
+  // Helper to assemble current arrived rows without any timeout fallback
+  const buildArrivedSnapshots = () => {
+    const validSnap: ProcessedContact[] = [];
+    const eliminatedSnap: any[] = [];
+    let safeCount = 0;
+    let riskyCount = 0;
+    let invalidCount = 0;
+    let unknownCount = 0;
+    let catchAllMatch = 0;
+    let disposableMatch = 0;
+    let roleBasedMatch = 0;
+    let arrivedCount = 0;
 
-      if (!verificationResult) {
-        eliminated.push({
-          ...item,
-          email: emailVal,
-          status: 'STILL CHECKING / TIMED OUT — re-run to complete',
-          verificationStatus: 'unknown',
-          verificationReason: 'STILL CHECKING / TIMED OUT — re-run to complete',
-          reason: 'STILL CHECKING / TIMED OUT — re-run to complete',
-          subStatus: 'timed_out_missing',
-          bounceRisk: 'Unknown',
-          reputationImpact: 'Unknown',
-          isTimedOutMissing: true,
-          originalIndex: idx,
-          __originalData: item
-        });
-        return;
-      }
+    for (let cIdx = 0; cIdx < chunkCount; cIdx++) {
+      const chunkRes = chunkResultsMap.get(cIdx);
+      if (!chunkRes) continue;
+      const baseIndex = cIdx * CHUNK_SIZE;
 
-      const status = verificationResult.status;
-      const isSafe = status === 'SAFE' || status === 'VERIFIED';
+      chunkRes.forEach((verificationResult: any, offset: number) => {
+        const globalIdx = baseIndex + offset;
+        const item = preProcessedData[globalIdx];
+        if (!item) return;
 
-      if (!isSafe) {
-        const subStatus = verificationResult.sub_status || verificationResult.subStatus || '';
-        if (subStatus === 'invalid_syntax') stats.invalidSyntax++;
-        else if (subStatus === 'domain_not_found') stats.dnsFailure++;
-        else if (subStatus === 'disposable') stats.disposableMatch++;
-        else if (subStatus === 'role_based') stats.roleBasedMatch++;
-        else if (subStatus === 'catch_all' || verificationResult.isCatchAll) stats.catchAllMatch++;
-        else if (subStatus === 'toxic') stats.toxicPatternMatch++;
-        else if (subStatus === 'greylisted') stats.greylistedMatch++;
-        else if (verificationResult.bounceRisk === 'High' || verificationResult.bounceRisk === 'Dangerous') stats.highBounceRisk++;
+        arrivedCount++;
+        const verdict = String(verificationResult.status || 'UNKNOWN').toUpperCase() as ProcessedContact['status'];
 
-        const eliminatedRow = {
-          ...item,
-          ...verificationResult,
-          reason: verificationResult.verificationReason,
-          score: verificationResult.confidenceScore,
-          bounceRisk: verificationResult.bounceRisk,
-          reputationImpact: verificationResult.reputationImpact,
-          subStatus: subStatus,
-          status: status,
-          originalIndex: idx,
-          __originalData: item
-        };
-        eliminated.push(eliminatedRow);
+        if (verdict === 'SAFE') safeCount++;
+        else if (verdict === 'RISKY') riskyCount++;
+        else if (verdict === 'INVALID') invalidCount++;
+        else unknownCount++;
 
-        if (fs) {
-          try {
-            const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
-            const csvRow = `${escapeCsv(verificationResult.email)},${escapeCsv(status)},${escapeCsv(verificationResult.failure_code || '')},${verificationResult.smtp_code ?? ''},${escapeCsv(verificationResult.mx_ip || '')},${escapeCsv(verificationResult.trace || '')}\n`;
-            fs.appendFileSync(csvPath, csvRow, 'utf-8');
-          } catch (e) {}
-        }
-
-        if (onProgress) {
-          onProgress(Math.min(100, Math.round(((idx + 1) / total) * 100)), `[SYS] FILTERED: ${item[mappings.emailKey]} -> ${status} (${verificationResult.verificationReason})`);
-        }
-      } else {
-        stats.verifiedLeads++;
+        if (verificationResult.isCatchAll) catchAllMatch++;
+        if (verificationResult.isDisposable) disposableMatch++;
+        if (verificationResult.isRoleBased) roleBasedMatch++;
 
         const updatedItem = { ...item };
         if (mappings.emailKey && verificationResult.email) {
@@ -486,137 +339,209 @@ export const processContacts = async (
         if (mappings.nameKey) updatedItem[mappings.nameKey] = cleanText(item[mappings.nameKey], rules.strictTitleCase);
         if (mappings.cityKey) updatedItem[mappings.cityKey] = cleanText(item[mappings.cityKey], rules.strictTitleCase);
         if (mappings.countryKey) updatedItem[mappings.countryKey] = cleanText(item[mappings.countryKey], rules.strictTitleCase);
-
         if (mappings.phoneKey) {
-          const originalPhone = String(item[mappings.phoneKey] || '');
-          const formatted = formatPhone(originalPhone, item[mappings.countryKey], rules.forcePlusSign);
-          updatedItem[mappings.phoneKey] = formatted;
+          updatedItem[mappings.phoneKey] = formatPhone(String(item[mappings.phoneKey] || ''), item[mappings.countryKey], rules.forcePlusSign);
         }
-
         if (mappings.postalCodeKey) {
           updatedItem[mappings.postalCodeKey] = String(item[mappings.postalCodeKey] || '').trim().toUpperCase();
         }
 
-        const validRow = {
+        const mergedRow = {
           ...verificationResult,
           ...updatedItem,
-          originalIndex: idx,
+          status: verdict,
+          verificationStatus: verdict.toLowerCase(),
+          reason: verificationResult.verificationReason,
+          originalIndex: globalIdx,
           __originalData: updatedItem
-        } as ProcessedContact;
-        valid.push(validRow);
+        };
 
-        if (fs) {
-          try {
-            const escapeCsv = (str: string) => `"${String(str || '').replace(/"/g, '""')}"`;
-            const csvRow = `${escapeCsv(verificationResult.email)},${escapeCsv(status)},${escapeCsv(verificationResult.failure_code || '')},${verificationResult.smtp_code ?? ''},${escapeCsv(verificationResult.mx_ip || '')},${escapeCsv(verificationResult.trace || '')}\n`;
-            fs.appendFileSync(csvPath, csvRow, 'utf-8');
-          } catch (e) {}
+        if (verdict === 'SAFE') {
+          validSnap.push(mergedRow as ProcessedContact);
+        } else {
+          eliminatedSnap.push(mergedRow);
+        }
+      });
+    }
+
+    return {
+      validSnap,
+      eliminatedSnap,
+      arrivedCount,
+      safeCount,
+      riskyCount,
+      invalidCount,
+      unknownCount,
+      catchAllMatch,
+      disposableMatch,
+      roleBasedMatch
+    };
+  };
+
+  // Poll manifest with exponential backoff (5s -> 15s cap), max 20-minute ceiling
+  const startTime = Date.now();
+  const MAX_WAIT_MS = 1_200_000; // 20 minutes
+  let pollIntervalMs = 5000;
+
+  while (Date.now() - startTime < MAX_WAIT_MS && !signal?.aborted) {
+    let madeProgress = false;
+
+    try {
+      const mRes = await fetch(`/api/check?requestId=${encodeURIComponent(reqId)}&mode=manifest`, { signal });
+      if (mRes.ok) {
+        const mData = await mRes.json();
+        if (mData.status === 'error') {
+          throw new Error(mData.ui_reason || 'Manifest polling failed');
+        }
+
+        const completedChunks: number[] = mData.manifest?.completedChunks || [];
+
+        // Fetch every newly landed chunk
+        for (const cIdx of completedChunks) {
+          if (signal?.aborted) break;
+          if (!fetchedChunks.has(cIdx)) {
+            dispatchedChunks.add(cIdx);
+            const cRes = await fetch(`/api/check?requestId=${encodeURIComponent(reqId)}&chunk=${cIdx}`, { signal });
+            if (cRes.ok) {
+              const cData = await cRes.json();
+              if (cData.status === 'completed' && Array.isArray(cData.results)) {
+                chunkResultsMap.set(cIdx, cData.results);
+                fetchedChunks.add(cIdx);
+                madeProgress = true;
+              }
+            }
+          }
+        }
+
+        // Maintain sliding window: max 3 concurrent chunk runs in-flight
+        let inFlight = [...dispatchedChunks].filter(c => !fetchedChunks.has(c)).length;
+        for (let nextChunk = 0; nextChunk < chunkCount && inFlight < 3 && !signal?.aborted; nextChunk++) {
+          if (!dispatchedChunks.has(nextChunk) && !fetchedChunks.has(nextChunk)) {
+            const dRes = await fetch('/api/check', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'dispatch_chunk',
+                requestId: reqId,
+                chunkIndex: nextChunk,
+                emails: chunkSlices[nextChunk]
+              }),
+              signal
+            });
+            if (dRes.ok) {
+              dispatchedChunks.add(nextChunk);
+              inFlight++;
+            }
+          }
+        }
+
+        const snap = buildArrivedSnapshots();
+        const elapsedSec = Math.round((Date.now() - startTime) / 1000);
+        const chunksDone = fetchedChunks.size;
+        const pct = Math.max(5, Math.min(100, Math.round((snap.arrivedCount / total) * 100)));
+
+        let etaSeconds: number | null = null;
+        if (chunksDone > 0 && chunksDone < chunkCount) {
+          const avgSecPerChunk = elapsedSec / chunksDone;
+          etaSeconds = Math.max(5, Math.round((chunkCount - chunksDone) * avgSecPerChunk));
         }
 
         if (onProgress) {
-          onProgress(Math.min(100, Math.round(((idx + 1) / total) * 100)), `[SYS] SECURED: ${updatedItem[mappings.emailKey]} -> ${status} (${verificationResult.verificationReason})`);
+          onProgress({
+            progress: pct,
+            emailsDone: snap.arrivedCount,
+            emailsTotal: total,
+            chunksDone,
+            chunksTotal: chunkCount,
+            etaSeconds,
+            requestId: reqId,
+            validSnapshot: snap.validSnap,
+            eliminatedSnapshot: snap.eliminatedSnap,
+            logMessage: madeProgress
+              ? `Chunk ${chunksDone}/${chunkCount} received — ${snap.arrivedCount}/${total} emails verified`
+              : `Polling manifest (${chunksDone}/${chunkCount} chunks, ${snap.arrivedCount}/${total} emails, ${elapsedSec}s elapsed)...`
+          });
+        }
+
+        if (chunksDone >= chunkCount) {
+          break;
         }
       }
-    });
-  }
-
-  if (onProgress) {
-    onProgress(100, 'Verification complete');
-  }
-
-  const finalReport = {
-    ...stats,
-    finalDeliverable: valid.length,
-    finalFiltered: eliminated.length
-  };
-
-  console.table(finalReport);
-  console.log(`[PROCESSOR] PIPELINE_COMPLETE. Enterprise backend processing finished.`);
-
-  return { valid, eliminated, stats: finalReport };
-};
-
-/**
- * Single Email Verification Wrapper (for SingleValidation.tsx UI component)
- */
-export const verifyEmail = async (
-  email: string,
-  options: {
-    excludeDisposable: boolean;
-    excludeRoleBased: boolean;
-    excludeCatchAll: boolean;
-    excludeSpamTraps: boolean;
-  }
-): Promise<Partial<ProcessedContact>> => {
-  const clean = String(email || '').toLowerCase().trim();
-  const timestamp = new Date().toISOString();
-  
-  if (!clean) {
-    return {
-      verificationStatus: 'blocked',
-      verificationReason: 'Fatal Syntax: Impossible Identity Structure',
-      subStatus: 'invalid_syntax',
-      confidenceScore: 0,
-      bounceRisk: 'Dangerous',
-      reputationImpact: 'Critical',
-      mxRecordFound: false,
-      isCatchAll: false,
-      isDisposable: false,
-      isRoleBased: false,
-      isFreeEmail: false,
-      provider: 'Unknown',
-      smtpValid: false,
-      syntaxValid: false,
-      email: clean,
-      status: 'INVALID',
-      sub_status: 'invalid_syntax',
-      failure_code: 'ERR_001',
-      smtp_code: null,
-      mx_ip: null,
-      timestamp,
-      is_catchall: false,
-      trace: 'Syntax check failed: empty localPart'
-    };
-  }
-
-  try {
-    const postRes = await fetch('/api/check', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: clean })
-    });
-
-    const initialData = await postRes.json();
-    if (initialData.status === 'completed') {
-      return initialData as Partial<ProcessedContact>;
-    }
-
-    if (initialData.status === 'error') {
-      throw new Error(initialData.ui_reason || 'Verification backend unreachable');
-    }
-
-    if (initialData.status === 'pending' && initialData.requestId) {
-      const reqId = initialData.requestId;
-      const startTime = Date.now();
-      const maxWaitMs = 1200000;
-
-      while (Date.now() - startTime < maxWaitMs) {
-        await new Promise(r => setTimeout(r, 6000));
-        try {
-          const pollRes = await fetch(`/api/check?requestId=${encodeURIComponent(reqId)}`);
-          if (pollRes.ok) {
-            const pollData = await pollRes.json();
-            if (pollData.status === 'completed') {
-              return pollData as Partial<ProcessedContact>;
-            }
-          }
-        } catch {}
+    } catch (pollErr: any) {
+      if (pollErr.name === 'AbortError' || signal?.aborted) {
+        throw new Error('Pipeline Aborted');
       }
+      console.warn('[BULK_MANIFEST_POLL_ERR]', pollErr);
     }
 
-    throw new Error('STILL CHECKING / TIMED OUT — re-run to complete');
-  } catch (err: any) {
-    console.error('[SINGLE_VALIDATION_ERROR]', err);
-    throw err;
+    if (signal?.aborted) {
+      throw new Error('Pipeline Aborted');
+    }
+
+    // Backoff from 5s to 15s when waiting, reset to 5s on progress
+    pollIntervalMs = madeProgress ? 5000 : Math.min(15000, Math.round(pollIntervalMs * 1.35));
+    await new Promise((r) => setTimeout(r, pollIntervalMs));
   }
+
+  if (signal?.aborted) {
+    throw new Error('Pipeline Aborted');
+  }
+
+  const finalSnap = buildArrivedSnapshots();
+  const timedOut = fetchedChunks.size < chunkCount;
+
+  // Build arrived stats ONLY from chunks that landed
+  stats.arrivedCount = finalSnap.arrivedCount;
+  stats.safeCount = finalSnap.safeCount;
+  stats.riskyCount = finalSnap.riskyCount;
+  stats.invalidCount = finalSnap.invalidCount;
+  stats.unknownCount = finalSnap.unknownCount;
+  stats.catchAllMatch = finalSnap.catchAllMatch;
+  stats.disposableMatch = finalSnap.disposableMatch;
+  stats.roleBasedMatch = finalSnap.roleBasedMatch;
+  stats.verifiedLeads = finalSnap.safeCount;
+
+  // Any chunks still missing after the 20-minute cap MUST NOT be stamped fake UNKNOWN.
+  // Display explicitly as "STILL CHECKING / TIMED OUT — re-run to complete" and keep excluded from counts/export.
+  if (timedOut) {
+    for (let cIdx = 0; cIdx < chunkCount; cIdx++) {
+      if (chunkResultsMap.has(cIdx)) continue;
+      const baseIndex = cIdx * CHUNK_SIZE;
+      chunkSlices[cIdx].forEach((emailVal, offset) => {
+        const globalIdx = baseIndex + offset;
+        const item = preProcessedData[globalIdx];
+        if (!item) return;
+        stats.timedOutMissingCount++;
+        finalSnap.eliminatedSnap.push({
+          ...item,
+          email: emailVal,
+          status: 'STILL CHECKING / TIMED OUT — re-run to complete',
+          verificationStatus: 'unknown',
+          verificationReason: 'STILL CHECKING / TIMED OUT — re-run to complete',
+          reason: 'STILL CHECKING / TIMED OUT — re-run to complete',
+          isTimedOutMissing: true,
+          originalIndex: globalIdx,
+          __originalData: item
+        });
+      });
+    }
+  } else {
+    clearSavedScanState();
+  }
+
+  const arrivedDefinitive = stats.safeCount + stats.riskyCount + stats.invalidCount;
+  const definitiveRate = stats.arrivedCount > 0 ? Math.round((arrivedDefinitive / stats.arrivedCount) * 100) : 0;
+
+  return {
+    valid: finalSnap.validSnap,
+    eliminated: finalSnap.eliminatedSnap,
+    stats: {
+      ...stats,
+      definitiveRate,
+      finalDeliverable: finalSnap.safeCount,
+      finalFiltered: stats.riskyCount + stats.invalidCount + stats.unknownCount
+    },
+    timedOut,
+    requestId: reqId
+  };
 };

@@ -1,6 +1,6 @@
-// LeadPure Enterprise Neural Verification Kernel (v14.0)
+// LeadPure Verification Kernel (Offline Unit Helpers)
 // Combines RFC 5322 syntax validation, role filtering, disposable detection,
-// DNS MX resolution with RFC 7505 null MX, and live RFC 5321 SMTP mailbox probing.
+// and DNS MX resolution with RFC 7505 null MX. Live production SMTP probing runs in engine/probe.mjs.
 
 import { validateSyntax, SyntaxResult } from './syntax.js';
 import { isDisposableDomain } from './data/disposable.js';

@@ -1,6 +1,7 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { motion, AnimatePresence } from 'motion/react';
+import { Play, X } from 'lucide-react';
 
 // Components
 import { Sidebar } from './components/Sidebar';
@@ -14,10 +15,12 @@ import { ResultsDashboard } from './components/ResultsDashboard';
 import { LoadingOverlay } from './components/LoadingOverlay';
 import { DataPreviewModal } from './components/DataPreviewModal';
 import { SingleValidation } from './components/SingleValidation';
+import { GlossyCard } from './components/ui/GlossyCard';
 
 // Hooks & Types
 import { useHistory } from './hooks/useHistory';
 import { useLeadProcessor } from './hooks/useLeadProcessor';
+import { loadSavedScanState, clearSavedScanState, SavedScanState } from './utils/processor';
 import { ContactData, HistoryItem, ValidationRules } from './types';
 
 import { MobileNav } from './components/MobileNav';
@@ -25,49 +28,32 @@ import { useToast } from './components/Toast';
 
 type AppState = 'upload' | 'mapping' | 'processing' | 'results' | 'rules' | 'history';
 
-const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`;
-
 export default function App() {
   const [appState, setAppState] = useState<AppState>('upload');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  
+
   const toggleTheme = (event?: React.MouseEvent) => {
     const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    
     if (!(document as any).startViewTransition || !event) {
       setTheme(nextTheme);
       return;
     }
-
     const x = event.clientX;
     const y = event.clientY;
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y)
     );
-
-    const transition = (document as any).startViewTransition(() => {
-      setTheme(nextTheme);
-    });
-
+    const transition = (document as any).startViewTransition(() => setTheme(nextTheme));
     transition.ready.then(() => {
       document.documentElement.animate(
-        {
-          clipPath: [
-            `circle(0px at ${x}px ${y}px)`,
-            `circle(${endRadius}px at ${x}px ${y}px)`,
-          ],
-        },
-        {
-          duration: 350,
-          easing: 'ease-in-out',
-          pseudoElement: '::view-transition-new(root)',
-        }
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
+        { duration: 350, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' }
       );
     });
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -79,21 +65,22 @@ export default function App() {
   const [fileData, setFileData] = useState<ContactData[]>([]);
   const [fileName, setFileName] = useState('');
   const [isParsing, setIsParsing] = useState(false);
+  const [parsingProgress, setParsingProgress] = useState(10);
   const [headers, setHeaders] = useState<string[]>([]);
   const [mappings, setMappings] = useState({
     firstNameKey: '', lastNameKey: '', nameKey: '',
     emailKey: '', phoneKey: '', countryKey: '',
     cityKey: '', postalCodeKey: ''
   });
-  
+
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<ContactData[]>([]);
   const [previewTitle, setPreviewTitle] = useState('');
 
   const [validationRules, setValidationRules] = useState<ValidationRules>({
-    strictTitleCase: true, 
+    strictTitleCase: true,
     forcePlusSign: true,
-    excludeDisposable: true, 
+    excludeDisposable: true,
     excludeRoleBased: true,
     excludeCatchAll: true,
     excludeSpamTraps: true
@@ -103,6 +90,12 @@ export default function App() {
   const processor = useLeadProcessor();
   const { toast } = useToast();
   const [processingStats, setProcessingStats] = useState<any>(null);
+  const [resumableScan, setResumableScan] = useState<SavedScanState | null>(null);
+
+  useEffect(() => {
+    const saved = loadSavedScanState();
+    if (saved) setResumableScan(saved);
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -110,45 +103,48 @@ export default function App() {
 
     setFileName(file.name);
     setIsParsing(true);
+    setParsingProgress(10);
     const reader = new FileReader();
 
     reader.onload = (e) => {
       const data = new Uint8Array(e.target?.result as ArrayBuffer);
-      
       const worker = new Worker(new URL('./workers/xlsxWorker.ts', import.meta.url), { type: 'module' });
-      
-      worker.onmessage = (event) => {
-        setIsParsing(false);
-        const { success, payload, error } = event.data;
-        worker.terminate();
 
-        if (!success) {
-          toast(`PARSING_ERROR: ${error}`, 'error');
+      worker.onmessage = (event) => {
+        const msg = event.data;
+        if (msg.type === 'progress') {
+          setParsingProgress(msg.progress || 25);
           return;
         }
 
-        const filteredJson = payload;
-        console.log(`[INGESTION] WORKER_COMPLETE: ${filteredJson.length} valid rows extracted.`);
+        setIsParsing(false);
+        worker.terminate();
 
+        if (!msg.success) {
+          toast(`Parsing error: ${msg.error}`, 'error');
+          return;
+        }
+
+        const filteredJson = msg.payload || [];
         if (filteredJson.length > 0) {
           setFileData(filteredJson);
           const fileHeaders = Object.keys(filteredJson[0]);
           setHeaders(fileHeaders);
-          
+
           setMappings({
-            firstNameKey: fileHeaders.find(h => /first.*name|fname|f\.name/i.test(h)) || '',
-            lastNameKey: fileHeaders.find(h => /last.*name|lname|l\.name/i.test(h)) || '',
-            nameKey: fileHeaders.find(h => /full.*name|^name$|contact.*name/i.test(h)) || '',
-            emailKey: fileHeaders.find(h => /email|e-mail|mail.*address/i.test(h)) || '',
-            phoneKey: fileHeaders.find(h => /phone|cell|mobile|tel|contact.*number/i.test(h)) || '',
-            countryKey: fileHeaders.find(h => /country|nation/i.test(h)) || '',
-            cityKey: fileHeaders.find(h => /city|town|locality/i.test(h)) || '',
-            postalCodeKey: fileHeaders.find(h => /zip|postal|pincode|post.*code/i.test(h)) || ''
+            firstNameKey: fileHeaders.find((h) => /first.*name|fname|f\.name/i.test(h)) || '',
+            lastNameKey: fileHeaders.find((h) => /last.*name|lname|l\.name/i.test(h)) || '',
+            nameKey: fileHeaders.find((h) => /full.*name|^name$|contact.*name/i.test(h)) || '',
+            emailKey: fileHeaders.find((h) => /email|e-mail|mail.*address/i.test(h)) || '',
+            phoneKey: fileHeaders.find((h) => /phone|cell|mobile|tel|contact.*number/i.test(h)) || '',
+            countryKey: fileHeaders.find((h) => /country|nation/i.test(h)) || '',
+            cityKey: fileHeaders.find((h) => /city|town|locality/i.test(h)) || '',
+            postalCodeKey: fileHeaders.find((h) => /zip|postal|pincode|post.*code/i.test(h)) || ''
           });
           setAppState('mapping');
-          toast('PROTOCOL: IDENTITY INGESTION COMPLETE', 'success');
+          toast(`Loaded ${filteredJson.length} rows ready for mapping`, 'success');
         } else {
-          toast('PROTOCOL: NO DATA FOUND', 'error');
+          toast('No valid rows found in spreadsheet', 'error');
         }
       };
 
@@ -157,97 +153,145 @@ export default function App() {
     reader.readAsArrayBuffer(file);
   }, [toast]);
 
-  const handleStartProcessing = async () => {
-    setAppState('processing');
-    console.log(`[ENGINE] STARTING_SESSION: Roles[${validationRules.excludeRoleBased}] Disposable[${validationRules.excludeDisposable}] CatchAll[${validationRules.excludeCatchAll}]`);
-    try {
-      const { valid, eliminated, stats } = await processor.runProcessor(fileData, mappings, validationRules);
-      setProcessingStats(stats);
-      
+  const finishScanState = (valid: any[], eliminated: any[], stats: any, timedOut: boolean, usedMappings: any, usedName: string) => {
+    setProcessingStats(stats);
+    setResumableScan(null);
+
+    if (stats && stats.arrivedCount > 0) {
       saveToHistory({
-        id: Math.random().toString(36).substr(2, 9),
+        id: Math.random().toString(36).slice(2, 11),
         date: new Date().toISOString(),
-        fileName,
-        totalRows: fileData.length,
+        fileName: usedName || 'LeadPure_Scan.xlsx',
+        totalRows: stats.totalInput || (valid.length + eliminated.length),
         validRows: valid.length,
         processedData: valid,
-        eliminatedData: eliminated,
-        mappings,
+        eliminatedData: eliminated.filter((item: any) => !item.isTimedOutMissing),
+        mappings: usedMappings,
         stats: {
-          removed: eliminated.length,
+          removed: eliminated.filter((item: any) => !item.isTimedOutMissing).length,
           phoneFormatted: valid.length,
-          avgConfidence: Math.round(valid.reduce((acc, curr) => acc + (curr.confidenceScore || 0), 0) / (valid.length || 1))
+          avgConfidence: stats.definitiveRate || 0
         }
       });
-      
-      setAppState('results');
-      toast('0% BOUNCE VERIFICATION COMPLETE', 'success');
-    } catch (error) {
+    }
+
+    setAppState('results');
+    if (timedOut) {
+      toast('Scan hit 20-minute limit — arrived results saved, missing rows marked timed out.', 'info');
+    } else {
+      toast('Verification complete', 'success');
+    }
+  };
+
+  const handleStartProcessing = async () => {
+    setAppState('processing');
+    try {
+      const result = await processor.runProcessor(fileData, mappings, validationRules, fileName);
+      if (result.stats) {
+        finishScanState(result.valid, result.eliminated, result.stats, !!result.timedOut, mappings, fileName);
+      } else {
+        setAppState('mapping');
+        toast('Verification cancelled', 'info');
+      }
+    } catch (error: any) {
       setAppState('mapping');
-      toast('SYSTEM_ERROR: VALIDATION ENGINE FAILURE', 'error');
+      toast(`Verification error: ${error.message || 'Backend unavailable'}`, 'error');
     }
   };
 
-  const handleDownloadEliminated = (tier: 'all' | 'risky' | 'dangerous' = 'all') => {
-    const rawExt = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')).toLowerCase() : '.xlsx';
-    const extension = (rawExt === '.csv' || rawExt === '.xlsx' || rawExt === '.xls') ? rawExt : '.xlsx';
-    const baseName = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : (fileName || 'leads');
-    
-    const arrivedEliminated = processor.eliminatedData.filter((item: any) => !item.isTimedOutMissing);
-    const filteredData = tier === 'all' 
-      ? arrivedEliminated 
-      : arrivedEliminated.filter(item => {
-          if (tier === 'risky') return item.status === 'RISKY' || item.status === 'risky' || item.bounceRisk === 'Medium';
-          if (tier === 'dangerous') return item.status === 'INVALID' || item.status === 'dangerous' || item.bounceRisk === 'Dangerous' || item.bounceRisk === 'High';
-          return true;
-        });
+  const handleResumeScan = async () => {
+    if (!resumableScan) return;
+    setFileName(resumableScan.fileName || 'Resumed_Scan.csv');
+    setMappings(resumableScan.mappings);
+    setAppState('processing');
+    try {
+      const result = await processor.resumeProcessor(resumableScan);
+      if (result.stats) {
+        finishScanState(result.valid, result.eliminated, result.stats, !!result.timedOut, resumableScan.mappings, resumableScan.fileName);
+      } else {
+        setAppState('upload');
+      }
+    } catch (error: any) {
+      setAppState('upload');
+      toast(`Resume failed: ${error.message || 'Unable to fetch manifest'}`, 'error');
+    }
+  };
 
-    const exportData = filteredData.map(item => {
-      const base = item.__originalData || item;
-      return {
-        ...base,
-        Validation_Status: item.status || 'INVALID',
-        Sub_Status: item.sub_status || item.subStatus || '',
-        Failure_Code: item.failure_code || '',
-        Elimination_Reason: item.verificationReason || item.reason || 'Security Protocol',
-        Bounce_Risk: item.bounceRisk || 'Dangerous',
-        Confidence_Score: item.confidenceScore ?? 0,
-        Provider: item.provider || 'Unknown'
-      };
-    });
+  const dismissResumable = () => {
+    clearSavedScanState();
+    setResumableScan(null);
+  };
 
+  const formatExportRow = (item: any) => {
+    const base = item.__originalData || item;
+    return {
+      ...base,
+      Verdict: item.status || 'UNKNOWN',
+      Reason: item.verificationReason || item.reason || '',
+      MX_Record: item.mxRecord || '',
+      SMTP_Connected: item.smtpValid ? 'Yes' : 'No',
+      Catch_All: item.isCatchAll ? 'Yes' : 'No',
+      Disposable: item.isDisposable ? 'Yes' : 'No',
+      Role_Based: item.isRoleBased ? 'Yes' : 'No'
+    };
+  };
+
+  const dateSlug = () => new Date().toISOString().slice(0, 10);
+
+  // Unified export matching the exact verdicts displayed on the page (arrived engine results ONLY)
+  const handleDownloadAll = () => {
+    const allArrived = [
+      ...(processor.processedData || []),
+      ...(processor.eliminatedData || []).filter((item: any) => !item.isTimedOutMissing)
+    ].sort((a: any, b: any) => (a.originalIndex ?? 0) - (b.originalIndex ?? 0));
+
+    const exportData = allArrived.map(formatExportRow);
     if (exportData.length === 0) {
-      toast(`NO ${tier.toUpperCase()} LEADS FOUND TO EXPORT`, 'info');
+      toast('No arrived engine results available to export yet', 'info');
       return;
     }
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, `${tier === 'all' ? 'Filtered' : tier.charAt(0).toUpperCase() + tier.slice(1)} Leads`);
-    
-    XLSX.writeFile(workbook, `${baseName}_${tier === 'all' ? 'Filtered' : tier.charAt(0).toUpperCase() + tier.slice(1)}${extension}`);
-    toast(`EXPORT COMPLETE: ${tier.toUpperCase()} NODES ARCHIVED`, 'info');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Verification Results');
+    XLSX.writeFile(workbook, `LeadPure_Results_${dateSlug()}.xlsx`);
+    toast(`Exported ${exportData.length} verified records`, 'success');
   };
 
-  const handleDownload = () => {
-    const rawExt = fileName.includes('.') ? fileName.substring(fileName.lastIndexOf('.')).toLowerCase() : '.xlsx';
-    const extension = (rawExt === '.csv' || rawExt === '.xlsx' || rawExt === '.xls') ? rawExt : '.xlsx';
-    const baseName = fileName.includes('.') ? fileName.substring(0, fileName.lastIndexOf('.')) : (fileName || 'leads');
-    
-    // Export normalized lead data ONLY from arrived engine results
-    const exportData = processor.processedData.filter((item: any) => !item.isTimedOutMissing).map(item => item.__originalData || item);
+  const handleDownloadValid = () => {
+    const exportData = (processor.processedData || [])
+      .filter((item: any) => !item.isTimedOutMissing)
+      .map(formatExportRow);
 
     if (exportData.length === 0) {
-      toast('NO VALID LEADS TO EXPORT', 'info');
+      toast('No SAFE records available to export', 'info');
       return;
     }
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Cleaned Leads');
-    
-    XLSX.writeFile(workbook, `${baseName}_Cleaned${extension}`);
-    toast('EXPORT COMPLETE: CLEANED LIST READY', 'success');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'SAFE Leads');
+    XLSX.writeFile(workbook, `LeadPure_SAFE_${dateSlug()}.xlsx`);
+    toast(`Exported ${exportData.length} SAFE records`, 'success');
+  };
+
+  const handleDownloadEliminated = (tier: 'all' | 'risky' | 'invalid' | 'unknown' = 'all') => {
+    const arrivedEliminated = (processor.eliminatedData || []).filter((item: any) => !item.isTimedOutMissing);
+    const filteredData = tier === 'all'
+      ? arrivedEliminated
+      : arrivedEliminated.filter((item) => String(item.status || '').toUpperCase() === tier.toUpperCase());
+
+    const exportData = filteredData.map(formatExportRow);
+    if (exportData.length === 0) {
+      toast(`No ${tier.toUpperCase()} records available to export`, 'info');
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Filtered Results');
+    XLSX.writeFile(workbook, `LeadPure_Filtered_${dateSlug()}.xlsx`);
+    toast(`Exported ${exportData.length} filtered records`, 'info');
   };
 
   const openPreview = (data: ContactData[], title: string) => {
@@ -257,31 +301,35 @@ export default function App() {
   };
 
   const loadHistoryItem = (item: HistoryItem) => {
-    if (!item.processedData) return alert("Historical record format mismatch.");
+    if (!item.processedData) return;
     processor.setProcessedData(item.processedData);
-    processor.setEliminatedData(item.eliminatedData);
+    processor.setEliminatedData(item.eliminatedData || []);
     setMappings(item.mappings);
     setFileName(item.fileName);
     setAppState('results');
   };
 
   const downloadHistoryItem = (item: HistoryItem) => {
-    if (!item.processedData) return toast("PROTOCOL_ERROR: DATA_MISMATCH", "error");
-    
-    const extension = item.fileName.substring(item.fileName.lastIndexOf('.')).toLowerCase();
-    const baseName = item.fileName.substring(0, item.fileName.lastIndexOf('.')) || item.fileName;
+    const allArrived = [
+      ...(item.processedData || []),
+      ...(item.eliminatedData || []).filter((r: any) => !r.isTimedOutMissing)
+    ].sort((a: any, b: any) => (a.originalIndex ?? 0) - (b.originalIndex ?? 0));
 
-    const exportData = item.processedData.map(p => p.__originalData || p);
+    const exportData = allArrived.map(formatExportRow);
+    if (!exportData.length) {
+      toast('No results in archive entry', 'info');
+      return;
+    }
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Cleaned Leads');
-    
-    XLSX.writeFile(workbook, `${baseName}_Cleaned${extension}`);
-    toast('EXPORT COMPLETE: HISTORICAL LIST READY', 'success');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Verification Results');
+    XLSX.writeFile(workbook, `LeadPure_Results_${dateSlug()}.xlsx`);
+    toast('Archived results exported', 'success');
   };
 
   const reset = () => {
+    if (processor.isProcessing) processor.cancelProcessing();
     setAppState('upload');
     setFileData([]);
     setFileName('');
@@ -292,113 +340,133 @@ export default function App() {
       cityKey: '', postalCodeKey: ''
     });
     processor.resetProcessor();
-    toast('PROTOCOL_PURGE: EMERGENCY RESET ENGAGED', 'success');
+    toast('Session reset', 'info');
   };
 
   return (
     <div className="flex h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white" data-theme={theme}>
-      {/* Premium Background Layering */}
       <div className="mesh-background" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(90,92,255,0.05),transparent_50%)] pointer-events-none" />
-      
-      <div className="fixed inset-0 pointer-events-none opacity-[0.02] z-[9999] mix-blend-overlay" 
-           style={{ backgroundImage: NOISE_SVG }}>
-      </div>
 
       <Sidebar currentTab={appState} setTab={setAppState} />
 
-      <main className="flex-1 flex flex-col overflow-hidden pb-24 lg:pb-0 relative z-10">
-        <Header 
-          appState={appState} 
-          isProcessing={processor.isProcessing} 
-          onDownload={handleDownload} 
-          onReset={reset} 
+      <main className="flex-1 flex flex-col overflow-hidden pb-20 lg:pb-0 relative z-10 min-w-0">
+        <Header
+          appState={appState}
+          isProcessing={processor.isProcessing}
+          onDownload={handleDownloadAll}
+          onReset={reset}
           theme={theme}
           onToggleTheme={toggleTheme}
         />
 
-        <section className="flex-1 p-6 md:p-10 overflow-y-auto flex flex-col gap-10 scrollbar-hide">
-          <div className="max-w-7xl mx-auto w-full">
+        <section className="flex-1 px-4 py-6 sm:p-8 md:p-10 overflow-y-auto flex flex-col gap-8 scrollbar-hide">
+          <div className="max-w-7xl mx-auto w-full min-w-0">
             <AnimatePresence mode="wait">
               {appState === 'upload' && (
-                <motion.div 
+                <motion.div
                   key="upload-state"
-                  initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -20, scale: 0.98 }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="space-y-20"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -16 }}
+                  className="space-y-12 sm:space-y-16"
                 >
+                  {resumableScan && (
+                    <GlossyCard glow="blue" className="p-5 sm:p-6 rounded-3xl border border-brand-blue/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-black text-brand-blue uppercase tracking-widest">Interrupted Scan Found</p>
+                        <h4 className="text-sm sm:text-base font-black text-app-text mt-1">
+                          {resumableScan.fileName} ({resumableScan.totalRows} emails)
+                        </h4>
+                        <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                          ID: {resumableScan.requestId} &bull; Started {new Date(resumableScan.startedAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <button
+                          onClick={handleResumeScan}
+                          className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl gradient-bg text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg"
+                        >
+                          <Play className="w-3.5 h-3.5 fill-white" />
+                          Resume Last Scan
+                        </button>
+                        <button
+                          onClick={dismissResumable}
+                          className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white"
+                          title="Dismiss"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </GlossyCard>
+                  )}
+
                   <SingleValidation />
                   <LeadUpload onDrop={onDrop} />
                 </motion.div>
               )}
+
               {appState === 'mapping' && (
-                <motion.div 
-                  key="mapping-state"
-                  initial={{ opacity: 0, scale: 1.02 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <MappingSection 
-                    fileName={fileName} totalLeads={fileData.length} headers={headers} 
-                    mappings={mappings} setMappings={setMappings} 
-                    onStartProcessing={handleStartProcessing} isProcessing={processor.isProcessing} 
-                    onPreview={() => openPreview(fileData, 'Original Data Preview')}
+                <motion.div key="mapping-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <MappingSection
+                    fileName={fileName}
+                    totalLeads={fileData.length}
+                    headers={headers}
+                    mappings={mappings}
+                    setMappings={setMappings}
+                    onStartProcessing={handleStartProcessing}
+                    isProcessing={processor.isProcessing}
+                    onPreview={() => openPreview(fileData, 'Source File Preview')}
                   />
                 </motion.div>
               )}
+
               {appState === 'rules' && (
-                <motion.div 
-                  key="rules-state"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <RulesSection 
-                    rules={validationRules} 
-                    onToggle={(key) => setValidationRules(p => ({ ...p, [key]: !p[key]}))} 
+                <motion.div key="rules-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <RulesSection
+                    rules={validationRules}
+                    onToggle={(key) => setValidationRules((p) => ({ ...p, [key]: !p[key] }))}
                   />
                 </motion.div>
               )}
+
               {appState === 'history' && (
-                <motion.div 
-                  key="history-state"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <HistorySection 
-                    history={history} loadItem={loadHistoryItem} 
-                    downloadItem={downloadHistoryItem} clearHistory={clearHistory} 
+                <motion.div key="history-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <HistorySection
+                    history={history}
+                    loadItem={loadHistoryItem}
+                    downloadItem={downloadHistoryItem}
+                    clearHistory={clearHistory}
                   />
                 </motion.div>
               )}
-              {appState === 'results' && (
-                <motion.div 
-                  key="results-state"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -30 }}
-                  transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                >
-                  <ResultsDashboard 
-                    processedData={processor.processedData} 
-                    eliminatedData={processor.eliminatedData} 
-                    mappings={mappings} 
+
+              {(appState === 'results' || appState === 'processing') && (
+                <motion.div key="results-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <ResultsDashboard
+                    processedData={processor.processedData}
+                    eliminatedData={processor.eliminatedData}
+                    mappings={mappings}
                     onPreview={openPreview}
                     onDownloadEliminated={handleDownloadEliminated}
-                    onDownloadValid={handleDownload}
+                    onDownloadValid={handleDownloadValid}
+                    onDownloadAll={handleDownloadAll}
                     stats={processingStats}
+                    isProcessing={processor.isProcessing}
+                    progress={processor.progress}
+                    emailsDone={processor.emailsDone}
+                    emailsTotal={processor.emailsTotal}
+                    chunksDone={processor.chunksDone}
+                    chunksTotal={processor.chunksTotal}
+                    estimatedSeconds={processor.estimatedSeconds}
+                    activeRequestId={processor.activeRequestId}
+                    onCancel={processor.cancelProcessing}
                   />
                 </motion.div>
               )}
             </AnimatePresence>
-            
-            <div className="mt-20">
+
+            <div className="mt-16">
               <Footer />
             </div>
           </div>
@@ -409,30 +477,21 @@ export default function App() {
 
       <AnimatePresence>
         {isParsing && (
-          <LoadingOverlay 
+          <LoadingOverlay
             key="parsing-overlay"
-            progress={10} 
-            estimatedSeconds={1} 
-            customText="PARSING DATA FILE..." 
-            customDescription="Extracting and normalizing identities off-thread..." 
-          />
-        )}
-        {appState === 'processing' && (
-          <LoadingOverlay 
-            key="processing-overlay"
-            progress={processor.progress} 
-            estimatedSeconds={processor.estimatedSeconds} 
-            onCancel={processor.cancelProcessing} 
-            logs={processor.logs}
+            progress={parsingProgress}
+            estimatedSeconds={1}
+            customText="Parsing Spreadsheet..."
+            customDescription="Validating rows off-thread in 500-row chunks without blocking the UI."
           />
         )}
       </AnimatePresence>
 
-      <DataPreviewModal 
-        isOpen={isPreviewOpen} 
-        onClose={() => setIsPreviewOpen(false)} 
-        data={previewData} 
-        title={previewTitle} 
+      <DataPreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        data={previewData}
+        title={previewTitle}
       />
     </div>
   );

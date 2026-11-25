@@ -372,17 +372,16 @@ export async function executeSmtpSocketHandshake(
 // ----------------- EXTERNAL SMTP BACKEND SERVICE INTEGRATION -----------------
 
 /**
- * Checks if an external SMTP verification backend or self-hosted Reacher instance is configured.
- * Compatible with reacherhq/check-if-email-exists JSON API specification.
+ * Checks if an external SMTP verification backend URL is configured.
  */
 export async function queryExternalSmtpBackend(email: string): Promise<SmtpCheckResult | null> {
-  const backendUrl = process.env.SMTP_BACKEND_URL || process.env.REACHER_API_URL || process.env.VITE_SMTP_BACKEND_URL;
+  const backendUrl = process.env.SMTP_BACKEND_URL || process.env.VITE_SMTP_BACKEND_URL;
   if (!backendUrl) return null;
 
   try {
     const url = backendUrl.replace(/\/+$/, '') + '/v0/check_email';
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    const apiKey = process.env.SMTP_BACKEND_API_KEY || process.env.REACHER_API_KEY;
+    const apiKey = process.env.SMTP_BACKEND_API_KEY;
     if (apiKey) {
       headers['Authorization'] = apiKey;
     }
