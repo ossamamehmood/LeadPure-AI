@@ -1,33 +1,37 @@
-# LeadPure AI Security Protocol (v13)
+# Security Policy — LeadPure AI V17
 
-## 1. Zero-Trust Data Architecture
-LeadPure AI operates on a **stateless, client-side first** security model. Unlike traditional SaaS tools that store your leads on their servers, LeadPure AI processes data in your browser's secure sandbox.
+## Data Flow & Privacy Architecture
 
-- **Zero Persistence**: No lead data is ever stored in a database. Once the session is closed, the data is purged from memory.
-- **Local Sovereignty**: Your data remains on your machine. We only transmit anonymized, cryptographic hashes of email domains for infrastructure lookups.
+LeadPure AI is designed as a stateless verification orchestrator with minimal data retention:
 
-## 2. Deliverability Intelligence Kernel (v13)
-The heart of our security is the **v13 Neural Verification Kernel**, designed to protect your SMTP reputation at all costs.
-
-### Validation Layers:
-1. **Infrastructure Audit**: Real-time handshake with MX servers to verify existence without sending mail.
-2. **Reputation Scoring**: Weighted risk assessment of the target domain's historical deliverability.
-3. **Bot & Trap Neutralization**: Aggressive filtering of known spam-traps and bot-operated mailboxes.
-4. **Catch-All Logic**: Probabilistic assessment of "Accept-All" domains to prevent invisible bounces.
-
-## 3. Threat Mitigation
-- **Port Exhaustion Protection**: Managed socket concurrency to prevent local network instability.
-- **Anti-Tarpitting**: Intelligent timeouts that recognize and wait for enterprise "tarpit" delays (Mimecast, Proofpoint).
-- **CSRF & XSS Hardening**: Strict JSX parsing and sanitized state management.
-
-## 4. Compliance & Standards
-- **E.164 Compliance**: Automatic phone number normalization for international telecommunication standards.
-- **GDPR Ready**: By design, we do not store PII (Personally Identifiable Information).
-- **Audit Trails**: Local historical records for deliverability transparency.
+1. **Client-Side Spreadsheet Parsing:** Uploaded CSV and Excel (`.xlsx` / `.xls`) files are parsed locally inside the user's browser via `src/workers/parseLeads.worker.ts`. Unselected spreadsheet columns and phone numbers are never persisted on a backend database.
+2. **Ephemeral SMTP Runners:** Live DNS/MX and Port-25 SMTP checks execute inside isolated, short-lived GitHub Actions Ubuntu containers (`engine/probe.mjs` v1.3.0) triggered via `.github/workflows/leadpure-check.yml`.
+3. **Command-Injection Protection:** User-supplied email strings and request IDs are validated by `api/check.ts` before dispatch and passed into workflow scripts strictly through GitHub Actions `env:` variables—never interpolated directly into shell command strings.
+4. **Automatic 7-Day Result Pruning:** Per-request manifest and chunk result files (`results/<requestId>/manifest.json` and `chunk-<n>.json`) on the `results` branch are automatically deleted once older than **7 days** by the weekly `.github/workflows/cleanup-results.yml` workflow.
 
 ---
-*LeadPure AI is an elite security tool. Use responsibly to maintain the integrity of the global email ecosystem.*
 
-## 📬 Security Inquiries
-For security-related questions or responsible disclosure of vulnerabilities, please contact:
-**Email**: [ossamamehmood110@gmail.com](mailto:ossamamehmood110@gmail.com)
+## Secret & Token Hygiene
+
+- Orchestration requires a GitHub Personal Access Token configured as a server-side environment variable (`LEADPURE_GH_TOKEN`, with `REACHER_GH_TOKEN` accepted as a legacy fallback).
+- Secrets remain strictly within Vercel Serverless Functions (`/api/check`) and GitHub Actions encrypted secrets; they are never bundled into `dist/` or exposed to browser code.
+- If rotating tokens, revoke old tokens in GitHub Developer Settings first, then update `LEADPURE_GH_TOKEN` in Vercel Environment Variables and redeploy.
+
+---
+
+## Supported Versions
+
+| Version | Status | Notes |
+| :--- | :--- | :--- |
+| **17.x** | Active Support | Own SMTP Engine `1.3.0`, chunked `/api/check`, 7-day auto-cleanup |
+| **&lt;= 16.x** | End of Life | Upgrade to `17.x`; `/api/validate-batch` is retired (`HTTP 410`) |
+
+---
+
+## Reporting a Vulnerability
+
+If you discover a security vulnerability in LeadPure AI (such as input-handling issues, accidental secret exposure, or API validation bypasses):
+
+1. **Do not** open a public issue with exploit steps or live credentials.
+2. Report privately via [GitHub Security Advisories](https://github.com/ossamamehmood/LeadPure-AI/security/advisories/new) on `ossamamehmood/LeadPure-AI`.
+3. Include reproduction steps, affected files or endpoints, and potential impact. Valid reports are acknowledged promptly and patched on `main`.

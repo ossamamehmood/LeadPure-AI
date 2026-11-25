@@ -39,13 +39,13 @@ export function MappingSection({
           <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2">
             <button
               onClick={onPreview}
-              className="px-4 py-1.5 bg-app-bg/10 hover:bg-app-bg/20 text-[9px] rounded-full uppercase font-black tracking-widest border border-app-border transition-all text-slate-500 hover:text-brand-blue"
+              className="min-h-[36px] px-4 py-1.5 bg-slate-100/80 dark:bg-app-bg/10 hover:bg-slate-200/80 dark:hover:bg-app-bg/20 text-[9px] rounded-full uppercase font-black tracking-widest border border-slate-200 dark:border-app-border transition-all text-slate-700 dark:text-slate-400 hover:text-brand-blue cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
             >
               Preview Data
             </button>
             <div className="text-right">
-              <div className="text-2xl sm:text-4xl font-black text-app-text font-mono tracking-tighter leading-none">{totalLeads}</div>
-              <p className="text-[8px] text-slate-500 font-black uppercase tracking-widest mt-1">Total Rows</p>
+              <div className="text-2xl sm:text-4xl font-black text-app-text font-mono tracking-tighter leading-none tabular-nums">{totalLeads}</div>
+              <p className="text-[8px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest mt-1">Total Rows</p>
             </div>
           </div>
         </div>
@@ -53,13 +53,17 @@ export function MappingSection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {(Object.keys(mappings) as Array<string>).map((key) => (
             <div key={key} className="group">
-              <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 block">
+              <label
+                htmlFor={`map-${key}`}
+                className="text-[9px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-[0.2em] mb-2 block"
+              >
                 {key.replace('Key', '').replace(/([A-Z])/g, ' $1')} {key === 'emailKey' ? '(Required)' : ''}
               </label>
               <select
+                id={`map-${key}`}
                 value={mappings[key]}
                 onChange={(e) => setMappings({ ...mappings, [key]: e.target.value })}
-                className="w-full h-12 px-4 rounded-2xl border border-app-border bg-app-bg/40 text-app-text text-xs font-bold focus:border-brand-blue/40 outline-none transition-all cursor-pointer"
+                className="w-full h-12 px-4 rounded-2xl border border-slate-200 dark:border-app-border bg-slate-50 dark:bg-app-bg/40 text-app-text text-xs font-bold focus:border-brand-blue/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/40 transition-all cursor-pointer"
               >
                 <option value="">[ Not Mapped ]</option>
                 {headers.map((h) => <option key={h} value={h}>{h}</option>)}
@@ -72,7 +76,7 @@ export function MappingSection({
           <button
             onClick={onStartProcessing}
             disabled={!mappings.emailKey || isProcessing}
-            className="w-full gradient-bg disabled:opacity-30 disabled:grayscale text-white h-14 sm:h-16 rounded-2xl font-black text-base sm:text-lg uppercase italic tracking-wide flex items-center justify-center gap-3 transition-all shadow-xl shadow-brand-blue/30 active:scale-[0.98]"
+            className="w-full gradient-bg disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed text-white h-14 sm:h-16 rounded-2xl font-black text-base sm:text-lg uppercase italic tracking-wide flex items-center justify-center gap-3 transition-all shadow-xl shadow-brand-blue/30 hover:brightness-105 active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
           >
             Start Verification Scan
             <ShieldCheck className="w-5 h-5" />

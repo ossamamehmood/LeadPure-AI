@@ -24,10 +24,14 @@ export function GlossyCard({ children, className, glow = 'none', onClick }: Glos
       className={cn(
         "glossy-card relative overflow-hidden group",
         glow !== 'none' && glowClasses[glow],
-        onClick && "cursor-pointer transition-all active:scale-[0.98] active:brightness-95",
+        onClick && "glossy-card-interactive cursor-pointer transition-all active:scale-[0.98] active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/70",
         className
       )}
     >
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 dark:via-white/15 to-transparent opacity-80"
+        aria-hidden="true"
+      />
       {/* Glossy Overlay effect - Layered for depth */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-black/[0.05] dark:block hidden pointer-events-none" />
       <div className="absolute inset-0 bg-gradient-to-br from-white/[0.6] via-white/[0.15] to-transparent dark:hidden block pointer-events-none" />

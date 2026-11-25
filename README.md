@@ -1,293 +1,172 @@
-# LeadPure AI | Enterprise Email Verification Platform (v13.0.0)
-
 <div align="center">
+  <a href="https://leadpureai.vercel.app/">
+    <img src=".github/LeadPure_AI.gif" alt="LeadPure AI V17 Enterprise Release" width="100%" />
+  </a>
 
-  <img src="https://img.shields.io/badge/Version-13.0.0-blueviolet?style=for-the-badge&logo=rocket" alt="Version 13.0.0" />
-  <img src="https://img.shields.io/badge/Engine-LeadPure%20RFC%205321%20Kernel%20v13-blue?style=for-the-badge&logo=shield" alt="LeadPure Engine" />
-  <img src="https://img.shields.io/badge/Node-22.x%20ESM-green?style=for-the-badge&logo=node.js" alt="Node 22" />
-  <img src="https://img.shields.io/badge/Architecture-Distributed%20SMTP%20Backend-orange?style=for-the-badge" alt="SMTP Architecture" />
-  <img src="https://img.shields.io/badge/Status-Production%20Active-brightgreen?style=for-the-badge" alt="Production" />
+  <br /><br />
 
-  <br />
-  <br />
+  <h1>LeadPure AI — Precision SMTP Verification Engine</h1>
+  <p>
+    <strong>Serverless single &amp; chunked-bulk email verification powered by Own SMTP Engine 1.3.0.</strong><br />
+    Zero external verification SaaS APIs. Zero fabricated confidence scores. Honest verdicts straight from live Port-25 handshakes.
+  </p>
 
-  <div align="center">
-  <img src=".github/LeadPure_AI.gif" alt="LeadPure AI Banner" width="100%" />
-
-  <br />
-  <br />
-
-  **Deterministic email verification, RFC 5321 SMTP mailbox deliverability intelligence, and catch-all detection engine.**
-  <br />
-  *Engineered with honest taxonomy, real SMTP socket probing, and zero fake placeholder metrics.*
-
-  <br />
-
-  [Live Production Demo](https://leadpureai.vercel.app/) • [API Documentation](#api-reference) • [SMTP Backend Service](#smtp-verification-backend) • [Error Code Taxonomy](#error-code-taxonomy)
-
+  <p>
+    <a href="https://leadpureai.vercel.app/"><img src="https://img.shields.io/badge/Live_App-leadpureai.vercel.app-02FEDC?style=for-the-badge&logo=vercel&logoColor=000000" alt="Live App" /></a>
+    <img src="https://img.shields.io/badge/Release-V17_Enterprise-5A5CFF?style=for-the-badge" alt="V17 Enterprise Release" />
+    <img src="https://img.shields.io/badge/SMTP_Engine-v1.3.0-10B981?style=for-the-badge" alt="SMTP Engine 1.3.0" />
+    <img src="https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js 22" />
+    <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=000000" alt="React 19" />
+  </p>
 </div>
 
 ---
 
 ## Overview
 
-**LeadPure AI v13** is a high-precision email verification and deliverability intelligence engine designed from the ground up for sales teams, marketing agencies, and enterprise data operations. 
+**LeadPure AI V17** validates email addresses at scale using a custom zero-dependency Node.js SMTP probe (`engine/probe.mjs` v1.3.0) running on ephemeral GitHub Actions Port-25 runners, orchestrated by a React 19 + Vercel Serverless web app.
 
-Cold outreach senders face severe reputation penalties and domain blacklisting when bounce rates exceed 2%. LeadPure AI protects sender reputation through a rigorous, multi-tier inspection pipeline across syntax, domain DNS records, MX routing, disposable domain registries, role-based mailboxes, direct RFC 5321 mailbox validation probes, and catch-all detection.
+Instead of relying on proprietary third-party verification APIs or returning optimistic fallback guesses when a mail server stalls, every check executes a multi-stage DNS + live SMTP conversation (`EHLO` -> `MAIL FROM` -> `RCPT TO`) with explicit catch-all, greylist, and forwarding-provider detection.
 
-```
-                     LEADPURE VERIFICATION PIPELINE (v13.0)
-                     
-   [Raw Email Input / Bulk CSV / Excel File]
-                       │
-                       ▼
-              [Tier 1: RFC 5322 Syntax & Normalization]
-              ├─ Strict RFC 5322 specification parsing
-              ├─ Typo suggestions (e.g. gmial.com -> gmail.com)
-              └─ RFC standard local-part & domain normalization
-                       │
-                       ▼
-              [Tier 2: Disposable Domain Shield]
-              ├─ 110,000+ disposable domain database
-              ├─ Multi-layer sub-domain recursion detection
-              └─ Instant throwaway provider suppression
-                       │
-                       ▼
-              [Tier 3: Enterprise Role Account Suppressor]
-              ├─ 944 distinct administrative & department prefix catalog
-              └─ Departmental filter (admin, support, billing, careers...)
-                       │
-                       ▼
-              [Tier 4: DNS MX & Infrastructure Resolution]
-              ├─ Quad-server DNS resolver (Cloudflare 1.1.1.1 + Google 8.8.8.8)
-              ├─ MX record priority parsing and MX host IP resolution
-              ├─ RFC 7505 Null MX rejection ("." null MX check)
-              └─ Real SPF TXT record verification
-                       │
-                       ▼
-              [Tier 5: RFC 5321 Live SMTP Mailbox Probing]
-              ├─ Outbound TCP Port 25 connection to destination MX
-              ├─ Banner inspection (220), EHLO/HELO, and MAIL FROM
-              ├─ Randomized Catch-All probe (<probe_16char>@domain)
-              ├─ Target recipient probe (RCPT TO) reading RFC status codes
-              ├─ Provider anti-probing block detection (Microsoft Hotmail/Outlook)
-              └─ Distributed SMTP Backend support (via SMTP_BACKEND_URL)
-                       │
-                       ▼
-   [Honest Verdict Taxonomy: SAFE (98%) | RISKY (55%) | INVALID (0%) | UNKNOWN (40%)]
+### Key Capabilities
+
+| Capability | Details |
+| :--- | :--- |
+| **Own SMTP Engine `1.3.0`** | Pure Node.js (`net`, `dns`, `tls`) Port-25 verifier with 2-pass retry on dropped connections, 30s greylist wait & retry, and catch-all probing. |
+| **Forwarding Provider Aware** | Recognizes `ImprovMX`, `ForwardEmail`, and `Cloudflare Email Routing` MX patterns so valid aliases are not falsely rejected. |
+| **5,000-Lead Chunked Scale** | Client-side Web Worker parses spreadsheets without freezing the UI, splits lists into **100-email chunks** (max **3** concurrent Actions runs), and runs **4 parallel workers** per runner. |
+| **Resumable Manifest Polling** | Tracks jobs via `results/<requestId>/manifest.json` + `chunk-<n>.json` with `5s -> 15s` polling backoff (20-minute cap) and `localStorage` scan resume (`leadpure_last_scan_v17`). |
+| **Honest Verdict Reporting** | No arbitrary percentage scores or *"0% bounce"* promises. Summary cards display exact counts plus the run's **Definitive Rate** (`(SAFE + RISKY + INVALID) / arrived`). |
+| **Exact `.xlsx` Export** | Downloads `LeadPure_Results_<YYYY-MM-DD>.xlsx` containing strictly the arrived verdicts (`All`, `SAFE Only`, or `Filtered` view). |
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U["Browser UI (React 19 + Web Worker)"] -->|"1. Single check or 100-email chunks"| API["Vercel Serverless (/api/check)"]
+    API -->|"2. Dispatch workflow + init manifest.json"| GHA["GitHub Actions Port-25 Runner"]
+    GHA -->|"3. 4 parallel workers run engine/probe.mjs v1.3.0"| SMTP["Target MX / Port 25 + Port 587"]
+    SMTP -->|"4. SMTP 250 / 4xx / 5xx + Catch-All"| GHA
+    GHA -->|"5. Write chunk-<n>.json & update manifest.json"| RES["GitHub 'results' Branch"]
+    U -->|"6. Poll GET /api/check (5s -> 15s backoff)"| RES
+    U -->|"7. Live table + LeadPure_Results_<date>.xlsx"| OUT["Verified Export"]
 ```
 
 ---
 
 ## Honest Verdict Taxonomy
 
-LeadPure AI enforces a strict, honest taxonomy with no artificial inflation:
+Verdicts remain 100% consistent across the UI table, summary cards, and exported `.xlsx` spreadsheets:
 
-| Verdict | Definition | Typical Score | Bounce Hazard | Action |
-| :--- | :--- | :--- | :--- | :--- |
-| **`SAFE`** | Recipient explicitly confirmed to exist by destination mail server (SMTP 250 OK) and domain is **not** a catch-all. | `98` - `99` | Low (<1%) | Safe to send |
-| **`RISKY`** | Domain is configured as **Catch-All** (accepts all emails), mailbox storage is full, or address is a generic role account. | `50` - `55` | Medium | Verify via alternative channel |
-| **`INVALID`** | Mailbox confirmed not to exist (SMTP 550), syntax malformed, domain has no MX records, or throwaway disposable domain. | `0` | Fatal (100% bounce) | Eliminate immediately |
-| **`UNKNOWN`** | Probe blocked by provider anti-spam policy (e.g., Microsoft Hotmail/Outlook tarpit), or host network blocks outbound Port 25. | `40` - `45` | Unknown | Retry with SMTP backend |
-
----
-
-## SMTP Verification Backend
-
-Because serverless platforms (e.g., Vercel, AWS Lambda) strictly block outbound TCP connections on Port 25, LeadPure AI provides a dedicated, lightweight backend service (`backend/`) that runs on any host with Port 25 open (small VPS, DigitalOcean, Hetzner, AWS EC2, or Fly.io).
-
-### Deploying the Backend Service (Docker)
-
-```bash
-cd backend
-docker build -t leadpure-smtp-backend .
-docker run -d -p 8080:8080 --name leadpure-smtp-verifier --restart always leadpure-smtp-backend
-```
-
-### Configuring the Frontend (Vercel)
-
-Set the following environment variable in Vercel or `.env`:
-```env
-SMTP_BACKEND_URL="http://<YOUR_VPS_IP>:8080"
-```
-
-LeadPure AI is also 100% compatible with open-source [Reacher](https://github.com/reacherhq/check-if-email-exists):
-```env
-SMTP_BACKEND_URL="http://<REACHER_DOCKER_IP>:8080"
-```
-
----
-
-## Key Features
-
-- **LeadPure Multi-Tier Kernel (v13.0)**: Fully modularized verification engine with strict tier isolation for deterministic results.
-- **Sub-100ms In-Memory Caching**: High-efficiency LRU caching for validated domains and addresses, preventing redundant DNS and network queries.
-- **Zero False-Positive Catch-All Handling**: Intelligent bypass heuristics for top-tier global providers (Gmail, Google Workspace, Outlook, Hotmail, Yahoo, Apple iCloud) ensuring legitimate business and consumer leads are never penalized as catch-all.
-- **Direct HTTPS Mailbox Probes**: Cloud-native HTTPS probing for providers where port 25 is restricted in serverless environments.
-- **Gravatar Identity Verification**: Authenticates whether an email has a public cryptographic Gravatar identity, providing confidence scores up to 99%.
-- **Universal Spreadsheet Support**: Handles `.csv`, `.xlsx`, `.xls`, `.xlsm`, and `.txt` files with automated column mapping (`Email`, `First Name`, `Last Name`, `Phone`, `Company`, `Domain`).
-- **One-Click Segmented Export**: Download Safe Leads, Risky Leads, or Eliminated Leads with complete diagnostic telemetry (`Validation_Status`, `Elimination_Reason`, `Sub_Status`, `Bounce_Risk`, `Confidence_Score`, `Provider`).
-- **Serverless-Optimized API**: Built with Node 22 ESM and running natively on Vercel Edge/Serverless with internal timeout protection and response telemetry headers.
-
----
-
-## Verification Pipeline Details
-
-| Tier | Component | Description | Failure Code |
+| Verdict | Badge | Meaning | Recommended Action |
 | :--- | :--- | :--- | :--- |
-| **Tier 1** | **Syntax & Typo** | Validates RFC 5322 compliance, local-part dots, and generates typo fixes via Levenshtein distance. | `ERR_001` |
-| **Tier 2** | **DNS & MX Routing** | Queries high-availability resolvers for active MX records. Enforces RFC 7505 null MX rejection. | `ERR_002` |
-| **Tier 3** | **Mailbox Deliverability** | Performs direct socket handshakes or cloud HTTPS probes to detect active mailboxes and disabled accounts. | `ERR_003` |
-| **Tier 4** | **Disposable Detection** | Evaluates domain against over 110,000 throwaway and temporary inbox providers. | `ERR_004` |
-| **Tier 5** | **Policy & Role Suppression** | Detects catch-all servers and 944 departmental role aliases (admin@, billing@, etc.). | `ERR_005` / `ERR_006` |
-
----
-
-## Error Code Taxonomy
-
-LeadPure AI standardizes every validation result into an enterprise diagnostic code:
-
-| Error Code | Status | Sub-Status | Cause & Recommended Action |
-| :--- | :--- | :--- | :--- |
-| `ERR_001` | `INVALID` | `invalid_syntax` | Syntax does not conform to RFC 5322 or contains invalid characters. Fix typo or remove. |
-| `ERR_002` | `INVALID` | `domain_not_found` | Domain does not have active MX records or publishes an RFC 7505 Null MX. Do not send. |
-| `ERR_003` | `INVALID` | `mailbox_not_found` | Mailbox does not exist or has been deactivated by provider. Immediate hard-bounce hazard. |
-| `ERR_004` | `INVALID` | `disposable` | Domain belongs to a known temporary/throwaway email service. Automatically eliminated. |
-| `ERR_005` | `INVALID` | `catch_all` | Domain accepts all inbound mail indiscriminately. Suppressed to protect sender domain reputation. |
-| `ERR_006` | `RISKY` | `role_based` | Mailbox is generic/departmental (e.g. `support@`, `billing@`). High spam complaint risk. |
-| `ERR_007` | `RISKY` | `greylisted` | Mail server enforces rate limiting or greylisting challenges. Temporary deferral. |
-| `ERR_008` | `RISKY` | `full_inbox` | Recipient storage quota exceeded. Message cannot be delivered until mailbox is cleared. |
-| `ERR_009` | `UNKNOWN` | `timeout` | Mail server did not respond within safety threshold. Safe to retry. |
+| **SAFE** | Green | MX resolves, SMTP `RCPT TO` accepted (`250`), mailbox verified active, and domain is not a catch-all. | Ready for outreach |
+| **RISKY** | Amber | Catch-all domain, temporary greylist / soft limit, role address, disposable domain, or forwarding provider where final inbox existence cannot be proven. | Segment or send cautiously |
+| **INVALID** | Red | Syntax invalid, domain/MX does not exist (`NXDOMAIN`), or target MX explicitly rejected the mailbox (`550` / user unknown). | Suppress / remove from list |
+| **UNKNOWN** | Grey | Transient network block, Port-25 timeout across retries, or unfinished chunk timed out before final engine response. | Re-run when target MX clears |
 
 ---
 
 ## API Reference
 
-### `POST /api/validate-batch`
+> **Note:** Legacy `/api/validate-batch` is deprecated (`HTTP 410`). All single and bulk orchestration goes through `/api/check`.
 
-Batch verification endpoint designed for high-throughput pipeline integration.
+### Dispatch Check (`POST /api/check`)
 
-#### Request Headers
-```http
-Content-Type: application/json
-```
+<details>
+<summary><strong>Single Email Payload</strong></summary>
 
-#### Request Body
 ```json
 {
-  "emails": [
-    "alex.morgan@company.com",
-    "sarah@gmail.com",
-    "fakeuser98234@yahoo.com",
-    "temp@mailinator.com"
-  ],
-  "options": {
-    "excludeDisposable": true,
-    "excludeRoleBased": true,
-    "excludeCatchAll": true,
-    "excludeSpamTraps": true
+  "mode": "single",
+  "email": "founder@example.com",
+  "rules": {
+    "roleCheck": true,
+    "disposableCheck": true
   }
 }
 ```
 
-#### Response Headers
-```http
-X-LeadPure-Version: v13.0.0
-X-LeadPure-Kernel: LeadPure-Kernel-v13
-Cache-Control: no-store, max-age=0
-```
+</details>
 
-#### Response Body
+<details>
+<summary><strong>Chunked Bulk Payload</strong></summary>
+
 ```json
 {
-  "success": true,
-  "processed": 4,
-  "results": [
+  "mode": "bulk",
+  "requestId": "req_1795572000_ab12cd",
+  "chunks": [
     {
-      "email": "sarah@gmail.com",
-      "status": "SAFE",
-      "sub_status": "valid",
-      "confidenceScore": 99,
-      "bounceRisk": "Safe",
-      "hasGravatar": true,
-      "provider": "google",
-      "isCatchAll": false,
-      "isDisposable": false,
-      "isRoleBased": false,
-      "failure_code": null,
-      "verificationReason": "Deliverable: Verified Active Identity with Gravatar Profile"
-    },
-    {
-      "email": "fakeuser98234@yahoo.com",
-      "status": "INVALID",
-      "sub_status": "mailbox_not_found",
-      "confidenceScore": 0,
-      "bounceRisk": "Dangerous",
-      "provider": "yahoo",
-      "failure_code": "ERR_003",
-      "verificationReason": "System Rejected: Mailbox does not exist"
+      "chunkIndex": 0,
+      "emails": ["alice@example.com", "bob@example.com"]
     }
   ]
 }
 ```
 
+</details>
+
+### Poll Status & Results (`GET /api/check?requestId=...`)
+
+Returns manifest status, completed chunks, arrived row verdicts, and metadata read strictly from the `results` branch (`results/<requestId>/manifest.json` & `chunk-<n>.json`).
+
 ---
 
-## Local Development & Testing
+## Setup & Deployment
 
-### Prerequisites
-- **Node.js**: `22.x` (LTS recommended)
-- **Package Manager**: `npm`
+### Environment Variables
 
-### Installation
+Set the following variables on Vercel (and `.env` for local backend dev):
+
+| Variable | Required | Description |
+| :--- | :--- | :--- |
+| `LEADPURE_GH_TOKEN` | Yes | GitHub Classic PAT with `repo` and `workflow` scopes to trigger Port-25 runners and read `results` branch (`REACHER_GH_TOKEN` supported as fallback). |
+| `LEADPURE_REPO_OWNER` | Optional | GitHub repository owner override (defaults to `ossamamehmood`). |
+| `LEADPURE_REPO_NAME` | Optional | GitHub repository name override (defaults to `LeadPure-AI`). |
+
+### Local Development
+
 ```bash
-git clone https://github.com/ossamamehmood/LeadPure-AI.git
-cd LeadPure-AI
+# Install dependencies
 npm install
-```
 
-### Run Verification Test Suite
-```bash
-npm test
-```
+# Run local Express + Vite dev server
+npm run dev
 
-### Run Acceptance Test Suite (10-Address Ground-Truth Matrix)
-```bash
-npm run test:acceptance
-```
-
-### Static Typecheck
-```bash
+# Type-check, run engine test suite, and build production bundle
 npm run lint
-```
-
-### Production Build
-```bash
+npm test
 npm run build
 ```
 
 ---
 
-## Deployment
+## Repository Structure
 
-LeadPure AI is pre-configured for instant zero-configuration deployment on Vercel:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ossamamehmood/LeadPure-AI)
+```text
+LeadPure-AI/
+├── api/
+│   ├── check.ts                 # Single & chunked bulk orchestration + manifest reader
+│   └── validate-batch.ts        # Deprecated HTTP 410 stub
+├── engine/
+│   └── probe.mjs                # Own SMTP Engine v1.3.0 (zero external deps)
+├── src/
+│   ├── components/              # Responsive Dark/Light UI components (React 19)
+│   ├── lib/                     # Rules engine, client helpers, XLSX export
+│   └── workers/                 # Non-blocking Web Worker spreadsheet parser
+├── scripts/
+│   └── run-ci-probe.sh          # GitHub Actions runner entrypoint
+└── .github/workflows/
+    ├── leadpure-check.yml       # Port-25 verification workflow (max 3 concurrent runs)
+    └── cleanup-results.yml      # Weekly Sunday cron pruning results/ older than 7 days
+```
 
 ---
 
-## License
+## Security & Automated Cleanup
 
-Proprietary © 2026 [LeadPure AI](https://leadpureai.vercel.app/). All rights reserved.
-
----
-
-## Support & Contact
-
-If you find this project useful, consider supporting my work or reaching out for custom enterprise integrations.
-
-| Platform | Link |
-| :--- | :--- |
-| **🌐 Website** | [ossamamehmood.com](https://ossamamehmood.com) |
-| **📧 Email** | [hello@ossamamehmood.com](mailto:hello@ossamamehmood.com) |
-| **☕ Support Me** | [Patreon](https://patreon.com/ossamamehmood) |
+- **Weekly Result Pruning:** `.github/workflows/cleanup-results.yml` automatically deletes `results/<requestId>/` folders older than **7 days** (plus supports manual cleanup via `workflow_dispatch`).
+- **Full Security Details:** See [SECURITY.md](SECURITY.md) for data flow, ephemeral runner isolation, and vulnerability disclosure guidelines.

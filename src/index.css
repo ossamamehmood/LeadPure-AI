@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --color-brand-cyan: #02FEDC;
   --color-brand-blue: #5A5CFF;
@@ -37,27 +37,27 @@
 :root {
   --bg-color: #030303;
   --text-color: #F8FAFC;
-  --border-color: rgba(255, 255, 255, 0.06);
-  --card-color: rgba(10, 10, 10, 0.75);
+  --border-color: rgba(255, 255, 255, 0.07);
+  --card-color: rgba(10, 10, 10, 0.78);
 
-  --glossy-bg: rgba(5, 5, 5, 0.65);
-  --glossy-border: rgba(255, 255, 255, 0.05);
-  --glossy-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.05);
-  --glossy-hover-bg: rgba(8, 8, 8, 0.85);
-  --glossy-hover-border: rgba(255, 255, 255, 0.12);
-  --glossy-hover-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7), inset 0 1px 2px 0 rgba(255, 255, 255, 0.1);
+  --glossy-bg: rgba(8, 8, 12, 0.68);
+  --glossy-border: rgba(255, 255, 255, 0.08);
+  --glossy-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.06);
+  --glossy-hover-bg: rgba(12, 12, 18, 0.88);
+  --glossy-hover-border: rgba(255, 255, 255, 0.14);
+  --glossy-hover-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.7), inset 0 1px 2px 0 rgba(255, 255, 255, 0.12);
 }
 
 [data-theme='light'] {
   --bg-color: #F8FAFC;
   --text-color: #0F172A;
-  --border-color: rgba(0, 0, 0, 0.08);
-  --card-color: rgba(255, 255, 255, 0.85);
+  --border-color: rgba(15, 23, 42, 0.09);
+  --card-color: rgba(255, 255, 255, 0.9);
 
-  --glossy-bg: rgba(255, 255, 255, 0.85);
-  --glossy-border: rgba(0, 0, 0, 0.08);
-  --glossy-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 2px 8px -2px rgba(0, 0, 0, 0.02), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
-  --glossy-hover-bg: rgba(255, 255, 255, 0.95);
+  --glossy-bg: rgba(255, 255, 255, 0.88);
+  --glossy-border: rgba(15, 23, 42, 0.08);
+  --glossy-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06), 0 2px 8px -2px rgba(15, 23, 42, 0.04), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+  --glossy-hover-bg: rgba(255, 255, 255, 0.96);
   --glossy-hover-border: rgba(90, 92, 255, 0.3);
   --glossy-hover-shadow: 0 20px 45px -10px rgba(90, 92, 255, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04), inset 0 1px 2px 0 rgba(255, 255, 255, 1);
 }
@@ -166,14 +166,33 @@ a.brand-link {
   background-color: var(--glossy-bg);
   border: 1px solid var(--glossy-border);
   box-shadow: var(--glossy-shadow);
-  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .glossy-card:hover {
   background-color: var(--glossy-hover-bg);
   border-color: var(--glossy-hover-border);
   box-shadow: var(--glossy-hover-shadow);
-  transform: translateY(-4px);
+}
+
+.glossy-card-interactive:hover {
+  transform: translateY(-2px);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .glossy-card::after {

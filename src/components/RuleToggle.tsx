@@ -14,12 +14,21 @@ interface RuleToggleProps {
 export function RuleToggle({ domain, title, description, active, onToggle }: RuleToggleProps) {
   return (
     <div 
+      role="switch"
+      aria-checked={active}
+      tabIndex={0}
       onClick={onToggle}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onToggle();
+        }
+      }}
       className={cn(
-        "p-6 rounded-[32px] transition-all cursor-pointer flex items-center justify-between group select-none relative overflow-hidden border h-full duration-500",
+        "p-6 rounded-[32px] transition-all cursor-pointer flex items-center justify-between group select-none relative overflow-hidden border h-full duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue",
         active 
           ? "bg-app-card border-app-border glow-gradient" 
-          : "bg-transparent border-app-border hover:border-brand-blue/40 hover:bg-app-bg/40"
+          : "bg-transparent border-app-border hover:border-brand-blue/40 hover:bg-app-card/50"
       )}
     >
       {active && (
@@ -32,10 +41,10 @@ export function RuleToggle({ domain, title, description, active, onToggle }: Rul
       <div className="space-y-2 relative z-10 flex-1 px-4">
         <div className="flex items-center gap-3">
           <span className={cn(
-            "text-[8px] font-black uppercase tracking-[0.3em] px-2 py-0.5 rounded-full border transition-all duration-500",
+            "text-[8px] font-black uppercase tracking-[0.3em] px-2 py-0.5 rounded-full border transition-all duration-300",
             active 
-              ? "bg-brand-blue/20 text-brand-blue border-brand-blue/20" 
-              : "bg-app-bg/10 text-slate-600 border-app-border"
+              ? "bg-brand-blue/20 text-brand-blue border-brand-blue/25" 
+              : "bg-slate-100 dark:bg-app-bg/10 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-app-border"
           )}>
             {domain}
           </span>
@@ -46,30 +55,30 @@ export function RuleToggle({ domain, title, description, active, onToggle }: Rul
                className="text-[8px] font-black uppercase tracking-[0.3em] flex items-center gap-2"
             >
               <div className="w-1.5 h-1.5 rounded-full gradient-bg animate-pulse shadow-sm" />
-              <span className="gradient-text">Safe-Node Active</span>
+              <span className="gradient-text">Rule Active</span>
             </motion.div>
           )}
         </div>
         <h3 className={cn(
-          "font-black text-xl uppercase italic tracking-tighter transition-all duration-500",
-          active ? "gradient-text" : "text-slate-600 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-slate-300"
+          "font-black text-xl uppercase italic tracking-tighter transition-all duration-300",
+          active ? "gradient-text" : "text-slate-700 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200"
         )}>{title}</h3>
         <p className={cn(
-          "text-[10px] font-medium leading-relaxed pr-8 transition-colors duration-500",
-          active ? "text-slate-600 dark:text-slate-400" : "text-slate-500 dark:text-slate-600"
+          "text-[10px] font-medium leading-relaxed pr-8 transition-colors duration-300",
+          active ? "text-slate-600 dark:text-slate-300" : "text-slate-500 dark:text-slate-500"
         )}>{description}</p>
       </div>
 
       <div className="shrink-0 relative z-10 pr-2">
         <div className={cn(
-          "w-12 h-6 rounded-full border transition-all duration-500 relative bg-app-bg",
-          active ? "border-brand-blue/40" : "border-app-border"
+          "w-12 h-6 rounded-full border transition-all duration-300 relative bg-slate-200/80 dark:bg-app-bg",
+          active ? "border-brand-blue/50" : "border-slate-300 dark:border-app-border"
         )}>
           <div className={cn(
-            "absolute top-1 w-4 h-4 rounded-full transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1)",
+            "absolute top-1 w-4 h-4 rounded-full transition-all duration-300",
             active 
               ? "left-[26px] gradient-bg shadow-lg" 
-              : "left-1 bg-slate-700"
+              : "left-1 bg-slate-400 dark:bg-slate-600"
           )} />
         </div>
       </div>

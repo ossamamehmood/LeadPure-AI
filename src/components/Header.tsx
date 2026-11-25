@@ -40,7 +40,7 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
         {isResults && (
           <button
             onClick={onDownload}
-            className="px-3.5 sm:px-6 py-2.5 sm:py-3 gradient-bg text-white rounded-full font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center gap-2 shadow-xl shadow-brand-blue/30 hover:shadow-brand-blue/50 active:scale-95 whitespace-nowrap"
+            className="px-3.5 sm:px-6 min-h-[44px] py-2.5 sm:py-3 gradient-bg text-white rounded-full font-black text-[10px] uppercase tracking-[0.15em] transition-all flex items-center gap-2 shadow-xl shadow-brand-blue/30 hover:shadow-brand-blue/50 hover:brightness-105 active:scale-95 whitespace-nowrap cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
           >
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export Results</span>
@@ -51,7 +51,8 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
         <div className="flex gap-1.5 sm:gap-2">
           <button
             onClick={(e) => onToggleTheme(e)}
-            className="p-2.5 sm:p-3.5 bg-white/[0.03] hover:bg-white/[0.08] rounded-2xl text-slate-500 hover:text-brand-blue transition-all border border-white/5 hover:border-white/10 active:scale-90 flex items-center justify-center overflow-hidden"
+            aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="min-w-[44px] min-h-[44px] p-2.5 sm:p-3.5 bg-slate-100/80 dark:bg-white/[0.04] hover:bg-slate-200/80 dark:hover:bg-white/[0.09] rounded-2xl text-slate-600 dark:text-slate-400 hover:text-brand-blue transition-all border border-slate-200 dark:border-white/10 active:scale-90 flex items-center justify-center overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             <div className="relative w-5 h-5">
@@ -68,7 +69,8 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
 
           <button
             onClick={onReset}
-            className="p-2.5 sm:p-3.5 bg-white/[0.03] hover:bg-white/[0.08] rounded-2xl text-slate-500 hover:text-white transition-all border border-white/5 hover:border-white/10 active:scale-90"
+            aria-label="Start New Session"
+            className="min-w-[44px] min-h-[44px] p-2.5 sm:p-3.5 bg-slate-100/80 dark:bg-white/[0.04] hover:bg-slate-200/80 dark:hover:bg-white/[0.09] rounded-2xl text-slate-600 dark:text-slate-400 hover:text-app-text transition-all border border-slate-200 dark:border-white/10 active:scale-90 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
             title="Start New Session"
           >
             <RefreshCw className={cn('w-5 h-5', isProcessing && 'animate-spin text-brand-blue')} />

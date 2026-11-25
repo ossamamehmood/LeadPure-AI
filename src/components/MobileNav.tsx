@@ -12,38 +12,38 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pb-4 pt-2 bg-gradient-to-t from-app-bg via-app-bg/95 to-transparent">
-      <nav className="flex items-center justify-around h-14 bg-app-card/90 backdrop-blur-2xl border border-app-border rounded-2xl px-2 shadow-2xl">
+      <nav className="flex items-center justify-around h-16 bg-app-card/95 backdrop-blur-2xl border border-app-border rounded-2xl px-2 shadow-2xl" aria-label="Mobile navigation">
         <button
           onClick={() => setTab('upload')}
           className={cn(
-            'flex flex-col items-center justify-center flex-1 h-11 rounded-xl transition-all gap-1 active:scale-90',
-            isUploadActive ? 'text-brand-blue' : 'text-slate-500'
+            'flex flex-col items-center justify-center flex-1 min-h-[44px] h-12 rounded-xl transition-all gap-1 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
+            isUploadActive ? 'text-brand-blue bg-brand-blue/10' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
           )}
         >
           <Upload className="w-4 h-4" />
-          <span className="text-[8px] font-black uppercase tracking-widest">Verify</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">Verify</span>
         </button>
 
         <button
           onClick={() => setTab('rules')}
           className={cn(
-            'flex flex-col items-center justify-center flex-1 h-11 rounded-xl transition-all gap-1 active:scale-90',
-            currentTab === 'rules' ? 'text-brand-blue' : 'text-slate-500'
+            'flex flex-col items-center justify-center flex-1 min-h-[44px] h-12 rounded-xl transition-all gap-1 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
+            currentTab === 'rules' ? 'text-brand-blue bg-brand-blue/10' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
           )}
         >
           <Settings2 className="w-4 h-4" />
-          <span className="text-[8px] font-black uppercase tracking-widest">Rules</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">Rules</span>
         </button>
 
         <button
           onClick={() => setTab('history')}
           className={cn(
-            'flex flex-col items-center justify-center flex-1 h-11 rounded-xl transition-all gap-1 active:scale-90',
-            currentTab === 'history' ? 'text-brand-blue' : 'text-slate-500'
+            'flex flex-col items-center justify-center flex-1 min-h-[44px] h-12 rounded-xl transition-all gap-1 active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
+            currentTab === 'history' ? 'text-brand-blue bg-brand-blue/10' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
           )}
         >
           <Clock className="w-4 h-4" />
-          <span className="text-[8px] font-black uppercase tracking-widest">History</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">History</span>
         </button>
       </nav>
     </div>

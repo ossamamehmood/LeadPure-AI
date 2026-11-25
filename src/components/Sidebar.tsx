@@ -22,53 +22,53 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
       </div>
 
       <div className="px-6 mb-8">
-        <div className="p-4 rounded-2xl bg-app-bg/10 border border-app-border">
+        <div className="p-4 rounded-2xl bg-slate-100/80 dark:bg-app-bg/10 border border-app-border">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">SMTP Runner</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">SMTP Runner</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm" />
           </div>
-          <div className="text-[10px] font-bold text-slate-300">V17 • PORT 25 ONLINE</div>
+          <div className="text-[10px] font-bold text-slate-800 dark:text-slate-200">V17 • PORT 25 ONLINE</div>
         </div>
       </div>
 
-      <nav className="flex-1 px-4 space-y-3 mt-4">
+      <nav className="flex-1 px-4 space-y-3 mt-4" aria-label="Main navigation">
         <button
           onClick={() => setTab('upload')}
           className={cn(
-            'w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95',
+            'w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
             isUploadActive
               ? 'bg-brand-blue text-white shadow-2xl shadow-brand-blue/30'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5'
           )}
         >
           {isUploadActive && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-lg" />}
-          <Upload className={cn('w-4 h-4 transition-transform group-hover:-translate-y-0.5', isUploadActive ? 'text-white' : 'text-slate-500')} />
+          <Upload className={cn('w-4 h-4 transition-transform group-hover:-translate-y-0.5', isUploadActive ? 'text-white' : 'text-slate-500 dark:text-slate-400')} />
           Upload & Verify
         </button>
         <button
           onClick={() => setTab('rules')}
           className={cn(
-            'w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95',
+            'w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
             currentTab === 'rules'
               ? 'bg-brand-blue text-white shadow-2xl shadow-brand-blue/30'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5'
           )}
         >
           {currentTab === 'rules' && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-lg" />}
-          <Settings2 className={cn('w-4 h-4 transition-transform group-hover:rotate-45', currentTab === 'rules' ? 'text-white' : 'text-slate-500')} />
+          <Settings2 className={cn('w-4 h-4 transition-transform group-hover:rotate-45', currentTab === 'rules' ? 'text-white' : 'text-slate-500 dark:text-slate-400')} />
           Verification Rules
         </button>
         <button
           onClick={() => setTab('history')}
           className={cn(
-            'w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95',
+            'w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
             currentTab === 'history'
               ? 'bg-brand-blue text-white shadow-2xl shadow-brand-blue/30'
-              : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5'
           )}
         >
           {currentTab === 'history' && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-lg" />}
-          <Clock className={cn('w-4 h-4 transition-transform group-hover:scale-110', currentTab === 'history' ? 'text-white' : 'text-slate-500')} />
+          <Clock className={cn('w-4 h-4 transition-transform group-hover:scale-110', currentTab === 'history' ? 'text-white' : 'text-slate-500 dark:text-slate-400')} />
           Scan History
         </button>
       </nav>

@@ -54,22 +54,26 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
       {/* Main Dropzone */}
       <div className="relative group">
         <div
-          {...getRootProps()}
+          {...getRootProps({ 'aria-label': 'Upload CSV or Excel lead list' })}
           className={cn(
-            'relative transition-all duration-500 rounded-3xl sm:rounded-[40px] border-2 border-dashed overflow-hidden flex flex-col items-center justify-center min-h-[340px] sm:min-h-[440px] group/drop cursor-pointer',
+            'relative transition-all duration-300 rounded-3xl sm:rounded-[40px] border-2 border-dashed overflow-hidden flex flex-col items-center justify-center min-h-[340px] sm:min-h-[440px] group/drop cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
             isDragActive
               ? 'border-brand-blue bg-brand-blue/5 scale-[0.99]'
-              : 'border-app-border hover:border-brand-blue/40 bg-app-bg/40 backdrop-blur-3xl shadow-2xl'
+              : 'border-app-border hover:border-brand-blue/50 bg-app-card/60 backdrop-blur-3xl shadow-2xl'
           )}
         >
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/40 to-transparent opacity-0 group-hover/drop:opacity-100 transition-opacity"
+            aria-hidden="true"
+          />
           <div className="relative z-10 flex flex-col items-center text-center p-6 sm:p-12 space-y-6 sm:space-y-8">
             <div className={cn(
-              'w-20 h-20 sm:w-28 sm:h-28 rounded-2xl sm:rounded-[36px] bg-app-card border border-app-border flex items-center justify-center transition-all duration-500 shadow-2xl relative',
-              isDragActive ? 'border-brand-blue shadow-[0_0_40px_rgba(90,92,255,0.3)]' : 'group-hover/drop:border-brand-blue/40'
+              'w-20 h-20 sm:w-28 sm:h-28 rounded-2xl sm:rounded-[36px] bg-app-card border border-app-border flex items-center justify-center transition-all duration-300 shadow-2xl relative',
+              isDragActive ? 'border-brand-blue shadow-[0_0_40px_rgba(90,92,255,0.3)] scale-105' : 'group-hover/drop:border-brand-blue/40'
             )}>
               <Upload className={cn(
-                'w-8 h-8 sm:w-10 sm:h-10 transition-all duration-500',
-                isDragActive ? 'text-brand-blue scale-110' : 'text-slate-600 group-hover/drop:text-app-text'
+                'w-8 h-8 sm:w-10 sm:h-10 transition-all duration-300',
+                isDragActive ? 'text-brand-blue scale-110' : 'text-slate-600 dark:text-slate-400 group-hover/drop:text-app-text'
               )} />
             </div>
 
@@ -77,26 +81,29 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
               <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-app-text tracking-tight uppercase italic">
                 Bulk List <span className="gradient-text">Upload</span>
               </h2>
-              <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm max-w-md mx-auto leading-relaxed font-medium uppercase tracking-widest">
+              <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-md mx-auto leading-relaxed font-semibold uppercase tracking-widest">
                 LeadPure Verification Pipeline (V17)
+              </p>
+              <p className="text-slate-500 dark:text-slate-400 text-xs max-w-sm mx-auto">
+                Drag and drop a spreadsheet here, or click to browse files.
               </p>
             </div>
 
             <div className="flex flex-wrap justify-center gap-6 sm:gap-10 border-t border-app-border pt-6 sm:pt-8 w-full max-w-md">
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-brand-blue" />
-                <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">100-Email Chunks</span>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-[0.2em]">100-Email Chunks</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em]">Port 25 Ready</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-[0.2em]">Port 25 Ready</span>
               </div>
             </div>
 
             <div className="flex gap-3">
-              <div className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 text-[9px] font-black tracking-widest text-slate-600 dark:text-slate-400 uppercase">.XLSX</div>
-              <div className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 text-[9px] font-black tracking-widest text-slate-600 dark:text-slate-400 uppercase">.CSV</div>
-              <div className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 text-[9px] font-black tracking-widest text-slate-600 dark:text-slate-400 uppercase">.XLS</div>
+              <div className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 text-[9px] font-black tracking-widest text-slate-700 dark:text-slate-300 uppercase">.XLSX</div>
+              <div className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 text-[9px] font-black tracking-widest text-slate-700 dark:text-slate-300 uppercase">.CSV</div>
+              <div className="px-4 py-1.5 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 text-[9px] font-black tracking-widest text-slate-700 dark:text-slate-300 uppercase">.XLS</div>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { ShieldCheck, Search, Database, Fingerprint, Activity, Zap, Cpu, Download, Clock } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, XCircle, HelpCircle, Search, Database, Fingerprint, Activity, Zap, Cpu, Download, Clock, X } from 'lucide-react';
 import { Virtuoso } from 'react-virtuoso';
 import { cn } from '../lib/utils';
 import { GlossyCard } from './ui/GlossyCard';
@@ -40,32 +40,32 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any; mappings:
   const verdict = isTimedOutMissing ? 'UNKNOWN' : getCanonicalVerdict(contact);
 
   const badgeStyle = isTimedOutMissing
-    ? 'text-amber-400 bg-amber-400/10 border-amber-400/30'
+    ? 'text-amber-700 dark:text-amber-400 bg-amber-400/15 dark:bg-amber-400/10 border-amber-500/35 dark:border-amber-400/30'
     : verdict === 'SAFE'
-      ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25'
+      ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/30'
       : verdict === 'RISKY'
-        ? 'text-amber-400 bg-amber-400/10 border-amber-400/25'
+        ? 'text-amber-700 dark:text-amber-400 bg-amber-400/15 dark:bg-amber-400/10 border-amber-500/35 dark:border-amber-400/30'
         : verdict === 'INVALID'
-          ? 'text-rose-500 bg-rose-500/10 border-rose-500/25'
-          : 'text-slate-400 bg-white/5 border-white/10';
+          ? 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/30'
+          : 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-white/5 border-slate-300 dark:border-white/10';
 
-  const dotStyle = isTimedOutMissing
-    ? 'bg-amber-400'
+  const VerdictIcon = isTimedOutMissing
+    ? Clock
     : verdict === 'SAFE'
-      ? 'bg-emerald-400'
+      ? ShieldCheck
       : verdict === 'RISKY'
-        ? 'bg-amber-400'
+        ? AlertTriangle
         : verdict === 'INVALID'
-          ? 'bg-rose-500'
-          : 'bg-slate-400';
+          ? XCircle
+          : HelpCircle;
 
   const emailDisplay = String(contact[mappings.emailKey] || contact.email || 'N/A');
   const nameDisplay = `${String(contact[mappings.firstNameKey] || contact[mappings.nameKey] || '')} ${String(contact[mappings.lastNameKey] || '')}`.trim();
 
   return (
-    <div className="border-b border-app-border hover:bg-white/[0.02] transition-colors flex flex-col md:flex-row md:items-center py-4 md:py-0 md:min-h-[84px] px-4 sm:px-6 md:px-0 gap-3 md:gap-0">
+    <div className="border-b border-app-border hover:bg-slate-50/80 dark:hover:bg-white/[0.025] transition-colors flex flex-col md:flex-row md:items-center py-4 md:py-0 md:min-h-[84px] px-4 sm:px-6 md:px-0 gap-3 md:gap-0">
       <div className="md:px-8 py-1 md:py-3 w-full md:w-[35%] flex items-center gap-3 sm:gap-4 min-w-0">
-        <div className="w-9 h-9 shrink-0 rounded-xl bg-app-bg border border-app-border flex items-center justify-center text-xs font-black text-app-text uppercase">
+        <div className="w-9 h-9 shrink-0 rounded-xl bg-slate-100 dark:bg-app-bg border border-slate-200 dark:border-app-border flex items-center justify-center text-xs font-black text-app-text uppercase">
           {(nameDisplay || emailDisplay)[0]?.toUpperCase() || '?'}
         </div>
         <div className="min-w-0 flex-1">
@@ -74,7 +74,7 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any; mappings:
               {nameDisplay}
             </div>
           )}
-          <div className="text-[11px] text-slate-400 font-bold font-mono truncate">{emailDisplay}</div>
+          <div className="text-[11px] text-slate-600 dark:text-slate-400 font-bold font-mono truncate">{emailDisplay}</div>
         </div>
       </div>
 
@@ -82,23 +82,23 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any; mappings:
         <div className="text-[10px] font-bold text-app-text truncate">
           {isTimedOutMissing ? 'Pending Result' : (contact.provider || 'Unknown')}
         </div>
-        <div className="text-[10px] text-slate-500 font-mono truncate mt-0.5">
+        <div className="text-[10px] text-slate-600 dark:text-slate-400 font-mono truncate mt-0.5">
           {isTimedOutMissing ? 'No result file' : (contact.mxRecord || (contact.mxRecordFound ? 'MX Active' : 'No MX Record'))}
         </div>
       </div>
 
       <div className="md:px-6 py-1 md:py-3 w-full md:w-[15%] shrink-0">
         <div className={cn(
-          'inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] border',
+          'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] border',
           badgeStyle
         )}>
-          <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', dotStyle)} />
+          <VerdictIcon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
           {isTimedOutMissing ? 'TIMED OUT' : verdict}
         </div>
       </div>
 
       <div className="md:px-8 py-1 md:py-3 w-full md:w-[30%] min-w-0">
-        <p className="text-[11px] font-medium text-slate-400 break-words line-clamp-2">
+        <p className="text-[11px] font-medium text-slate-600 dark:text-slate-400 break-words line-clamp-2">
           {isTimedOutMissing
             ? 'STILL CHECKING / TIMED OUT — re-run to complete'
             : (contact.verificationReason || contact.reason || verdict)}
@@ -183,20 +183,20 @@ export function ResultsDashboard({
                 <span className="w-2 h-2 rounded-full bg-brand-blue animate-ping" />
                 Live Bulk Verification Running (Max 3 Parallel Chunks)
               </p>
-              <h3 className="text-lg sm:text-2xl font-black text-app-text tracking-tight mt-1">
+              <h3 className="text-lg sm:text-2xl font-black text-app-text tracking-tight mt-1 tabular-nums">
                 {emailsDone} / {emailsTotal} Emails Done &bull; Chunks {chunksDone} / {chunksTotal}
               </h3>
               {activeRequestId && (
-                <p className="text-[10px] text-slate-500 font-mono mt-1">Request ID: {activeRequestId}</p>
+                <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-1">Request ID: {activeRequestId}</p>
               )}
             </div>
             <div className="flex items-center gap-4">
               {estimatedSeconds !== null && (
                 <div className="text-left sm:text-right">
-                  <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-1 sm:justify-end">
+                  <p className="text-[9px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest flex items-center gap-1 sm:justify-end">
                     <Clock className="w-3 h-3" /> ETA
                   </p>
-                  <p className="text-base sm:text-lg font-black text-app-text font-mono">
+                  <p className="text-base sm:text-lg font-black text-app-text font-mono tabular-nums">
                     {estimatedSeconds < 60 ? `${estimatedSeconds}s` : `${Math.floor(estimatedSeconds / 60)}m ${estimatedSeconds % 60}s`}
                   </p>
                 </div>
@@ -204,14 +204,14 @@ export function ResultsDashboard({
               {onCancel && (
                 <button
                   onClick={onCancel}
-                  className="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-[10px] font-black uppercase tracking-widest transition-all"
+                  className="min-h-[44px] px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                 >
                   Stop Scan
                 </button>
               )}
             </div>
           </div>
-          <div className="h-2.5 w-full bg-app-bg/40 rounded-full overflow-hidden border border-app-border">
+          <div className="h-2.5 w-full bg-slate-200/70 dark:bg-app-bg/40 rounded-full overflow-hidden border border-app-border">
             <motion.div
               className="h-full gradient-bg rounded-full"
               initial={{ width: 0 }}
@@ -226,63 +226,63 @@ export function ResultsDashboard({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <GlossyCard glow="gradient" className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card">
           <div className="flex justify-between items-start mb-4">
-            <p className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] italic">SAFE</p>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-              <Activity className="w-4 h-4 text-emerald-400" />
+            <p className="text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] italic">SAFE</p>
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/25">
+              <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-4xl sm:text-5xl font-black text-app-text font-mono tracking-tighter">{safeCount}</p>
-            <span className="text-slate-500 font-bold text-xs uppercase tracking-widest">Deliverable</span>
+            <p className="text-4xl sm:text-5xl font-black text-app-text font-mono tracking-tighter tabular-nums">{safeCount}</p>
+            <span className="text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest">Deliverable</span>
           </div>
-          <p className="text-[10px] text-slate-500 font-semibold mt-3">Confirmed 250 OK (non-catch-all)</p>
+          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold mt-3">Confirmed 250 OK (non-catch-all)</p>
         </GlossyCard>
 
         <GlossyCard glow="pink" className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card">
           <div className="flex justify-between items-start mb-4">
-            <p className="text-rose-400 text-[10px] font-black uppercase tracking-[0.2em] italic">Risky &amp; Invalid</p>
-            <div className="w-8 h-8 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
-              <Zap className="w-4 h-4 text-rose-400" />
+            <p className="text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-[0.2em] italic">Risky &amp; Invalid</p>
+            <div className="w-8 h-8 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/25">
+              <Zap className="w-4 h-4 text-rose-600 dark:text-rose-400" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-4xl sm:text-5xl font-black text-app-text font-mono tracking-tighter">{riskyCount + invalidCount}</p>
-            <span className="text-slate-500 font-bold text-xs uppercase tracking-widest">Flagged</span>
+            <p className="text-4xl sm:text-5xl font-black text-app-text font-mono tracking-tighter tabular-nums">{riskyCount + invalidCount}</p>
+            <span className="text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest">Flagged</span>
           </div>
-          <div className="flex flex-wrap gap-2 mt-3 text-[10px] font-bold">
-            <span className="text-amber-400">{riskyCount} RISKY ({catchAllCount} Catch-All)</span>
-            <span className="text-slate-600">&bull;</span>
-            <span className="text-rose-500">{invalidCount} INVALID</span>
+          <div className="flex flex-wrap gap-2 mt-3 text-[10px] font-bold tabular-nums">
+            <span className="text-amber-600 dark:text-amber-400">{riskyCount} RISKY ({catchAllCount} Catch-All)</span>
+            <span className="text-slate-400 dark:text-slate-600">&bull;</span>
+            <span className="text-rose-600 dark:text-rose-500">{invalidCount} INVALID</span>
           </div>
         </GlossyCard>
 
         <GlossyCard className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card">
           <div className="flex justify-between items-start mb-4">
-            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic">Definitive Rate</p>
-            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
+            <p className="text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] italic">Definitive Rate</p>
+            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/25">
               <Fingerprint className="w-4 h-4 text-brand-blue" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <p className="text-4xl sm:text-5xl font-black font-mono tracking-tighter italic text-app-text">
+            <p className="text-4xl sm:text-5xl font-black font-mono tracking-tighter italic text-app-text tabular-nums">
               {definitiveRate}<span className="text-2xl">%</span>
             </p>
           </div>
-          <p className="text-[10px] text-slate-500 font-semibold mt-3">
+          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold mt-3 tabular-nums">
             {definitiveCount}/{arrivedTotal} definitive verdicts ({unknownCount} UNKNOWN)
           </p>
         </GlossyCard>
 
         <GlossyCard className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card">
           <div className="flex justify-between items-start mb-4">
-            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] italic">Engine Release</p>
-            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20">
+            <p className="text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] italic">Engine Release</p>
+            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/25">
               <Cpu className="w-4 h-4 text-brand-blue" />
             </div>
           </div>
           <p className="text-3xl sm:text-4xl font-black text-app-text tracking-tighter uppercase italic">V17 Active</p>
           <div className="mt-4 flex items-center justify-between">
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{arrivedTotal} Arrived</p>
+            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider tabular-nums">{arrivedTotal} Arrived</p>
             <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[9px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30">
               V17 Engine
             </div>
@@ -297,8 +297,8 @@ export function ResultsDashboard({
             <button
               onClick={() => { setActiveTab('all'); setSearchTerm(''); }}
               className={cn(
-                'pb-2 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative',
-                activeTab === 'all' ? 'text-app-text' : 'text-slate-500 hover:text-slate-300'
+                'pb-2 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-t-md tabular-nums',
+                activeTab === 'all' ? 'text-app-text' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
               )}
             >
               All ({allRows.length})
@@ -307,55 +307,66 @@ export function ResultsDashboard({
             <button
               onClick={() => { setActiveTab('safe'); setSearchTerm(''); }}
               className={cn(
-                'pb-2 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative',
-                activeTab === 'safe' ? 'text-emerald-400' : 'text-slate-500 hover:text-slate-300'
+                'pb-2 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-t-md tabular-nums',
+                activeTab === 'safe' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
               )}
             >
               SAFE ({safeCount})
-              {activeTab === 'safe' && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-emerald-400" />}
+              {activeTab === 'safe' && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-emerald-500 dark:bg-emerald-400" />}
             </button>
             <button
               onClick={() => { setActiveTab('filtered'); setSearchTerm(''); }}
               className={cn(
-                'pb-2 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative',
-                activeTab === 'filtered' ? 'text-rose-400' : 'text-slate-500 hover:text-slate-300'
+                'pb-2 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-t-md tabular-nums',
+                activeTab === 'filtered' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400'
               )}
             >
               Risky / Invalid / Unknown ({(eliminatedData || []).length})
-              {activeTab === 'filtered' && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-rose-400" />}
+              {activeTab === 'filtered' && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-rose-500 dark:bg-rose-400" />}
             </button>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-            <div className="relative flex-1 sm:min-w-[220px]">
+            <div className="relative flex-1 sm:min-w-[230px]">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
                 type="text"
                 placeholder="Search email or verdict..."
+                aria-label="Search email or verdict"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-app-bg/40 border border-app-border rounded-xl h-11 pl-11 pr-4 text-xs font-bold text-app-text placeholder:text-slate-500 outline-none focus:border-brand-blue/40"
+                className="w-full bg-slate-50/90 dark:bg-app-bg/40 border border-slate-200 dark:border-app-border rounded-xl h-11 pl-11 pr-10 text-xs font-bold text-app-text placeholder:text-slate-500 outline-none focus:border-brand-blue/50 focus:ring-2 focus:ring-brand-blue/15"
               />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  aria-label="Clear filter search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center text-slate-500 hover:text-app-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => onPreview(currentData, 'LeadPure V17 Results Preview')}
-                className="px-4 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-blue transition-all flex items-center gap-2 h-11"
+                className="px-4 bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 rounded-xl border border-slate-200 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:text-brand-blue transition-all flex items-center gap-2 h-11 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
               >
                 <Database className="w-4 h-4" />
                 Preview
               </button>
               <button
                 onClick={onDownloadAll}
-                className="px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-11 border bg-brand-blue/10 border-brand-blue/25 text-brand-blue hover:bg-brand-blue/20"
+                className="px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-11 border bg-brand-blue/10 border-brand-blue/30 text-brand-blue hover:bg-brand-blue/20 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
               >
                 <Download className="w-4 h-4" />
                 Export Results
               </button>
               <button
                 onClick={onDownloadValid}
-                className="px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-11 border bg-emerald-500/10 border-emerald-500/25 text-emerald-400 hover:bg-emerald-500/20"
+                className="px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-11 border bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
               >
                 <Download className="w-4 h-4" />
                 SAFE Only
@@ -363,7 +374,7 @@ export function ResultsDashboard({
               {activeTab === 'filtered' && (
                 <button
                   onClick={() => onDownloadEliminated('all')}
-                  className="px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-11 border bg-rose-500/10 border-rose-500/25 text-rose-400 hover:bg-rose-500/20"
+                  className="px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-11 border bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-400 hover:bg-rose-500/20 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                 >
                   <Download className="w-4 h-4" />
                   Filtered
@@ -376,7 +387,7 @@ export function ResultsDashboard({
         <div className="min-h-[420px]">
           {filteredData.length > 0 ? (
             <div className="w-full">
-              <div className="hidden md:flex text-slate-500 text-[10px] uppercase tracking-[0.3em] font-black bg-white/[0.01] border-b border-app-border">
+              <div className="hidden md:flex text-slate-600 dark:text-slate-400 text-[10px] uppercase tracking-[0.3em] font-black bg-slate-50/70 dark:bg-white/[0.02] border-b border-app-border">
                 <div className="px-8 py-5 w-[35%]">Contact</div>
                 <div className="px-6 py-5 w-[20%]">MX / Provider</div>
                 <div className="px-6 py-5 w-[15%]">Verdict</div>
@@ -392,11 +403,11 @@ export function ResultsDashboard({
             </div>
           ) : (
             <div className="py-24 px-6 flex flex-col items-center justify-center text-center">
-              <Database className="w-10 h-10 text-slate-600 mb-4" />
+              <Database className="w-10 h-10 text-slate-400 dark:text-slate-600 mb-4" />
               <h4 className="text-lg sm:text-2xl font-black text-app-text uppercase italic tracking-tight mb-2">
                 {isProcessing ? 'Waiting for first chunk to arrive...' : 'No Matching Results'}
               </h4>
-              <p className="text-slate-500 text-xs max-w-md mx-auto">
+              <p className="text-slate-600 dark:text-slate-400 text-xs max-w-md mx-auto">
                 {isProcessing
                   ? 'Results stream directly into this table as each 100-email chunk completes.'
                   : 'Try adjusting your active filter tab or search query.'}
@@ -404,7 +415,7 @@ export function ResultsDashboard({
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="mt-6 px-6 py-2 bg-white/5 hover:bg-white/10 text-[10px] font-black text-slate-400 uppercase tracking-widest rounded-full border border-white/10"
+                  className="mt-6 min-h-[40px] px-6 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest rounded-full border border-slate-200 dark:border-white/10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
                 >
                   Clear Search
                 </button>
@@ -413,10 +424,10 @@ export function ResultsDashboard({
           )}
         </div>
 
-        <div className="px-4 sm:px-8 py-5 bg-app-bg/60 border-t border-app-border flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-500">
+        <div className="px-4 sm:px-8 py-5 bg-slate-50/70 dark:bg-app-bg/60 border-t border-app-border flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">
           <div className="flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>{filteredData.length} Rows Shown</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="tabular-nums">{filteredData.length} Rows Shown</span>
           </div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-brand-blue" />

@@ -80,14 +80,14 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
             className="w-full max-w-7xl h-full max-h-[90vh] relative z-10"
           >
             <GlossyCard className="w-full h-full flex flex-col rounded-3xl sm:rounded-[40px] overflow-hidden border-app-border shadow-2xl">
-              <div className="p-4 sm:p-8 border-b border-app-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.02]">
+              <div className="p-4 sm:p-8 border-b border-app-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-50/70 dark:bg-white/[0.02]">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20 shrink-0">
                     <TableIcon className="w-5 h-5 sm:w-6 sm:h-6 text-brand-blue" />
                   </div>
                   <div>
                     <h2 className="text-lg sm:text-2xl font-black text-app-text uppercase italic tracking-tight">{title}</h2>
-                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-0.5">{data.length} records</p>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest mt-0.5 tabular-nums">{data.length} records</p>
                   </div>
                 </div>
 
@@ -97,16 +97,18 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
                     <input
                       type="text"
                       placeholder="Search preview..."
+                      aria-label="Search preview records"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-app-bg/40 border border-app-border rounded-xl h-10 pl-10 pr-4 text-xs font-bold text-app-text placeholder:text-slate-500 outline-none focus:border-brand-blue/30"
+                      className="w-full bg-slate-50 dark:bg-app-bg/40 border border-slate-200 dark:border-app-border rounded-xl h-11 pl-10 pr-4 text-xs font-bold text-app-text placeholder:text-slate-500 outline-none focus:border-brand-blue/50 focus:ring-2 focus:ring-brand-blue/15"
                     />
                   </div>
                   <button
                     onClick={onClose}
-                    className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 border border-app-border text-app-text shrink-0"
+                    aria-label="Close preview modal"
+                    className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-xl bg-slate-100/80 dark:bg-white/5 flex items-center justify-center hover:bg-slate-200/80 dark:hover:bg-white/10 border border-slate-200 dark:border-app-border text-slate-700 dark:text-slate-300 hover:text-app-text shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue transition-colors"
                   >
-                    <X className="w-5 h-5 text-slate-400" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
               </div>

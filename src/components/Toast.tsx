@@ -45,17 +45,26 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 50, scale: 0.9 }}
               className={cn(
-                "pointer-events-auto min-w-[300px] glossy-card p-4 rounded-2xl flex items-center gap-4 shadow-2xl",
-                t.type === 'success' && "border-brand-blue/20 bg-brand-blue/5 shadow-lg",
-                t.type === 'error' && "border-rose-500/20 bg-rose-500/5",
+                "pointer-events-auto min-w-[260px] max-w-[calc(100vw-2rem)] glossy-card p-4 rounded-2xl flex items-center gap-3.5 shadow-2xl border border-app-border",
+                t.type === 'success' && "border-brand-blue/30 bg-brand-blue/10 dark:bg-brand-blue/5 shadow-lg",
+                t.type === 'error' && "border-rose-500/30 bg-rose-500/10 dark:bg-rose-500/5",
+                t.type === 'info' && "border-brand-cyan/30 bg-brand-cyan/10 dark:bg-brand-cyan/5"
               )}
             >
               {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-brand-blue shrink-0 shadow-sm" />}
               {t.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-500 shrink-0" />}
-              <p className="text-xs font-bold text-white flex-1">{t.message}</p>
+              {t.type === 'info' && (
+                <svg className="w-5 h-5 text-brand-blue shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 16v-4" />
+                  <path d="M12 8h.01" />
+                </svg>
+              )}
+              <p className="text-xs font-bold text-app-text flex-1 leading-snug">{t.message}</p>
               <button 
                 onClick={() => removeToast(t.id)}
-                className="text-slate-500 hover:text-white transition-colors"
+                aria-label="Dismiss notification"
+                className="p-1.5 rounded-lg text-slate-500 hover:text-app-text hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
               >
                 <X className="w-4 h-4" />
               </button>
