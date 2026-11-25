@@ -80,8 +80,8 @@
         "aspmx.l.google.com",
         "alt2.aspmx.l.google.com",
         "alt1.aspmx.l.google.com",
-        "alt3.aspmx.l.google.com",
-        "alt4.aspmx.l.google.com"
+        "alt4.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com"
       ]
     },
     "smtp": {
@@ -146,8 +146,8 @@
     "mx": {
       "accepts_mail": true,
       "records": [
-        "mx02.mail.icloud.com",
-        "mx01.mail.icloud.com"
+        "mx01.mail.icloud.com",
+        "mx02.mail.icloud.com"
       ]
     },
     "smtp": {
@@ -249,8 +249,8 @@
         "aspmx.l.google.com",
         "alt2.aspmx.l.google.com",
         "alt1.aspmx.l.google.com",
-        "alt4.aspmx.l.google.com",
-        "alt3.aspmx.l.google.com"
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
       ]
     },
     "smtp": {
@@ -273,7 +273,7 @@
   },
   {
     "input": "gloria_keller@hotmail.com",
-    "is_reachable": "risky",
+    "is_reachable": "safe",
     "misc": {
       "is_disposable": false,
       "is_role_account": false
@@ -287,7 +287,7 @@
     "smtp": {
       "can_connect_smtp": true,
       "has_full_inbox": false,
-      "is_catch_all": true,
+      "is_catch_all": false,
       "is_deliverable": true,
       "is_disabled": false
     },
@@ -299,7 +299,8 @@
     },
     "debug": {
       "backend_name": "leadpure-own-engine",
-      "engine_version": "1.3.0"
+      "engine_version": "1.3.0",
+      "freemail": true
     }
   },
   {
@@ -2613,9 +2614,9 @@
     "mx": {
       "accepts_mail": true,
       "records": [
-        "mx1-usg2.ppe-hosted.com",
         "mx2-usg2.ppe-hosted.com",
-        "mx3-usg2.ppe-hosted.com"
+        "mx3-usg2.ppe-hosted.com",
+        "mx1-usg2.ppe-hosted.com"
       ]
     },
     "smtp": {
@@ -2650,8 +2651,8 @@
         "aspmx.l.google.com",
         "alt1.aspmx.l.google.com",
         "alt2.aspmx.l.google.com",
-        "alt4.aspmx.l.google.com",
-        "alt3.aspmx.l.google.com"
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
       ]
     },
     "smtp": {
@@ -2714,10 +2715,10 @@
       "accepts_mail": true,
       "records": [
         "aspmx.l.google.com",
-        "alt2.aspmx.l.google.com",
         "alt1.aspmx.l.google.com",
-        "alt3.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
         "alt4.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
         "mx1-us1.ppe-hosted.com",
         "mx2-us1.ppe-hosted.com"
       ]
@@ -3347,10 +3348,10 @@
       "accepts_mail": true,
       "records": [
         "aspmx.l.google.com",
-        "alt2.aspmx.l.google.com",
         "alt1.aspmx.l.google.com",
-        "alt3.aspmx.l.google.com",
-        "alt4.aspmx.l.google.com"
+        "alt2.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com"
       ]
     },
     "smtp": {
@@ -3415,8 +3416,8 @@
       "accepts_mail": true,
       "records": [
         "aspmx.l.google.com",
-        "alt2.aspmx.l.google.com",
         "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
         "alt4.aspmx.l.google.com",
         "alt3.aspmx.l.google.com"
       ]
