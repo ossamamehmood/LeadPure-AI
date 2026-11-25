@@ -22,7 +22,7 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
             <Zap className="w-4 h-4 fill-white" />
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-app-text tracking-tighter flex items-center gap-1.5 uppercase italic select-none">
-            Lead<span className="gradient-text">Pure</span><span className="text-zinc-600 font-medium not-italic ml-0.5">AI</span>
+            Lead<span className="gradient-text">Pure</span><span className="text-slate-600 dark:text-slate-300 font-semibold not-italic ml-0.5 pr-1">AI</span>
           </h1>
         </div>
         <div className="h-6 w-px bg-app-border hidden md:block shrink-0" />

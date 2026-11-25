@@ -20,11 +20,23 @@ export function SingleValidation() {
 
   const getCanonicalVerdict = (res: Partial<ProcessedContact> | null): 'SAFE' | 'RISKY' | 'INVALID' | 'UNKNOWN' => {
     if (!res) return 'UNKNOWN';
-    const raw = String(res.status || res.verificationStatus || '').toUpperCase();
+    const rawStatus = String(res.status || '').toUpperCase();
+    const raw = String(
+      (res as any).verdict ||
+      res.verificationStatus ||
+      (rawStatus !== 'COMPLETED' && rawStatus !== 'PENDING' ? rawStatus : '')
+    ).toUpperCase();
     if (raw === 'SAFE' || raw === 'VERIFIED') return 'SAFE';
     if (raw === 'RISKY') return 'RISKY';
     if (raw === 'INVALID' || raw === 'BLOCKED' || raw === 'REJECTED') return 'INVALID';
     return 'UNKNOWN';
+  };
+
+  const resolveCompletedResult = (payload: any): Partial<ProcessedContact> => {
+    if (Array.isArray(payload?.results) && payload.results[0]) {
+      return { ...payload, ...payload.results[0] };
+    }
+    return payload;
   };
 
   const handleVerify = async (e?: React.FormEvent) => {
@@ -59,7 +71,7 @@ export function SingleValidation() {
 
       if (initialData.status === 'completed') {
         clearInterval(timer);
-        setResult(initialData);
+        setResult(resolveCompletedResult(initialData));
         setIsVerifying(false);
         return;
       }
@@ -84,7 +96,7 @@ export function SingleValidation() {
               }
               if (pollData.status === 'completed') {
                 clearInterval(timer);
-                setResult(pollData);
+                setResult(resolveCompletedResult(pollData));
                 setIsVerifying(false);
                 return;
               }
@@ -289,7 +301,7 @@ export function SingleValidation() {
                 className="space-y-5 sm:space-y-6"
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  <GlossyCard className="p-5 sm:p-8 rounded-3xl overflow-hidden relative group">
+                  <GlossyCard className="p-5 sm:p-6 rounded-3xl overflow-hidden relative group">
                     <div className={cn(
                       'absolute top-0 right-0 w-32 h-32 blur-[80px] -mr-16 -mt-16 opacity-30 transition-all',
                       verdict === 'SAFE' ? 'bg-emerald-500' :
@@ -298,14 +310,14 @@ export function SingleValidation() {
                     )} />
                     <p className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest italic mb-2 relative z-10">Verdict</p>
                     <div className={cn(
-                      'text-3xl sm:text-4xl font-black uppercase italic tracking-tighter relative z-10 leading-none',
+                      'text-2xl sm:text-3xl font-black uppercase italic tracking-tight relative z-10 leading-none pr-3',
                       getStatusColor(verdict)
                     )}>
                       {verdict}
                     </div>
                   </GlossyCard>
 
-                  <GlossyCard className="p-5 sm:p-8 rounded-3xl">
+                  <GlossyCard className="p-5 sm:p-6 rounded-3xl">
                     <p className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest italic mb-2">SMTP Handshake</p>
                     <div className={cn(
                       'text-lg sm:text-xl font-black uppercase tracking-tight leading-snug',
