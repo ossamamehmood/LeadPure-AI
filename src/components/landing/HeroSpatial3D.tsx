@@ -69,8 +69,10 @@ export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSp
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
-    camera.position.set(0, 0, 6.2);
+    const initialAspect = width / height;
+    const camera = new THREE.PerspectiveCamera(36, initialAspect, 0.1, 100);
+    const computeCameraZ = (aspect: number) => (aspect < 1 ? 6.8 / Math.max(aspect, 0.74) : 6.9);
+    camera.position.set(0, 0, computeCameraZ(initialAspect));
 
     // Synthesize a smooth studio reflection map in memory so physical glass refracts cleanly
     const envCanvas = document.createElement('canvas');
@@ -244,11 +246,15 @@ export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSp
       if (!container || !renderer) return;
       const nextW = Math.max(container.clientWidth, 240);
       const nextH = Math.max(container.clientHeight, 240);
-      camera.aspect = nextW / nextH;
+      const nextAspect = nextW / nextH;
+      camera.aspect = nextAspect;
+      camera.position.z = computeCameraZ(nextAspect);
       camera.updateProjectionMatrix();
       renderer.setSize(nextW, nextH);
     };
     window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
 
     const targetEmissive = new THREE.Color(accentColorRef.current);
     const clock = new THREE.Clock();
@@ -287,6 +293,7 @@ export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSp
     return () => {
       cancelAnimationFrame(animationFrameId);
       observer.disconnect();
+      resizeObserver.disconnect();
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('resize', handleResize);
 

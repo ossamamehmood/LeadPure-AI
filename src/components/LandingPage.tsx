@@ -351,7 +351,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, delay: 0.25, ease: EDITORIAL_EASE }}
-              className="lg:col-span-5 relative h-[270px] sm:h-[360px] flex items-center justify-center"
+              className="lg:col-span-5 relative w-full h-[300px] sm:h-[380px]"
             >
               <div
                 aria-hidden="true"
@@ -376,18 +376,18 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               <motion.div
                 animate={shouldReduceMotion ? undefined : { y: [0, -7, 0] }}
                 transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
-                className="liquid-glass pointer-events-none absolute top-3 right-2 sm:right-4 z-20 px-3.5 py-2 rounded-2xl flex items-center gap-2 text-xs font-semibold text-app-text"
+                className="liquid-glass pointer-events-none absolute top-3 right-2 sm:right-4 z-20 px-3.5 py-2 rounded-2xl inline-flex items-center gap-2 text-xs font-semibold text-app-text whitespace-nowrap"
               >
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                 <span>0 Emails Sent</span>
               </motion.div>
 
               <motion.div
                 animate={shouldReduceMotion ? undefined : { y: [0, 7, 0] }}
                 transition={{ duration: 6.2, repeat: Infinity, ease: 'easeInOut' }}
-                className="liquid-glass pointer-events-none absolute bottom-3 left-2 sm:left-4 z-20 px-3.5 py-2 rounded-2xl flex items-center gap-2 text-xs font-semibold text-app-text"
+                className="liquid-glass pointer-events-none absolute bottom-3 left-2 sm:left-4 z-20 px-3.5 py-2 rounded-2xl inline-flex items-center gap-2 text-xs font-semibold text-app-text whitespace-nowrap"
               >
-                <Activity className="w-3.5 h-3.5 text-brand-blue" />
+                <Activity className="w-3.5 h-3.5 text-brand-blue shrink-0" />
                 <span>5,000 Rows / Run</span>
               </motion.div>
             </motion.div>
