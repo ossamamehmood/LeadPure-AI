@@ -7,14 +7,14 @@
 
   <h1>LeadPure AI — Precision SMTP Verification Engine</h1>
   <p>
-    <strong>Serverless single &amp; chunked-bulk email verification powered by Own SMTP Engine 1.3.1.</strong><br />
+    <strong>Serverless single &amp; chunked-bulk email verification powered by Own SMTP Engine 1.3.2.</strong><br />
     Zero external verification SaaS APIs. Zero fabricated confidence scores. Honest verdicts straight from live Port-25 handshakes.
   </p>
 
   <p>
     <a href="https://leadpureai.vercel.app/"><img src="https://img.shields.io/badge/Live_App-leadpureai.vercel.app-02FEDC?style=for-the-badge&logo=vercel&logoColor=000000" alt="Live App" /></a>
     <img src="https://img.shields.io/badge/Release-V17_Enterprise-5A5CFF?style=for-the-badge" alt="V17 Enterprise Release" />
-    <img src="https://img.shields.io/badge/SMTP_Engine-v1.3.1-10B981?style=for-the-badge" alt="SMTP Engine 1.3.1" />
+    <img src="https://img.shields.io/badge/SMTP_Engine-v1.3.2-10B981?style=for-the-badge" alt="SMTP Engine 1.3.2" />
     <img src="https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js 22" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=000000" alt="React 19" />
   </p>
@@ -24,7 +24,7 @@
 
 ## Overview
 
-**LeadPure AI V17** validates email addresses at scale using a custom zero-dependency Node.js SMTP probe (`engine/probe.mjs` v1.3.1) running on ephemeral GitHub Actions Port-25 runners, orchestrated by a React 19 + Vercel Serverless web app.
+**LeadPure AI V17** validates email addresses at scale using a custom zero-dependency Node.js SMTP probe (`engine/probe.mjs` v1.3.2) running on ephemeral GitHub Actions Port-25 runners, orchestrated by a React 19 + Vercel Serverless web app.
 
 Instead of relying on proprietary third-party verification APIs or returning optimistic fallback guesses when a mail server stalls, every check executes a multi-stage DNS + live SMTP conversation (`EHLO` -> `MAIL FROM` -> `RCPT TO`) with explicit catch-all, greylist, and forwarding-provider detection.
 
@@ -32,7 +32,7 @@ Instead of relying on proprietary third-party verification APIs or returning opt
 
 | Capability | Details |
 | :--- | :--- |
-| **Own SMTP Engine `1.3.1`** | Pure Node.js (`net`, `dns`, `tls`) Port-25 verifier with 2-pass retry on dropped connections, 30s greylist wait & retry, and catch-all probing. |
+| **Own SMTP Engine `1.3.2`** | Pure Node.js (`net`, `dns`, `tls`) Port-25 verifier with 2-pass retry on dropped connections, 30s greylist wait & retry, and catch-all probing. |
 | **Forwarding Provider Aware** | Recognizes `ImprovMX`, `ForwardEmail`, and `Cloudflare Email Routing` MX patterns so valid aliases are not falsely rejected. |
 | **5,000-Lead Chunked Scale** | Client-side Web Worker parses spreadsheets without freezing the UI, splits lists into **100-email chunks** (max **3** concurrent Actions runs), and runs **4 parallel workers** per runner. |
 | **Resumable Manifest Polling** | Tracks jobs via `results/<requestId>/manifest.json` + `chunk-<n>.json` with `5s -> 15s` polling backoff (20-minute cap) and `localStorage` scan resume (`leadpure_last_scan_v17`). |
@@ -47,7 +47,7 @@ Instead of relying on proprietary third-party verification APIs or returning opt
 flowchart LR
     U["Browser UI (React 19 + Web Worker)"] -->|"1. Single check or 100-email chunks"| API["Vercel Serverless (/api/check)"]
     API -->|"2. Dispatch workflow + init manifest.json"| GHA["GitHub Actions Port-25 Runner"]
-    GHA -->|"3. 4 parallel workers run engine/probe.mjs v1.3.1"| SMTP["Target MX / Port 25 + Port 587"]
+    GHA -->|"3. 4 parallel workers run engine/probe.mjs v1.3.2"| SMTP["Target MX / Port 25 + Port 587"]
     SMTP -->|"4. SMTP 250 / 4xx / 5xx + Catch-All"| GHA
     GHA -->|"5. Write chunk-<n>.json & update manifest.json"| RES["GitHub 'results' Branch"]
     U -->|"6. Poll GET /api/check (5s -> 15s backoff)"| RES
@@ -152,7 +152,7 @@ LeadPure-AI/
 │   ├── check.ts                 # Single & chunked bulk orchestration + manifest reader
 │   └── validate-batch.ts        # Deprecated HTTP 410 stub
 ├── engine/
-│   └── probe.mjs                # Own SMTP Engine v1.3.1 (zero external deps)
+│   └── probe.mjs                # Own SMTP Engine v1.3.2 (zero external deps)
 ├── src/
 │   ├── components/              # Responsive Dark/Light UI components (React 19)
 │   ├── lib/                     # Rules engine, client helpers, XLSX export

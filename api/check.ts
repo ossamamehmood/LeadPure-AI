@@ -93,7 +93,10 @@ async function mapProbeResults(resultArray: any[]) {
       verdict = 'UNKNOWN';
       verificationStatus = 'unknown';
       ui_label = 'UNKNOWN';
-      if (item.debug?.policy_rejection) {
+      if (item.debug?.identity_disagreement) {
+        const d = item.debug.identity_disagreement;
+        ui_reason = `Sender identity disagreement (${d.a_code} vs ${d.b_code ?? 'inconclusive'}); mailbox status unverifiable`;
+      } else if (item.debug?.policy_rejection) {
         const pr = item.debug.policy_rejection;
         ui_reason = `Mail server refused probe by policy (${pr.code}${pr.enhanced ? ' ' + pr.enhanced : ''}); mailbox status unverifiable`;
       } else if (item.debug?.forwarding_rcpt_rejected) {

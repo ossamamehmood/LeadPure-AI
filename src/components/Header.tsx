@@ -30,7 +30,7 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
           <span className="flex items-center gap-2 px-3 py-1 bg-brand-blue/5 rounded-full border border-brand-blue/15 text-slate-600 dark:text-slate-400 truncate">
             <span className="w-1.5 h-1.5 rounded-full gradient-bg shrink-0" />
             <span className="truncate">
-              V17 Enterprise Release <span className="hidden xl:inline">(Own SMTP Engine 1.3.1)</span>
+              V17 Enterprise Release <span className="hidden xl:inline">(Own SMTP Engine 1.3.2)</span>
             </span>
           </span>
         </div>

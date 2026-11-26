@@ -431,7 +431,7 @@ export function ResultsDashboard({
           </div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-brand-blue" />
-            <span>LeadPure V17 • Engine 1.3.1</span>
+            <span>LeadPure V17 • Engine 1.3.2</span>
           </div>
         </div>
       </div>
