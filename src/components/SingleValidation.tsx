@@ -141,17 +141,18 @@ export function SingleValidation() {
 
   return (
     <section className="mb-12 sm:mb-20">
+      {/* Real-Time Inbox Checker (RFC 5321 Port 25 + Catch-All check handled silently behind the scenes) */}
       <div className="flex items-center gap-4 sm:gap-6 mb-8 sm:mb-12">
         <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-[24px] bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20 shadow-lg shrink-0">
           <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-brand-blue" />
         </div>
         <div className="min-w-0">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-app-text uppercase italic tracking-tighter leading-tight">
-            Live Port 25 SMTP Prober
+            Instant Email Checker
           </h2>
           <p className="text-[9px] sm:text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest mt-2 italic flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-sm shrink-0" />
-            V17 Single Mailbox Check
+            V17 Real-Time Mailbox Check
           </p>
         </div>
       </div>
@@ -165,7 +166,7 @@ export function SingleValidation() {
                   htmlFor="single-email-input"
                   className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest italic mb-2.5 block"
                 >
-                  Target Email Address
+                  Email Address to Verify
                 </label>
                 <div className="relative group">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-blue transition-colors" />
@@ -175,7 +176,7 @@ export function SingleValidation() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="user@company.com"
-                    aria-label="Target Email Address"
+                    aria-label="Email Address to Verify"
                     className="w-full bg-slate-50/90 dark:bg-app-bg/40 border border-slate-200 dark:border-app-border rounded-2xl h-14 sm:h-16 pl-11 pr-11 text-sm font-bold text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-all shadow-sm"
                   />
                   {email.length > 0 && !isVerifying && (
@@ -208,17 +209,18 @@ export function SingleValidation() {
                 ) : (
                   <>
                     <Activity className="w-4 h-4" />
-                    Verify Mailbox (Port 25)
+                    Check Email Now
                   </>
                 )}
               </button>
             </form>
 
+            {/* Technical note: executes RFC 5321 HELO -> MAIL FROM -> RCPT TO + catch-all probe without delivering a message */}
             <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-brand-blue/5 dark:bg-app-bg/10 rounded-2xl border border-brand-blue/15 dark:border-app-border">
               <div className="flex items-start gap-3">
                 <Info className="w-4 h-4 text-brand-blue mt-0.5 shrink-0" />
                 <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
-                  Executes an RFC 5321 SMTP handshake (HELO → MAIL FROM → RCPT TO) and a catch-all probe on a Port 25 worker without sending an email.
+                  Checks the inbox directly with the recipient&apos;s mail server to confirm it exists—completely invisible to the recipient, with zero email sent.
                 </p>
               </div>
             </div>
@@ -254,7 +256,7 @@ export function SingleValidation() {
                   <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20 mx-auto mb-5 shadow-sm">
                     <Search className="w-7 h-7 text-brand-blue" />
                   </div>
-                  <p className="text-[10px] text-slate-600 dark:text-slate-400 font-extrabold uppercase tracking-[0.35em] italic">Enter an address to probe</p>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400 font-extrabold uppercase tracking-[0.3em] italic">Enter any email to check deliverability</p>
                 </div>
               </motion.div>
             ) : isVerifying ? (
@@ -277,19 +279,20 @@ export function SingleValidation() {
                 </div>
 
                 <h3 className="text-xs sm:text-base font-black text-app-text uppercase tracking-wider italic mb-2">
-                  Running SMTP mailbox &amp; catch-all probe...
+                  Checking inbox deliverability...
                 </h3>
                 <p className="text-[11px] text-brand-blue font-mono font-bold tracking-widest uppercase mb-4 tabular-nums">
                   Elapsed: {formatTime(elapsedSeconds)}
                 </p>
+                {/* Technical: 1. Dispatch GH Actions runner -> 2. Port 25 RCPT probe -> 3. Catch-all probe */}
                 <div className="flex flex-wrap items-center justify-center gap-2 mb-5 text-[9px] font-black uppercase tracking-widest">
-                  <span className="px-2.5 py-1 rounded-full bg-brand-blue/15 text-brand-blue border border-brand-blue/25">1. Worker Dispatched</span>
-                  <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">2. Port 25 RCPT</span>
-                  <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">3. Catch-All Probe</span>
+                  <span className="px-2.5 py-1 rounded-full bg-brand-blue/15 text-brand-blue border border-brand-blue/25">1. Checking Domain</span>
+                  <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">2. Contacting Mail Server</span>
+                  <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">3. Catch-All Check</span>
                 </div>
                 <div className="max-w-md mx-auto p-4 bg-brand-blue/5 rounded-2xl border border-brand-blue/15">
                   <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
-                    Waiting for worker result file. Final verdict is rendered strictly from the engine output.
+                    Waiting for live mail server response. Verdicts come straight from the engine—never guessed.
                   </p>
                 </div>
               </motion.div>
@@ -318,15 +321,16 @@ export function SingleValidation() {
                   </GlossyCard>
 
                   <GlossyCard className="p-5 sm:p-6 rounded-3xl">
-                    <p className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest italic mb-2">SMTP Handshake</p>
+                    {/* Technical: smtpValid = Port 25 TCP/SMTP handshake connected */}
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest italic mb-2">Mail Server</p>
                     <div className={cn(
                       'text-lg sm:text-xl font-black uppercase tracking-tight leading-snug',
                       result.smtpValid ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'
                     )}>
-                      {result.smtpValid ? 'Port 25 Connected' : 'Server Unreachable'}
+                      {result.smtpValid ? 'Connected Live' : 'Could Not Reach Server'}
                     </div>
                     <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-1.5">
-                      {result.isCatchAll ? 'Catch-All: Yes' : 'Catch-All: No'}
+                      {result.isCatchAll ? 'Accept-All Domain: Yes (Risky)' : 'Accept-All Domain: No'}
                     </p>
                   </GlossyCard>
                 </div>
@@ -348,7 +352,7 @@ export function SingleValidation() {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest italic mb-1">Engine Reason</p>
+                      <p className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest italic mb-1">Why This Verdict</p>
                       <h4 className="text-xs sm:text-sm font-bold text-app-text break-words">{result.verificationReason || result.ui_reason || 'Verified'}</h4>
                     </div>
                   </div>
@@ -358,29 +362,29 @@ export function SingleValidation() {
                   <div className="p-5 sm:p-6 bg-app-card/60 rounded-3xl border border-app-border">
                     <div className="flex items-center gap-2.5 mb-4">
                       <Globe className="w-4 h-4 text-slate-500" />
-                      <span className="text-[9px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Infrastructure</span>
+                      <span className="text-[9px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Domain Setup</span>
                     </div>
                     <div className="space-y-3">
                       <div className="flex justify-between items-start gap-2">
-                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest shrink-0">MX Host</span>
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest shrink-0">Mail Host</span>
                         <div className="text-right min-w-0">
                           <p className={cn('text-[10px] font-black', result.mxRecordFound ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-500')}>
-                            {result.mxRecordFound ? 'DETECTED' : 'MISSING'}
+                            {result.mxRecordFound ? 'ACTIVE' : 'MISSING'}
                           </p>
                           {result.mxRecordFound && <p className="text-[9px] text-slate-600 dark:text-slate-400 font-mono mt-0.5 break-all">{result.mxRecord}</p>}
                         </div>
                       </div>
                       <div className="flex justify-between items-start gap-2">
-                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest shrink-0">Provider</span>
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest shrink-0">Email Provider</span>
                         <div className="text-right min-w-0">
                           <p className="text-[10px] font-black text-app-text break-words">{result.provider || 'Unknown'}</p>
-                          <p className="text-[9px] text-slate-600 dark:text-slate-400 font-mono mt-0.5">{result.isFreeEmail ? 'Consumer Mailbox' : 'Custom Domain'}</p>
+                          <p className="text-[9px] text-slate-600 dark:text-slate-400 font-mono mt-0.5">{result.isFreeEmail ? 'Personal Mailbox' : 'Custom Domain'}</p>
                         </div>
                       </div>
                       <div className="flex justify-between items-center gap-2">
-                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">SPF Record</span>
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Sender Auth (SPF)</span>
                         <p className={cn('text-[10px] font-black uppercase', result.spfExists ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400')}>
-                          {result.spfExists ? 'Present' : 'Not Found'}
+                          {result.spfExists ? 'Configured' : 'Not Listed'}
                         </p>
                       </div>
                     </div>
@@ -389,7 +393,7 @@ export function SingleValidation() {
                   <div className="p-5 sm:p-6 bg-app-card/60 rounded-3xl border border-app-border">
                     <div className="flex items-center gap-2.5 mb-4">
                       <Activity className="w-4 h-4 text-slate-500" />
-                      <span className="text-[9px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Mailbox Signals</span>
+                      <span className="text-[9px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Inbox Signals</span>
                     </div>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center gap-2">
@@ -404,15 +408,15 @@ export function SingleValidation() {
                         </span>
                       </div>
                       <div className="flex justify-between items-center gap-2">
-                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Catch-All</span>
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Accept-All</span>
                         <span className={cn('text-[10px] font-black uppercase', result.isCatchAll ? 'text-amber-600 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400')}>
                           {result.isCatchAll ? 'Yes' : 'No'}
                         </span>
                       </div>
                       <div className="flex justify-between items-center gap-2">
-                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Disposable / Role</span>
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Inbox Type</span>
                         <span className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400">
-                          {result.isDisposable ? 'Disposable' : result.isRoleBased ? 'Role Account' : 'Standard'}
+                          {result.isDisposable ? 'Disposable' : result.isRoleBased ? 'Team / Role' : 'Standard'}
                         </span>
                       </div>
                     </div>

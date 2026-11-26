@@ -21,37 +21,37 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
 
   return (
     <div className="max-w-5xl mx-auto w-full space-y-10 sm:space-y-14 py-4 sm:py-8">
-      {/* Feature Overview Cards */}
+      {/* Benefit Overview Cards (Engine details: RFC 5321 Port 25 + catch-all probe + 100-email CI chunks) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
         <GlossyCard glow="gradient" className="p-6 sm:p-8 rounded-2xl sm:rounded-[32px] group">
           <div className="flex justify-between items-start mb-4 sm:mb-6">
-            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">Protocol</p>
-            <span className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-[9px] rounded-full uppercase font-black tracking-widest border border-brand-blue/20">RFC 5321</span>
+            <p className="text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">Real-Time Check</p>
+            <span className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-[9px] rounded-full uppercase font-black tracking-widest border border-brand-blue/20">No Email Sent</span>
           </div>
-          <h3 className="text-xl sm:text-2xl font-black text-app-text tracking-wide uppercase italic">Live SMTP Probe</h3>
+          <h3 className="text-xl sm:text-2xl font-black text-app-text tracking-wide uppercase italic">Live Inbox Check</h3>
           <p className="text-slate-600 dark:text-slate-400 text-xs mt-2.5 leading-relaxed font-medium">
-            Connects directly to each domain&apos;s MX host on Port 25 and probes the mailbox without sending an email.
+            Checks straight with the recipient&apos;s mail server in seconds to confirm the inbox exists—without ever sending a message.
           </p>
         </GlossyCard>
 
         <GlossyCard glow="blue" className="p-6 sm:p-8 rounded-2xl sm:rounded-[32px] group">
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 sm:mb-6">Risk Checks</p>
-          <h3 className="text-xl sm:text-2xl font-black text-brand-blue tracking-wide uppercase italic">Catch-All Detection</h3>
+          <p className="text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4 sm:mb-6">Bounce Protection</p>
+          <h3 className="text-xl sm:text-2xl font-black text-brand-blue tracking-wide uppercase italic">Catch-All &amp; Risk Guard</h3>
           <p className="text-slate-600 dark:text-slate-400 text-xs mt-2.5 leading-relaxed font-medium">
-            Probes a nonexistent address per domain to catch accept-all servers, flagging them honestly as RISKY.
+            Spots accept-all domains, disposable inboxes, and role addresses—flagging uncertain leads clearly as RISKY instead of guessing.
           </p>
         </GlossyCard>
 
         <GlossyCard glow="purple" className="p-6 sm:p-8 rounded-2xl sm:rounded-[32px] group">
-          <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4 sm:mb-6">Scale</p>
+          <p className="text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4 sm:mb-6">Built For Teams</p>
           <h3 className="text-xl sm:text-2xl font-black gradient-text tracking-wide uppercase italic">Up to 5,000 Leads</h3>
           <p className="text-slate-600 dark:text-slate-400 text-xs mt-2.5 leading-relaxed font-medium">
-            Processes large spreadsheets in 100-email chunks with live row updates, resume support, and Excel export.
+            Drop in large CSV or Excel sheets with live progress tracking, resumable scans, and clean ready-to-send Excel exports.
           </p>
         </GlossyCard>
       </div>
 
-      {/* Main Dropzone */}
+      {/* Main Dropzone (Web Worker parses file off-thread; chunks of 100 dispatch to Actions workers) */}
       <div className="relative group">
         <div
           {...getRootProps({ 'aria-label': 'Upload CSV or Excel lead list' })}
@@ -79,10 +79,10 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
 
             <div className="space-y-3">
               <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-app-text tracking-tight uppercase italic">
-                Bulk List <span className="gradient-text">Upload</span>
+                Clean Your <span className="gradient-text">Lead List</span>
               </h2>
               <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-md mx-auto leading-relaxed font-semibold uppercase tracking-widest">
-                LeadPure Verification Pipeline (V17)
+                Upload A List &amp; Protect Sender Reputation (V17)
               </p>
               <p className="text-slate-500 dark:text-slate-400 text-xs max-w-sm mx-auto">
                 Drag and drop a spreadsheet here, or click to browse files.
@@ -92,11 +92,11 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
             <div className="flex flex-wrap justify-center gap-6 sm:gap-10 border-t border-app-border pt-6 sm:pt-8 w-full max-w-md">
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-brand-blue" />
-                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-[0.2em]">100-Email Chunks</span>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-[0.2em]">Up to 5,000 Leads</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-[0.2em]">Port 25 Ready</span>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-[0.2em]">Live Progress &amp; Resume</span>
               </div>
             </div>
 

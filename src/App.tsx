@@ -374,25 +374,26 @@ export default function App() {
                   {resumableScan && (
                     <GlossyCard glow="blue" className="p-5 sm:p-6 rounded-3xl border border-brand-blue/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div>
-                        <p className="text-[10px] font-black text-brand-blue uppercase tracking-widest">Interrupted Scan Found</p>
+                        <p className="text-[10px] font-black text-brand-blue uppercase tracking-widest">Unfinished Scan Found</p>
                         <h4 className="text-sm sm:text-base font-black text-app-text mt-1">
                           {resumableScan.fileName} ({resumableScan.totalRows} emails)
                         </h4>
-                        <p className="text-[10px] text-slate-500 font-mono mt-0.5">
-                          ID: {resumableScan.requestId} &bull; Started {new Date(resumableScan.startedAt).toLocaleString()}
+                        <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-0.5">
+                          Started {new Date(resumableScan.startedAt).toLocaleString()} &bull; Ref: {resumableScan.requestId}
                         </p>
                       </div>
                       <div className="flex items-center gap-3 w-full sm:w-auto">
                         <button
                           onClick={handleResumeScan}
-                          className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl gradient-bg text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg"
+                          className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl gradient-bg text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg cursor-pointer"
                         >
                           <Play className="w-3.5 h-3.5 fill-white" />
                           Resume Last Scan
                         </button>
                         <button
                           onClick={dismissResumable}
-                          className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-400 hover:text-white"
+                          aria-label="Dismiss unfinished scan banner"
+                          className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-app-text cursor-pointer"
                           title="Dismiss"
                         >
                           <X className="w-4 h-4" />
@@ -481,8 +482,8 @@ export default function App() {
             key="parsing-overlay"
             progress={parsingProgress}
             estimatedSeconds={1}
-            customText="Parsing Spreadsheet..."
-            customDescription="Validating rows off-thread in 500-row chunks without blocking the UI."
+            customText="Reading Your Spreadsheet..."
+            customDescription="Loading contacts smoothly in your browser without slowing down the page."
           />
         )}
       </AnimatePresence>

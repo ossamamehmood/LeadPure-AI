@@ -46,18 +46,19 @@ export function LoadingOverlay({
       </div>
 
       <h2 className="text-2xl sm:text-4xl font-black text-app-text mb-2 uppercase italic tracking-tighter">
-        {customText || 'Running Verification Scan'}
+        {customText || 'Cleaning Your Lead List'}
       </h2>
       <p className="text-slate-500 max-w-md text-xs sm:text-sm font-medium uppercase tracking-widest leading-relaxed">
-        {customDescription || 'Probing recipient mailboxes via Port 25 workers in 100-email chunks.'}
+        {/* Technical note: dispatches 100-email batches to Port 25 workers (max 3 concurrent runs) */}
+        {customDescription || 'Checking mailboxes directly with recipient mail servers in parallel batches.'}
       </p>
 
       {onCancel && (
         <button
           onClick={onCancel}
-          className="mt-5 px-6 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors"
+          className="mt-5 px-6 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors cursor-pointer"
         >
-          Cancel Scan
+          Stop Scan
         </button>
       )}
 
@@ -66,8 +67,8 @@ export function LoadingOverlay({
           <div className="text-left">
             <p className="text-[10px] font-black gradient-text uppercase tracking-[0.25em]">
               {typeof chunksTotal === 'number' && chunksTotal > 0
-                ? `Chunks ${chunksDone ?? 0}/${chunksTotal} • ${emailsDone ?? 0}/${emailsTotal ?? 0} Emails`
-                : 'Processing Progress'}
+                ? `Batch ${chunksDone ?? 0}/${chunksTotal} • ${emailsDone ?? 0}/${emailsTotal ?? 0} Emails Checked`
+                : 'Scan Progress'}
             </p>
             <p className="text-4xl sm:text-5xl font-black text-app-text font-mono tracking-tighter mt-1">{progress}%</p>
           </div>

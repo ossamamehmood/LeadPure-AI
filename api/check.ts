@@ -64,47 +64,49 @@ async function mapProbeResults(resultArray: any[]) {
     let ui_label = 'UNKNOWN';
     let ui_reason = 'Mail server unreachable or probe inconclusive';
 
+    // Map internal engine diagnostics to user-friendly, plain-English verdict reasons.
+    // Technical details remain in raw.debug (e.g. rcpt_reply, policy_rejection, identity_disagreement).
     if (reachable === 'safe') {
       verdict = 'SAFE';
       verificationStatus = 'safe';
       ui_label = 'SAFE';
-      ui_reason = 'Mailbox confirmed deliverable by mail server (non-catch-all)';
+      ui_reason = 'Safe to send — inbox confirmed active (not catch-all)';
     } else if (reachable === 'risky') {
       verdict = 'RISKY';
       verificationStatus = 'risky';
       ui_label = 'RISKY';
       const reasons: string[] = [];
-      if (item.smtp?.is_catch_all) reasons.push('Catch-all domain (accepts any local part)');
-      if (item.misc?.is_role_account) reasons.push('Role-based address');
-      if (item.misc?.is_disposable) reasons.push('Disposable email domain');
-      if (item.smtp?.has_full_inbox) reasons.push('Mailbox over quota');
-      if (item.debug?.forwarding_alias_accepted) reasons.push('Forwarding provider accepted alias (final mailbox unverifiable)');
-      ui_reason = reasons.join(', ') || 'Domain or address characteristics indicate delivery risk';
+      if (item.smtp?.is_catch_all) reasons.push('Accept-all domain (accepts any email name)');
+      if (item.misc?.is_role_account) reasons.push('Shared team or role inbox (e.g. info@, support@)');
+      if (item.misc?.is_disposable) reasons.push('Temporary disposable inbox');
+      if (item.smtp?.has_full_inbox) reasons.push('Inbox is currently full');
+      if (item.debug?.forwarding_alias_accepted) reasons.push('Forwarding alias accepted (final destination inbox cannot be confirmed)');
+      ui_reason = reasons.join(', ') || 'Deliverability signals indicate extra sending risk';
     } else if (reachable === 'invalid') {
       verdict = 'INVALID';
       verificationStatus = 'invalid';
       ui_label = 'INVALID';
-      if (item.syntax?.is_valid_syntax === false) ui_reason = 'Invalid email syntax';
-      else if (item.debug?.disposable_domain || item.misc?.is_disposable) ui_reason = 'Disposable email domain';
-      else if (item.debug?.no_mx || item.mx?.accepts_mail === false) ui_reason = 'Domain does not accept mail (no active MX records)';
-      else if (item.smtp?.is_disabled) ui_reason = 'Account disabled by provider';
+      if (item.syntax?.is_valid_syntax === false) ui_reason = 'Invalid email format';
+      else if (item.debug?.disposable_domain || item.misc?.is_disposable) ui_reason = 'Temporary disposable email domain';
+      else if (item.debug?.no_mx || item.mx?.accepts_mail === false) ui_reason = 'Domain is not set up to receive email';
+      else if (item.smtp?.is_disabled) ui_reason = 'Mailbox has been disabled';
       else ui_reason = 'Mailbox does not exist (rejected by mail server)';
     } else {
       verdict = 'UNKNOWN';
       verificationStatus = 'unknown';
       ui_label = 'UNKNOWN';
       if (item.debug?.identity_disagreement) {
-        const d = item.debug.identity_disagreement;
-        ui_reason = `Sender identity disagreement (${d.a_code} vs ${d.b_code ?? 'inconclusive'}); mailbox status unverifiable`;
+        ui_reason = 'Mail server gave conflicting policy responses — marked UNKNOWN instead of guessing';
       } else if (item.debug?.policy_rejection) {
-        const pr = item.debug.policy_rejection;
-        ui_reason = `Mail server refused probe by policy (${pr.code}${pr.enhanced ? ' ' + pr.enhanced : ''}); mailbox status unverifiable`;
+        ui_reason = 'Mail server blocked the verification check by policy — status could not be confirmed';
       } else if (item.debug?.forwarding_rcpt_rejected) {
-        ui_reason = `Forwarding provider rejected RCPT (${item.debug.forwarding_rcpt_rejected}); final mailbox unverifiable`;
+        ui_reason = 'Forwarding service declined check — final inbox could not be confirmed';
       } else if (item.debug?.greylisted_or_temp) {
-        ui_reason = `Temporary 4xx / greylisting (${item.debug.greylisted_or_temp}) after retry`;
+        ui_reason = 'Mail server is temporarily rate-limiting checks (greylisted) — try again shortly';
       } else if (item.debug?.connect_error) {
-        ui_reason = `SMTP connection inconclusive (${item.debug.connect_error})`;
+        ui_reason = 'Could not reach the mail server in time — try again to confirm';
+      } else {
+        ui_reason = 'Mail server answer was inconclusive — kept UNKNOWN rather than guessing';
       }
     }
 

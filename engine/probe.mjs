@@ -71,6 +71,7 @@ function smtpProbe(ip, mxHost, targetEmail, identity) {
     const done = (v) => { if (!settled) { settled = true; try { socket.destroy(); } catch {} resolve(v); } };
     socket.setTimeout(CONNECT_TIMEOUT_MS, () => done({ connected: stage !== 'banner', code: null, error: 'session_timeout' }));
     socket.once('error', (e) => done({ connected: false, code: null, error: String(e.code || e.message || e) }));
+    socket.once('close', () => done({ connected: stage !== 'banner', code: null, error: 'connection_closed' }));
     socket.connect(25, ip, () => {
       socket.setTimeout(SESSION_TIMEOUT_MS);
     });

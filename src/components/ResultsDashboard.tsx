@@ -179,15 +179,16 @@ export function ResultsDashboard({
         <GlossyCard glow="blue" className="p-5 sm:p-8 rounded-3xl border border-brand-blue/30 bg-app-card">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
+              {/* Technical note: runs up to 3 concurrent GitHub Actions Port-25 batches of 100 emails */}
               <p className="text-[10px] font-black text-brand-blue uppercase tracking-[0.25em] flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-brand-blue animate-ping" />
-                Live Bulk Verification Running (Max 3 Parallel Chunks)
+                Live Verification Running
               </p>
               <h3 className="text-lg sm:text-2xl font-black text-app-text tracking-tight mt-1 tabular-nums">
-                {emailsDone} / {emailsTotal} Emails Done &bull; Chunks {chunksDone} / {chunksTotal}
+                {emailsDone} / {emailsTotal} Emails Checked &bull; Batch {chunksDone} / {chunksTotal}
               </h3>
               {activeRequestId && (
-                <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-1">Request ID: {activeRequestId}</p>
+                <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-1">Scan Ref: {activeRequestId}</p>
               )}
             </div>
             <div className="flex items-center gap-4">
@@ -233,9 +234,10 @@ export function ResultsDashboard({
           </div>
           <div className="flex items-baseline gap-2">
             <p className="text-4xl sm:text-5xl font-black text-app-text font-mono tracking-tighter tabular-nums">{safeCount}</p>
-            <span className="text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest">Deliverable</span>
+            <span className="text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest">Ready to Send</span>
           </div>
-          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold mt-3">Confirmed 250 OK (non-catch-all)</p>
+          {/* Technical note: confirmed RFC 250 OK non-catch-all mailboxes */}
+          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold mt-3">Confirmed active &amp; deliverable inboxes</p>
         </GlossyCard>
 
         <GlossyCard glow="pink" className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card">
@@ -250,7 +252,7 @@ export function ResultsDashboard({
             <span className="text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest">Flagged</span>
           </div>
           <div className="flex flex-wrap gap-2 mt-3 text-[10px] font-bold tabular-nums">
-            <span className="text-amber-600 dark:text-amber-400">{riskyCount} RISKY ({catchAllCount} Catch-All)</span>
+            <span className="text-amber-600 dark:text-amber-400">{riskyCount} RISKY ({catchAllCount} Accept-All)</span>
             <span className="text-slate-400 dark:text-slate-600">&bull;</span>
             <span className="text-rose-600 dark:text-rose-500">{invalidCount} INVALID</span>
           </div>
@@ -269,7 +271,7 @@ export function ResultsDashboard({
             </p>
           </div>
           <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold mt-3 tabular-nums">
-            {definitiveCount}/{arrivedTotal} definitive verdicts ({unknownCount} UNKNOWN)
+            {definitiveCount}/{arrivedTotal} clear verdicts ({unknownCount} UNKNOWN)
           </p>
         </GlossyCard>
 
@@ -282,7 +284,7 @@ export function ResultsDashboard({
           </div>
           <p className="text-3xl sm:text-4xl font-black text-app-text tracking-tighter uppercase italic">V17 Active</p>
           <div className="mt-4 flex items-center justify-between">
-            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider tabular-nums">{arrivedTotal} Arrived</p>
+            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider tabular-nums">{arrivedTotal} Checked</p>
             <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[9px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30">
               V17 Engine
             </div>
@@ -389,9 +391,9 @@ export function ResultsDashboard({
             <div className="w-full">
               <div className="hidden md:flex text-slate-600 dark:text-slate-400 text-[10px] uppercase tracking-[0.3em] font-black bg-slate-50/70 dark:bg-white/[0.02] border-b border-app-border">
                 <div className="px-8 py-5 w-[35%]">Contact</div>
-                <div className="px-6 py-5 w-[20%]">MX / Provider</div>
+                <div className="px-6 py-5 w-[20%]">Email Provider</div>
                 <div className="px-6 py-5 w-[15%]">Verdict</div>
-                <div className="px-8 py-5 w-[30%]">Details</div>
+                <div className="px-8 py-5 w-[30%]">Why This Verdict</div>
               </div>
               <Virtuoso
                 style={{ height: '65vh' }}
@@ -405,11 +407,11 @@ export function ResultsDashboard({
             <div className="py-24 px-6 flex flex-col items-center justify-center text-center">
               <Database className="w-10 h-10 text-slate-400 dark:text-slate-600 mb-4" />
               <h4 className="text-lg sm:text-2xl font-black text-app-text uppercase italic tracking-tight mb-2">
-                {isProcessing ? 'Waiting for first chunk to arrive...' : 'No Matching Results'}
+                {isProcessing ? 'Checking your first batch now...' : 'No Matching Results'}
               </h4>
               <p className="text-slate-600 dark:text-slate-400 text-xs max-w-md mx-auto">
                 {isProcessing
-                  ? 'Results stream directly into this table as each 100-email chunk completes.'
+                  ? 'Verified contacts appear live in this table as each batch finishes.'
                   : 'Try adjusting your active filter tab or search query.'}
               </p>
               {searchTerm && (

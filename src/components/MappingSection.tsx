@@ -32,7 +32,7 @@ export function MappingSection({
               <LayoutGrid className="w-6 h-6 text-brand-blue" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-xl font-black text-app-text italic tracking-tighter uppercase">Column Mapping</h3>
+              <h3 className="text-xl font-black text-app-text italic tracking-tighter uppercase">Match Your Columns</h3>
               <p className="text-[10px] text-slate-500 font-black uppercase tracking-wider truncate">File: {fileName}</p>
             </div>
           </div>
@@ -78,7 +78,7 @@ export function MappingSection({
             disabled={!mappings.emailKey || isProcessing}
             className="w-full gradient-bg disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed text-white h-14 sm:h-16 rounded-2xl font-black text-base sm:text-lg uppercase italic tracking-wide flex items-center justify-center gap-3 transition-all shadow-xl shadow-brand-blue/30 hover:brightness-105 active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
           >
-            Start Verification Scan
+            Start Cleaning List
             <ShieldCheck className="w-5 h-5" />
           </button>
         </div>

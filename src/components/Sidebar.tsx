@@ -21,13 +21,14 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
         <span className="text-app-text font-black text-2xl tracking-tighter uppercase italic select-none">Lead<span className="gradient-text">Pure</span></span>
       </div>
 
+      {/* Runner note: uses ephemeral GitHub Actions Port 25 workers cleanly behind the scenes */}
       <div className="px-6 mb-8">
         <div className="p-4 rounded-2xl bg-slate-100/80 dark:bg-app-bg/10 border border-app-border">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">SMTP Runner</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">Verification Engine</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm" />
           </div>
-          <div className="text-[10px] font-bold text-slate-800 dark:text-slate-200">V17 • PORT 25 ONLINE</div>
+          <div className="text-[10px] font-bold text-slate-800 dark:text-slate-200">V17 • LIVE &amp; READY</div>
         </div>
       </div>
 

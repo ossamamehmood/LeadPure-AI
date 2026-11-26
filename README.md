@@ -80,29 +80,20 @@ Verdicts remain 100% consistent across the UI table, summary cards, and exported
 
 ```json
 {
-  "mode": "single",
-  "email": "founder@example.com",
-  "rules": {
-    "roleCheck": true,
-    "disposableCheck": true
-  }
+  "email": "founder@example.com"
 }
 ```
 
 </details>
 
 <details>
-<summary><strong>Chunked Bulk Payload</strong></summary>
+<summary><strong>Bulk List Payload (auto-split into 100-email chunks)</strong></summary>
 
 ```json
 {
-  "mode": "bulk",
-  "requestId": "req_1795572000_ab12cd",
-  "chunks": [
-    {
-      "chunkIndex": 0,
-      "emails": ["alice@example.com", "bob@example.com"]
-    }
+  "emails": [
+    "alice@example.com",
+    "bob@example.com"
   ]
 }
 ```

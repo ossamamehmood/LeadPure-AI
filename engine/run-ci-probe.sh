@@ -16,6 +16,10 @@ printf '%s\n' "$EMAILS_INPUT" > emails.txt
 wc -l emails.txt
 
 node engine/probe.mjs emails.txt result.json
+if [ ! -s "$GITHUB_WORKSPACE/result.json" ]; then
+  echo "Engine did not produce non-empty result.json" >&2
+  exit 1
+fi
 
 git config --global user.name "leadpure-engine"
 git config --global user.email "engine@leadpure.ai"
@@ -49,7 +53,9 @@ fi
 
 cp "$GITHUB_WORKSPACE/result.json" "$TARGET_PATH"
 git add "$TARGET_PATH"
-git commit --quiet -m "result ${REQUEST_ID}${CHUNK_INDEX:+ chunk-${CHUNK_INDEX}}"
+if ! git diff --cached --quiet; then
+  git commit --quiet -m "result ${REQUEST_ID}${CHUNK_INDEX:+ chunk-${CHUNK_INDEX}}"
+fi
 
 for attempt in 1 2 3 4 5; do
   git pull --rebase --quiet origin results || true
