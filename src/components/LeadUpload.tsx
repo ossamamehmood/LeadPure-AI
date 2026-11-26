@@ -30,7 +30,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
               <p className="text-slate-600 dark:text-slate-400 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
                 Real-Time Check
               </p>
-              <span className="px-2.5 py-0.5 bg-brand-blue/10 text-brand-blue text-[10px] rounded-full font-semibold tracking-wide border border-brand-blue/20 whitespace-nowrap shrink-0">
+              <span className="px-2.5 py-0.5 gradient-surface text-brand-blue text-[10px] rounded-full font-semibold tracking-wide border border-brand-blue/25 whitespace-nowrap shrink-0">
                 No Email Sent
               </span>
             </div>
@@ -48,7 +48,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
             <p className="text-slate-600 dark:text-slate-400 text-[11px] font-semibold uppercase tracking-wider mb-4">
               Bounce Protection
             </p>
-            <h3 className="text-xl sm:text-2xl font-display font-bold text-brand-blue tracking-tight">
+            <h3 className="text-xl sm:text-2xl font-display font-bold gradient-text tracking-tight">
               Catch-All &amp; Risk Guard
             </h3>
             <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-[13px] mt-2.5 leading-relaxed">
@@ -84,7 +84,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
           )}
         >
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/40 to-transparent opacity-0 group-hover/drop:opacity-100 transition-opacity duration-300"
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue via-sky-400 to-transparent opacity-0 group-hover/drop:opacity-100 transition-opacity duration-300"
             aria-hidden="true"
           />
           <div className="relative z-10 flex flex-col items-center text-center p-6 sm:p-12 space-y-6">
@@ -105,7 +105,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
                 Clean your <span className="gradient-text">lead list</span>
               </h2>
               <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-md mx-auto leading-relaxed font-medium">
-                Upload a spreadsheet to remove undeliverable emails before sending (V17).
+                Upload a spreadsheet to remove undeliverable emails before sending (V14).
               </p>
               <p className="text-slate-500 dark:text-slate-400 text-xs max-w-sm mx-auto">
                 Drag and drop a file here, or click anywhere inside to browse.

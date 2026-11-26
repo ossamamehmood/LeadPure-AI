@@ -1,4 +1,4 @@
-# LeadPure V17: Line-by-Line Code Audit (Phase 1)
+# LeadPure V14: Line-by-Line Code Audit (Phase 1)
 
 **Scope audited**: `api/check.ts`, `api/validate-batch.ts`, `src/components/*`, `src/lib/*`, `src/utils/processor.ts`, `src/hooks/*`, `src/workers/*`, `src/App.tsx`, `engine/probe.mjs`, `.github/workflows/*`, `vercel.json`, `package.json`, `test-engine.ts`.
 
@@ -34,7 +34,7 @@
    - Reads `REACHER_GH_TOKEN`, `REACHER_REPO_OWNER`, `REACHER_REPO_NAME` instead of primary `LEADPURE_GH_TOKEN`, `LEADPURE_REPO_OWNER`, `LEADPURE_REPO_NAME` (keeping `REACHER_*` only as backwards-compatible fallback).
    - Error message leaks internal `REACHER_GH_TOKEN` name (line 226).
 2. **`api/validate-batch.ts`**:
-   - Dead HTTP 410 deprecated stub. Needs V17 cleanup or removal of stale V15 comments/headers (retaining 410 safety guard cleanly without any SMTP code).
+   - Dead HTTP 410 deprecated stub. Needs V14 cleanup or removal of stale V15 comments/headers (retaining 410 safety guard cleanly without any SMTP code).
 3. **`src/lib/smtp.ts`**:
    - Leftover external wrapper `queryExternalSmtpBackend` referencing `REACHER_API_URL`, `REACHER_API_KEY`, `SMTP_BACKEND_URL` (lines 374-436).
    - Legacy `executeSmtpSocketHandshake` and `verifySmtpDeliverability` with `confidenceScore: 40` in `src/lib/validator.ts` lines 261, 298 (kept offline for `test-engine.ts` unit suite, never called in production Vercel API or UI).

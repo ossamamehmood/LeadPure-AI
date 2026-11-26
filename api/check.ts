@@ -204,7 +204,7 @@ async function dispatchWorkflow(
 }
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('X-LeadPure-Version', 'v17.0.0');
+  res.setHeader('X-LeadPure-Version', 'v14.0.0');
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
   // Prefer LEADPURE_* env vars, preserving REACHER_* fallback for backwards compatibility
@@ -501,7 +501,7 @@ export default async function handler(req: any, res: any) {
 
     const manifest = {
       requestId,
-      version: '17',
+      version: '14',
       totalEmails: rawList.length,
       chunkSize: CHUNK_SIZE,
       chunkCount: chunks.length,

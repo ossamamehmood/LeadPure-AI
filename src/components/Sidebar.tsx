@@ -22,7 +22,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
   return (
     <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/60 backdrop-blur-2xl hidden lg:flex shrink-0 z-50">
       <div className="p-7 flex items-center gap-3.5 group cursor-pointer">
-        <div className="w-9 h-9 rounded-xl bg-brand-blue flex items-center justify-center text-white shadow-[0_8px_20px_-4px_rgba(90,92,255,0.48),inset_0_1px_0_rgba(255,255,255,0.22)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
+        <div className="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center text-white shadow-[0_8px_20px_-4px_rgba(90,92,255,0.5),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
           <Zap className="w-4.5 h-4.5 fill-white" />
         </div>
         <span className="text-app-text font-display font-bold text-2xl tracking-tight select-none">
@@ -32,9 +32,9 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
 
       {/* Runner note: uses ephemeral GitHub Actions Port 25 workers behind the scenes */}
       <div className="px-6 mb-6">
-        <div className="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-white/[0.03] border border-app-border shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+        <div className="p-3.5 rounded-2xl gradient-surface border border-brand-blue/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
               Verification Engine
             </span>
             <span className="relative flex h-2 w-2">
@@ -42,8 +42,8 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
           </div>
-          <div className="text-xs font-bold font-mono text-slate-800 dark:text-slate-200 tracking-tight">
-            V17 &middot; LIVE &amp; READY
+          <div className="text-xs font-bold font-mono text-slate-800 dark:text-slate-100 tracking-tight">
+            <span className="gradient-text font-bold">V14</span> &middot; LIVE &amp; READY
           </div>
         </div>
       </div>
@@ -66,7 +66,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
                 <motion.div
                   layoutId="nav-active-pill"
                   transition={TACTILE_SPRING}
-                  className="absolute inset-0 bg-brand-blue rounded-2xl shadow-[0_8px_22px_-6px_rgba(90,92,255,0.55),inset_0_1px_0_rgba(255,255,255,0.2)]"
+                  className="absolute inset-0 gradient-bg rounded-2xl shadow-[0_8px_24px_-6px_rgba(79,70,229,0.55),0_2px_10px_-2px_rgba(14,165,233,0.28),inset_0_1px_0_rgba(255,255,255,0.24)]"
                 />
               )}
               <Icon className={cn('w-4 h-4 relative z-10 transition-transform duration-200 group-hover:scale-105', item.active ? 'text-white' : 'text-slate-500 dark:text-slate-400')} />
@@ -82,12 +82,12 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
             Engine Release
           </p>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 border border-brand-blue/20 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl gradient-surface border border-brand-blue/25 flex items-center justify-center shrink-0">
               <Database className="w-4 h-4 text-brand-blue" />
             </div>
             <div className="min-w-0">
-              <span className="text-xs font-display font-bold text-app-text block leading-tight">LeadPure V17</span>
-              <span className="text-[10px] font-mono font-medium text-brand-blue">Probe 1.3.2 (Chunked)</span>
+              <span className="text-xs font-display font-bold text-app-text block leading-tight">LeadPure V14</span>
+              <span className="text-[10px] font-mono font-medium gradient-text">Probe 1.3.2 (Chunked)</span>
             </div>
           </div>
         </GlossyCard>

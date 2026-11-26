@@ -16,14 +16,14 @@ export function RulesSection({ rules, onToggle }: RulesSectionProps) {
       <GlossyCard className="p-5 sm:p-8 md:p-12 rounded-3xl shadow-2xl relative overflow-hidden border-app-border">
         <div className="relative z-10 mb-8 sm:mb-10">
           <div className="flex items-center gap-4">
-            <div className="w-1 h-10 bg-brand-blue rounded-full" />
+            <div className="w-1 h-10 gradient-bg rounded-full" />
             <div>
               <h2 className="text-2xl sm:text-3xl font-display font-bold text-app-text tracking-tight leading-none">
                 Verification Rules
               </h2>
               <p className="text-slate-600 dark:text-slate-400 text-xs font-medium mt-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                LeadPure V17 Protection Rules Active
+                LeadPure V14 Protection Rules Active
               </p>
             </div>
           </div>

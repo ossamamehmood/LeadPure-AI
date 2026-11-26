@@ -145,7 +145,7 @@ export function SingleValidation() {
     <section className="mb-12 sm:mb-16">
       {/* Real-Time Inbox Checker (RFC 5321 Port 25 + Catch-All probe runs quietly via Actions runners) */}
       <div className="flex items-center gap-4 sm:gap-5 mb-7 sm:mb-10">
-        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/25 shadow-sm shrink-0">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl gradient-surface flex items-center justify-center border border-brand-blue/25 shadow-sm shrink-0">
           <Zap className="w-6 h-6 text-brand-blue" />
         </div>
         <div className="min-w-0">
@@ -154,7 +154,7 @@ export function SingleValidation() {
           </h2>
           <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-1 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            V17 Real-Time Mailbox Check
+            V14 Real-Time Mailbox Check
           </p>
         </div>
       </div>

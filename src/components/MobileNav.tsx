@@ -34,7 +34,7 @@ export function MobileNav({ currentTab, setTab }: MobileNavProps) {
                 <motion.div
                   layoutId="mobile-nav-pill"
                   transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                  className="absolute inset-0 rounded-xl bg-brand-blue/10 border border-brand-blue/20"
+                  className="absolute inset-0 rounded-xl gradient-surface border border-brand-blue/25"
                 />
               )}
               <Icon className="w-4 h-4 relative z-10" />

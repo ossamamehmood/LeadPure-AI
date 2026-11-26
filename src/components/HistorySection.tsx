@@ -61,7 +61,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                     <div className="flex items-center gap-4 min-w-0">
-                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-slate-100/80 dark:bg-white/[0.04] flex items-center justify-center border border-slate-200 dark:border-white/10 shrink-0">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl gradient-surface flex items-center justify-center border border-brand-blue/25 shrink-0">
                         <FileText className="w-6 h-6 text-brand-blue" />
                       </div>
                       <div className="space-y-1 min-w-0">
@@ -96,7 +96,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); loadItem(item); }}
-                          className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-6 py-3 rounded-xl gradient-bg text-white text-[10px] font-black uppercase tracking-widest transition-all shadow-lg hover:brightness-105 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
+                          className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-6 py-3 rounded-xl gradient-bg text-white text-xs font-semibold tracking-wide transition-all shadow-[0_8px_22px_-6px_rgba(79,70,229,0.5)] hover:brightness-110 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
                         >
                           <span>View</span>
                           <ChevronRight className="w-4 h-4" />

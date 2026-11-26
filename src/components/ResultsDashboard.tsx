@@ -216,7 +216,7 @@ export function ResultsDashboard({
           </div>
           <div className="h-2.5 w-full bg-slate-200/70 dark:bg-app-bg/40 rounded-full overflow-hidden border border-app-border">
             <motion.div
-              className="h-full w-full bg-brand-blue rounded-full"
+              className="h-full w-full gradient-bg rounded-full"
               style={{ transformOrigin: 'left' }}
               initial={{ scaleX: 0 }}
               animate={{ scaleX: Math.max(0, Math.min(1, progress / 100)) }}
@@ -286,15 +286,15 @@ export function ResultsDashboard({
           <GlossyCard className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card h-full">
             <div className="flex justify-between items-start mb-4">
               <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Engine Release</p>
-              <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/25">
+              <div className="w-8 h-8 rounded-xl gradient-surface flex items-center justify-center border border-brand-blue/25">
                 <Cpu className="w-4 h-4 text-brand-blue" />
               </div>
             </div>
-            <p className="text-3xl sm:text-4xl font-display font-bold text-app-text tracking-tight">V17 Active</p>
+            <p className="text-3xl sm:text-4xl font-display font-bold gradient-text tracking-tight">V14 Active</p>
             <div className="mt-4 flex items-center justify-between">
               <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold tabular-nums">{arrivedTotal} Checked</p>
-              <div className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-[11px] font-semibold rounded-full border border-brand-blue/25">
-                V17 Engine
+              <div className="px-3 py-1 gradient-surface text-brand-blue text-[11px] font-semibold rounded-full border border-brand-blue/25">
+                V14 Engine
               </div>
             </div>
           </GlossyCard>
@@ -317,7 +317,7 @@ export function ResultsDashboard({
                 <motion.div
                   layoutId="results-active-tab"
                   transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                  className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-brand-blue rounded-full"
+                  className="absolute bottom-0 left-0 right-0 h-[2.5px] gradient-bg rounded-full"
                 />
               )}
             </button>
@@ -384,7 +384,7 @@ export function ResultsDashboard({
                 variant="secondary"
                 size="sm"
                 strength={0.14}
-                onClick={() => onPreview(currentData, 'LeadPure V17 Results Preview')}
+                onClick={() => onPreview(currentData, 'LeadPure V14 Results Preview')}
                 className="h-11"
               >
                 <Database className="w-4 h-4" />
@@ -476,7 +476,7 @@ export function ResultsDashboard({
           </div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-brand-blue" />
-            <span>LeadPure V17 &bull; Engine 1.3.2</span>
+            <span>LeadPure V14 &bull; Engine 1.3.2</span>
           </div>
         </div>
       </div>

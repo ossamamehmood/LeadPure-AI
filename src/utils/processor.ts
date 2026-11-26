@@ -25,7 +25,7 @@ export interface SavedScanState {
   rows?: any[];
 }
 
-export const LAST_SCAN_STORAGE_KEY = 'leadpure_last_scan_v17';
+export const LAST_SCAN_STORAGE_KEY = 'leadpure_last_scan_v14';
 
 export function saveScanState(state: SavedScanState) {
   try {
@@ -153,7 +153,7 @@ export const processContacts = async (
   resumeContext?: { requestId: string; fileName: string },
   uploadFileName?: string
 ): Promise<{ valid: ProcessedContact[]; eliminated: any[]; stats: any; timedOut: boolean; requestId?: string }> => {
-  console.log(`[PROCESSOR_V17.0.0] Initializing verification scan (${data.length} input rows).`);
+  console.log(`[PROCESSOR_V14.0.0] Initializing verification scan (${data.length} input rows).`);
 
   const stats = {
     totalInput: data.length,

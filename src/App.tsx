@@ -16,6 +16,7 @@ import { LoadingOverlay } from './components/LoadingOverlay';
 import { DataPreviewModal } from './components/DataPreviewModal';
 import { SingleValidation } from './components/SingleValidation';
 import { GlossyCard } from './components/ui/GlossyCard';
+import { MagneticButton } from './components/ui/MagneticButton';
 
 // Hooks & Types
 import { useHistory } from './hooks/useHistory';
@@ -396,13 +397,15 @@ export default function App() {
                         </p>
                       </div>
                       <div className="flex items-center gap-3 w-full sm:w-auto">
-                        <button
+                        <MagneticButton
                           onClick={handleResumeScan}
-                          className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-semibold tracking-wide flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
+                          variant="primary"
+                          size="sm"
+                          className="flex-1 sm:flex-none"
                         >
                           <Play className="w-3.5 h-3.5 fill-white" />
                           Resume Last Scan
-                        </button>
+                        </MagneticButton>
                         <button
                           onClick={dismissResumable}
                           aria-label="Dismiss unfinished scan banner"

@@ -8,6 +8,8 @@
 
   --color-brand-blue: #5A5CFF;
   --color-brand-cyan: #38BDF8;
+  --color-brand-indigo: #4F46E5;
+  --color-brand-violet: #7C3AED;
   --color-brand-pink: #6366F1;
   --color-brand-purple: #4F46E5;
   --color-brand-teal: #10B981;
@@ -88,25 +90,27 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(90, 92, 255, 0.55);
+  background: linear-gradient(180deg, #5A5CFF 0%, #38BDF8 100%);
   background-clip: content-box;
 }
 
-/* Subtle calibrated atmospheric depth without loud rainbow noise */
+/* Signature calibrated atmospheric field (Cobalt -> Indigo -> Sky) */
 .mesh-background {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 75% 45% at 20% 0%, rgba(90, 92, 255, 0.09) 0%, transparent 65%),
-    radial-gradient(ellipse 60% 45% at 85% 100%, rgba(56, 189, 248, 0.04) 0%, transparent 60%);
+    radial-gradient(ellipse 80% 50% at 15% -5%, rgba(90, 92, 255, 0.14) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 40% at 88% 12%, rgba(124, 58, 237, 0.08) 0%, transparent 58%),
+    radial-gradient(ellipse 65% 45% at 82% 102%, rgba(56, 189, 248, 0.08) 0%, transparent 60%);
   z-index: -1;
   pointer-events: none;
 }
 
 [data-theme='light'] .mesh-background {
   background:
-    radial-gradient(ellipse 75% 45% at 20% 0%, rgba(90, 92, 255, 0.07) 0%, transparent 65%),
-    radial-gradient(ellipse 60% 45% at 85% 100%, rgba(14, 165, 233, 0.05) 0%, transparent 60%);
+    radial-gradient(ellipse 80% 50% at 15% -5%, rgba(90, 92, 255, 0.09) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 40% at 88% 12%, rgba(99, 102, 241, 0.06) 0%, transparent 58%),
+    radial-gradient(ellipse 65% 45% at 82% 102%, rgba(14, 165, 233, 0.07) 0%, transparent 60%);
 }
 
 .glass-panel {
@@ -141,7 +145,7 @@ body {
 
 .gradient-text {
   color: #5A5CFF;
-  background: linear-gradient(135deg, #5A5CFF 0%, #38BDF8 100%);
+  background: linear-gradient(125deg, #818CF8 0%, #5A5CFF 44%, #38BDF8 100%);
   -webkit-background-clip: text;
   background-clip: text;
   display: inline-block;
@@ -149,7 +153,7 @@ body {
 
 [data-theme='light'] .gradient-text {
   color: #4338CA;
-  background: linear-gradient(135deg, #4338CA 0%, #5A5CFF 100%);
+  background: linear-gradient(125deg, #3730A3 0%, #4F46E5 50%, #0284C7 100%);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -161,7 +165,23 @@ body {
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, #5A5CFF 0%, #4338CA 100%);
+  background: linear-gradient(130deg, #5A5CFF 0%, #4F46E5 48%, #0284C7 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.gradient-surface {
+  background: linear-gradient(135deg, rgba(90, 92, 255, 0.14) 0%, rgba(79, 70, 229, 0.09) 55%, rgba(56, 189, 248, 0.10) 100%);
+}
+
+[data-theme='light'] .gradient-surface {
+  background: linear-gradient(135deg, rgba(90, 92, 255, 0.09) 0%, rgba(79, 70, 229, 0.06) 55%, rgba(14, 165, 233, 0.09) 100%);
+}
+
+.gradient-border {
+  background:
+    linear-gradient(var(--glossy-bg), var(--glossy-bg)) padding-box,
+    linear-gradient(135deg, rgba(90, 92, 255, 0.45), rgba(56, 189, 248, 0.35)) border-box;
+  border: 1px solid transparent;
 }
 
 .glow-cyan,

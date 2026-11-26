@@ -7,7 +7,7 @@ import { checkGravatar } from './src/lib/gravatar.js';
 
 async function runTestSuite() {
   console.log("=================================================");
-  console.log("   LEADPURE-AI ENTERPRISE V13 VERIFICATION SUITE  ");
+  console.log("   LEADPURE-AI V14 VERIFICATION SUITE           ");
   console.log("=================================================\n");
 
   let passed = 0;
@@ -52,7 +52,7 @@ async function runTestSuite() {
   assert(fakeMx.acceptsMail === false, 'nonexistent domain does not accept email');
 
   // 5. Full Engine End-to-End Validation
-  console.log("\n[5] End-to-End LeadPure Neural Verification Suite:");
+  console.log("\n[5] End-to-End LeadPure Verification Suite:");
   
   // Nonexistent domain (DNS Tier)
   const nonExistent = await validateEmailFull('fake@nonexistentdomain1234567.com', {

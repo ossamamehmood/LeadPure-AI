@@ -5,8 +5,8 @@ export function Footer() {
     <footer className="py-10 border-t border-app-border flex flex-col md:flex-row items-center justify-between gap-6 px-2 text-xs font-medium text-slate-600 dark:text-slate-400 transition-colors duration-300">
       <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-8">
         <div className="flex items-center gap-2.5">
-          <div className="w-1.5 h-1.5 rounded-full bg-brand-blue shadow-[0_0_8px_rgba(90,92,255,0.5)]" />
-          <span className="font-display font-bold text-brand-blue">LeadPure V17</span>
+          <div className="w-2 h-2 rounded-full gradient-bg shadow-[0_0_10px_rgba(90,92,255,0.55)]" />
+          <span className="font-display font-bold gradient-text">LeadPure V14</span>
         </div>
         <div className="flex items-center gap-2.5">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -38,7 +38,7 @@ export function Footer() {
           href="https://ossamamehmood.com"
           target="_blank"
           rel="noreferrer"
-          className="text-brand-blue font-semibold hover:opacity-80 transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded px-1"
+          className="gradient-text font-semibold hover:opacity-85 transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded px-1"
         >
           Built By Ossama Mahmood
         </a>

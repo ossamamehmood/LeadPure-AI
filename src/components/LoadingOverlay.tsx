@@ -40,8 +40,8 @@ export function LoadingOverlay({
         <div className="absolute inset-0 rounded-full border-t-2 border-brand-blue/40 animate-spin" />
         <div className="absolute inset-4 rounded-full border border-app-border border-b-2 border-b-brand-pink animate-[spin_3s_linear_infinite_reverse]" />
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <RefreshCw className="w-10 h-10 sm:w-14 sm:h-14 gradient-text animate-pulse mb-1" />
-          <span className="text-[9px] font-black text-app-text italic tracking-widest uppercase">LeadPure V17</span>
+          <RefreshCw className="w-10 h-10 sm:w-14 sm:h-14 text-brand-blue animate-spin [animation-duration:4s] mb-1" />
+          <span className="text-[10px] font-display font-bold gradient-text tracking-wide">LeadPure V14</span>
         </div>
       </div>
 
@@ -86,7 +86,7 @@ export function LoadingOverlay({
 
         <div className="h-3 w-full bg-app-bg/10 rounded-full overflow-hidden relative border border-app-border">
           <motion.div
-            className="h-full w-full bg-brand-blue rounded-full relative"
+            className="h-full w-full gradient-bg rounded-full relative"
             style={{ transformOrigin: 'left' }}
             initial={{ scaleX: 0 }}
             animate={{ scaleX: Math.max(0, Math.min(1, progress / 100)) }}
@@ -102,7 +102,7 @@ export function LoadingOverlay({
                 <div className="w-2 h-2 rounded-full bg-amber-500/30" />
                 <div className="w-2 h-2 rounded-full bg-emerald-500/30" />
               </div>
-              <span className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500 font-mono">LeadPure V17 Verification Engine</span>
+              <span className="text-[8px] font-semibold uppercase tracking-[0.25em] text-slate-500 font-mono">LeadPure V14 Verification Engine</span>
             </div>
 
             <div className="p-4 sm:p-5 h-36 overflow-y-auto font-mono text-[10px] leading-relaxed flex flex-col justify-end space-y-1.5 scrollbar-hide">

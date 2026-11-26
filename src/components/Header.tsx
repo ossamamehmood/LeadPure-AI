@@ -19,7 +19,7 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
     <header className="h-20 sm:h-24 border-b border-app-border flex items-center justify-between px-4 sm:px-8 lg:px-10 bg-app-bg/60 backdrop-blur-2xl shrink-0 sticky top-0 z-50 gap-3">
       <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
         <div className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer shrink-0">
-          <div className="w-8 h-8 rounded-xl bg-brand-blue flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(90,92,255,0.5),inset_0_1px_0_rgba(255,255,255,0.22)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
+          <div className="w-8 h-8 rounded-xl gradient-bg flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(90,92,255,0.5),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
             <Zap className="w-4 h-4 fill-white" />
           </div>
           <h1 className="text-xl sm:text-2xl font-display font-bold text-app-text tracking-tight flex items-center gap-1 select-none">
@@ -28,10 +28,10 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
         </div>
         <div className="h-5 w-px bg-app-border hidden md:block shrink-0" />
         <div className="hidden md:flex items-center text-[11px] font-semibold tracking-tight text-slate-600 dark:text-slate-400 min-w-0">
-          <span className="flex items-center gap-2 px-3 py-1 bg-brand-blue/[0.08] rounded-full border border-brand-blue/20 text-slate-700 dark:text-slate-300 truncate">
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-blue shrink-0" />
+          <span className="flex items-center gap-2 px-3 py-1 gradient-surface rounded-full border border-brand-blue/25 text-slate-700 dark:text-slate-200 truncate">
+            <span className="w-1.5 h-1.5 rounded-full gradient-bg shrink-0" />
             <span className="truncate">
-              V17 Enterprise Release <span className="hidden xl:inline text-slate-500 dark:text-slate-400">(Own SMTP Engine 1.3.2)</span>
+              V14 Enterprise Release <span className="hidden xl:inline text-slate-500 dark:text-slate-400">(Own SMTP Engine 1.3.2)</span>
             </span>
           </span>
         </div>

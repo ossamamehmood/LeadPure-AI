@@ -31,7 +31,7 @@ export function MappingSection({
         <GlossyCard className="p-5 sm:p-8 rounded-3xl shadow-2xl">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 pb-6 border-b border-app-border gap-4">
             <div className="flex items-center gap-4 min-w-0">
-              <div className="bg-brand-blue/15 p-3 rounded-2xl border border-brand-blue/20 shrink-0">
+              <div className="gradient-surface p-3 rounded-2xl border border-brand-blue/25 shrink-0">
                 <LayoutGrid className="w-6 h-6 text-brand-blue" />
               </div>
               <div className="min-w-0">

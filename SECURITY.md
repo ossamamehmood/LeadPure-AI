@@ -1,4 +1,4 @@
-# Security Policy: LeadPure AI V17
+# Security Policy: LeadPure AI V14
 
 ## Data Flow & Privacy Architecture
 
@@ -23,8 +23,8 @@ LeadPure AI is designed as a stateless verification orchestrator with minimal da
 
 | Version | Status | Notes |
 | :--- | :--- | :--- |
-| **17.x** | Active Support | Own SMTP Engine `1.3.2`, chunked `/api/check`, 7-day auto-cleanup |
-| **&lt;= 16.x** | End of Life | Upgrade to `17.x`; `/api/validate-batch` is retired (`HTTP 410`) |
+| **14.x** | Active Support | Own SMTP Engine `1.3.2`, chunked `/api/check`, 7-day auto-cleanup |
+| **&lt;= 13.x** | End of Life | Upgrade to `14.x`; `/api/validate-batch` is retired (`HTTP 410`) |
 
 ---
 

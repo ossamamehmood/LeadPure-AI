@@ -31,7 +31,7 @@ jobs:
       - name: Static Typecheck (TypeScript)
         run: npm run lint
 
-      - name: Run LeadPure AI V17 Test Suite
+      - name: Run LeadPure AI V14 Test Suite
         run: npm test
 
       - name: Production Bundle Build (Vite)

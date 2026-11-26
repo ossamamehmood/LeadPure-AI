@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://leadpureai.vercel.app/">
-    <img src=".github/LeadPure_AI.gif" alt="LeadPure AI V17 Enterprise Release" width="100%" />
+    <img src=".github/LeadPure_AI.gif" alt="LeadPure AI V14 Enterprise Release" width="100%" />
   </a>
 
   <br /><br />
@@ -13,7 +13,7 @@
 
   <p>
     <a href="https://leadpureai.vercel.app/"><img src="https://img.shields.io/badge/Live_App-leadpureai.vercel.app-02FEDC?style=for-the-badge&logo=vercel&logoColor=000000" alt="Live App" /></a>
-    <img src="https://img.shields.io/badge/Release-V17_Enterprise-5A5CFF?style=for-the-badge" alt="V17 Enterprise Release" />
+    <img src="https://img.shields.io/badge/Release-V14_Enterprise-5A5CFF?style=for-the-badge" alt="V14 Enterprise Release" />
     <img src="https://img.shields.io/badge/SMTP_Engine-v1.3.2-10B981?style=for-the-badge" alt="SMTP Engine 1.3.2" />
     <img src="https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js 22" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=000000" alt="React 19" />
@@ -24,7 +24,7 @@
 
 ## Overview
 
-**LeadPure AI V17** validates email addresses at scale using a custom zero-dependency Node.js SMTP probe (`engine/probe.mjs` v1.3.2) running on ephemeral GitHub Actions Port-25 runners, orchestrated by a React 19 + Vercel Serverless web app.
+**LeadPure AI V14** validates email addresses at scale using a custom zero-dependency Node.js SMTP probe (`engine/probe.mjs` v1.3.2) running on ephemeral GitHub Actions Port-25 runners, orchestrated by a React 19 + Vercel Serverless web app.
 
 Instead of relying on proprietary third-party verification APIs or returning optimistic fallback guesses when a mail server stalls, every check executes a multi-stage DNS + live SMTP conversation (`EHLO` -> `MAIL FROM` -> `RCPT TO`) with explicit catch-all, greylist, and forwarding-provider detection.
 
@@ -35,7 +35,7 @@ Instead of relying on proprietary third-party verification APIs or returning opt
 | **Own SMTP Engine `1.3.2`** | Pure Node.js (`net`, `dns`, `tls`) Port-25 verifier with 2-pass retry on dropped connections, 30s greylist wait & retry, and catch-all probing. |
 | **Forwarding Provider Aware** | Recognizes `ImprovMX`, `ForwardEmail`, and `Cloudflare Email Routing` MX patterns so valid aliases are not falsely rejected. |
 | **5,000-Lead Chunked Scale** | Client-side Web Worker parses spreadsheets without freezing the UI, splits lists into **100-email chunks** (max **3** concurrent Actions runs), and runs **4 parallel workers** per runner. |
-| **Resumable Manifest Polling** | Tracks jobs via `results/<requestId>/manifest.json` + `chunk-<n>.json` with `5s -> 15s` polling backoff (20-minute cap) and `localStorage` scan resume (`leadpure_last_scan_v17`). |
+| **Resumable Manifest Polling** | Tracks jobs via `results/<requestId>/manifest.json` + `chunk-<n>.json` with `5s -> 15s` polling backoff (20-minute cap) and `localStorage` scan resume (`leadpure_last_scan_v14`). |
 | **Honest Verdict Reporting** | No arbitrary percentage scores or *"0% bounce"* promises. Summary cards display exact counts plus the run's **Definitive Rate** (`(SAFE + RISKY + INVALID) / arrived`). |
 | **Exact `.xlsx` Export** | Downloads `LeadPure_Results_<YYYY-MM-DD>.xlsx` containing strictly the arrived verdicts (`All`, `SAFE Only`, or `Filtered` view). |
 

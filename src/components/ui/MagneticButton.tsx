@@ -48,7 +48,7 @@ export function MagneticButton({
 
   const variantStyles = {
     primary:
-      'bg-brand-blue hover:bg-[#494BFF] text-white border border-indigo-400/30 shadow-[0_8px_24px_-6px_rgba(90,92,255,0.45),inset_0_1px_0_rgba(255,255,255,0.22)] hover:shadow-[0_12px_30px_-6px_rgba(90,92,255,0.6),inset_0_1px_0_rgba(255,255,255,0.28)]',
+      'gradient-bg text-white border border-indigo-400/35 shadow-[0_10px_28px_-6px_rgba(79,70,229,0.52),0_2px_10px_-2px_rgba(14,165,233,0.28),inset_0_1px_0_rgba(255,255,255,0.28)] hover:brightness-110 hover:shadow-[0_14px_34px_-6px_rgba(79,70,229,0.65),0_4px_14px_-2px_rgba(56,189,248,0.35),inset_0_1px_0_rgba(255,255,255,0.35)]',
     secondary:
       'bg-slate-100/90 dark:bg-white/[0.05] hover:bg-slate-200/80 dark:hover:bg-white/[0.1] text-app-text border border-slate-200 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]',
     ghost:
@@ -74,13 +74,19 @@ export function MagneticButton({
       onMouseLeave={handleMouseLeave}
       disabled={disabled}
       className={cn(
-        'relative overflow-hidden font-semibold tracking-tight transition-colors duration-200 flex items-center justify-center gap-2.5 cursor-pointer select-none disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
+        'group/btn relative overflow-hidden font-semibold tracking-tight transition-[filter,box-shadow,background-color,border-color] duration-250 flex items-center justify-center gap-2.5 cursor-pointer select-none disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
         variantStyles[variant],
         sizeStyles[size],
         className
       )}
       {...props}
     >
+      {variant === 'primary' && !disabled && !shouldReduceMotion && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/2 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover/btn:translate-x-[320%] transition-transform duration-700 ease-out"
+        />
+      )}
       {children}
     </motion.button>
   );
