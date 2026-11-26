@@ -48,7 +48,7 @@ jobs:
 
   probe_2:
     needs: probe_1
-    if: failure()
+    if: needs.probe_1.result == 'failure'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -70,7 +70,7 @@ jobs:
 
   probe_3:
     needs: probe_2
-    if: failure()
+    if: needs.probe_2.result == 'failure'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -92,7 +92,7 @@ jobs:
 
   probe_fallback:
     needs: probe_3
-    if: failure()
+    if: needs.probe_3.result == 'failure'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
