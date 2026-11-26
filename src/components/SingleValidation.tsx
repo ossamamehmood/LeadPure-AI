@@ -364,24 +364,24 @@ export function SingleValidation() {
                       <Globe className="w-4 h-4 text-slate-500" />
                       <span className="text-[9px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Domain Setup</span>
                     </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-start gap-2">
-                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest shrink-0">Mail Host</span>
-                        <div className="text-right min-w-0">
+                    <div className="space-y-3.5">
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Mail Host</span>
                           <p className={cn('text-[10px] font-black', result.mxRecordFound ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-500')}>
                             {result.mxRecordFound ? 'ACTIVE' : 'MISSING'}
                           </p>
-                          {result.mxRecordFound && <p className="text-[9px] text-slate-600 dark:text-slate-400 font-mono mt-0.5 break-all">{result.mxRecord}</p>}
                         </div>
+                        {result.mxRecordFound && <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono break-all">{result.mxRecord}</p>}
                       </div>
-                      <div className="flex justify-between items-start gap-2">
-                        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest shrink-0">Email Provider</span>
-                        <div className="text-right min-w-0">
-                          <p className="text-[10px] font-black text-app-text break-words">{result.provider || 'Unknown'}</p>
-                          <p className="text-[9px] text-slate-600 dark:text-slate-400 font-mono mt-0.5">{result.isFreeEmail ? 'Personal Mailbox' : 'Custom Domain'}</p>
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Email Provider</span>
+                          <span className="text-[9px] text-slate-600 dark:text-slate-400 font-mono">{result.isFreeEmail ? 'Personal Mailbox' : 'Custom Domain'}</span>
                         </div>
+                        <p className="text-xs font-black text-app-text">{result.provider || 'Unknown'}</p>
                       </div>
-                      <div className="flex justify-between items-center gap-2">
+                      <div className="flex justify-between items-center gap-2 pt-0.5">
                         <span className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest">Sender Auth (SPF)</span>
                         <p className={cn('text-[10px] font-black uppercase', result.spfExists ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400')}>
                           {result.spfExists ? 'Configured' : 'Not Listed'}
