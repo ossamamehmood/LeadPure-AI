@@ -1,0 +1,42 @@
+[
+  {
+    "input": "mandy@edenhealthrx.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx1-usg2.ppe-hosted.com",
+        "mx2-usg2.ppe-hosted.com",
+        "mx3-usg2.ppe-hosted.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "mandy@edenhealthrx.com",
+      "domain": "edenhealthrx.com",
+      "is_valid_syntax": true,
+      "username": "mandy"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
+      "rcpt_enhanced": "5.1.8",
+      "confirm_reply": "250 2.1.5 Ok",
+      "identity_disagreement": {
+        "a_code": 550,
+        "b_code": 250
+      }
+    }
+  }
+]
