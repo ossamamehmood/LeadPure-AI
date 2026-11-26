@@ -147,16 +147,16 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
 
       {/* Top Glass Header */}
       <header className="sticky top-0 z-50 border-b border-app-border bg-app-bg/75 backdrop-blur-2xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-8 h-20 flex items-center justify-between gap-2 sm:gap-4">
           <a
             href="/"
             onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-            className="flex items-center gap-3 group shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-xl"
+            className="flex items-center gap-2 sm:gap-3 group shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-xl"
           >
-            <div className="w-9 h-9 rounded-xl gradient-cta flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(90,92,255,0.5),0_2px_10px_-2px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
-              <Zap className="w-4.5 h-4.5 fill-white" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl gradient-cta flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(90,92,255,0.5),0_2px_10px_-2px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
+              <Zap className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-white" />
             </div>
-            <span className="text-xl sm:text-2xl font-display font-bold text-app-text tracking-tight">
+            <span className="text-lg sm:text-2xl font-display font-bold text-app-text tracking-tight">
               Lead<span className="gradient-text">Pure</span><span className="text-slate-600 dark:text-slate-300 font-semibold ml-1">AI</span>
             </span>
           </a>
@@ -187,8 +187,9 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               </div>
             </button>
 
-            <MagneticButton onClick={onOpenDashboard} variant="primary" size="sm" className="rounded-full px-5">
-              <span>Open Dashboard</span>
+            <MagneticButton onClick={onOpenDashboard} variant="primary" size="sm" className="rounded-full px-3.5 sm:px-5">
+              <span className="hidden sm:inline">Open Dashboard</span>
+              <span className="sm:hidden">Dashboard</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </MagneticButton>
           </div>
@@ -240,7 +241,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               </MagneticButton>
               <a
                 href="#compare"
-                className="min-h-[54px] sm:min-h-[58px] px-6 py-3.5 rounded-2xl border border-app-border bg-app-card hover:border-brand-blue/40 text-sm font-semibold text-app-text flex items-center justify-center gap-2 transition-colors"
+                className="min-h-[54px] sm:min-h-[58px] px-6 py-3.5 rounded-2xl border border-slate-300 dark:border-white/15 bg-white/95 dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:border-brand-blue/50 shadow-sm text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-center gap-2 transition-all"
               >
                 <span>Compare Alternatives</span>
               </a>
@@ -480,10 +481,10 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
                   href="https://github.com/ossamamehmood/LeadPure-AI"
                   target="_blank"
                   rel="noreferrer"
-                  className="min-h-[54px] px-6 py-3 rounded-2xl border border-app-border bg-app-card hover:border-brand-blue/40 text-sm font-semibold text-app-text flex items-center justify-center gap-2 w-full sm:w-auto transition-colors"
+                  className="min-h-[54px] px-6 py-3 rounded-2xl border border-slate-300 dark:border-white/15 bg-white/95 dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:border-brand-blue/50 shadow-sm text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-center gap-2 w-full sm:w-auto transition-all"
                 >
                   <span>Inspect Engine on GitHub</span>
-                  <ExternalLink className="w-4 h-4 opacity-60" />
+                  <ExternalLink className="w-4 h-4 opacity-70" />
                 </a>
               </div>
             </div>
