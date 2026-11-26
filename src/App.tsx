@@ -32,34 +32,45 @@ export default function App() {
   const [appState, setAppState] = useState<AppState>('upload');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
-  const toggleTheme = (event?: React.MouseEvent) => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    if (!(document as any).startViewTransition || !event) {
-      setTheme(nextTheme);
-      return;
-    }
-    const x = event.clientX;
-    const y = event.clientY;
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
-    const transition = (document as any).startViewTransition(() => setTheme(nextTheme));
-    transition.ready.then(() => {
-      document.documentElement.animate(
-        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
-        { duration: 350, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' }
-      );
-    });
-  };
-
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    if (theme === 'dark') {
+  const applyThemeDom = (nextTheme: 'dark' | 'light') => {
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    if (nextTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+  };
+
+  const toggleTheme = (event?: React.MouseEvent) => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (!(document as any).startViewTransition || !event || reduceMotion) {
+      applyThemeDom(nextTheme);
+      setTheme(nextTheme);
+      return;
+    }
+    const x = event.clientX || window.innerWidth / 2;
+    const y = event.clientY || 40;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+    const transition = (document as any).startViewTransition(() => {
+      applyThemeDom(nextTheme);
+      setTheme(nextTheme);
+    });
+    transition.ready
+      .then(() => {
+        document.documentElement.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`] },
+          { duration: 350, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' }
+        );
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    applyThemeDom(theme);
   }, [theme]);
 
   const [fileData, setFileData] = useState<ContactData[]>([]);
@@ -351,7 +362,7 @@ export default function App() {
 
       <Sidebar currentTab={appState} setTab={setAppState} />
 
-      <main className="flex-1 flex flex-col overflow-hidden pb-20 lg:pb-0 relative z-10 min-w-0">
+      <main className="flex-1 flex flex-col overflow-hidden pb-24 lg:pb-0 relative z-10 min-w-0">
         <Header
           appState={appState}
           isProcessing={processor.isProcessing}

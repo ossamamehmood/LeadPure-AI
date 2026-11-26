@@ -26,7 +26,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
       <StaggerGroup className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-7" staggerDelay={0.07}>
         <StaggerItem>
           <GlossyCard className="p-6 sm:p-7 rounded-2xl sm:rounded-3xl h-full">
-            <div className="flex justify-between items-center gap-2 mb-4">
+            <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
               <p className="text-slate-600 dark:text-slate-400 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
                 Real-Time Check
               </p>
