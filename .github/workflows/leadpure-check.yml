@@ -1,6 +1,6 @@
 name: leadpure-check
 
-# LeadPure OWN engine — verifies emails on a GitHub Actions runner with Port 25 open.
+# LeadPure OWN engine: verifies emails on a GitHub Actions runner with Port 25 open.
 # GitHub schedules ubuntu-latest across Azure (Port 25 open) and AWS (Port 25 blocked).
 # Fast Port-25 check before running probe fails AWS nodes in <4s and immediately retries
 # on a fresh runner VM until an open-port-25 node is assigned.

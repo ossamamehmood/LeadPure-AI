@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { motion, AnimatePresence } from 'motion/react';
+import { MotionConfig, motion, AnimatePresence } from 'motion/react';
 import { Play, X } from 'lucide-react';
 
 // Components
@@ -177,7 +177,7 @@ export default function App() {
 
     setAppState('results');
     if (timedOut) {
-      toast('Scan hit 20-minute limit — arrived results saved, missing rows marked timed out.', 'info');
+      toast('Scan hit 20-minute limit - arrived results saved, missing rows marked timed out.', 'info');
     } else {
       toast('Verification complete', 'success');
     }
@@ -344,7 +344,8 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white" data-theme={theme}>
+    <MotionConfig reducedMotion="user">
+      <div className="flex min-h-[100dvh] lg:h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white" data-theme={theme}>
       <div className="mesh-background" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(90,92,255,0.05),transparent_50%)] pointer-events-none" />
 
@@ -366,26 +367,27 @@ export default function App() {
               {appState === 'upload' && (
                 <motion.div
                   key="upload-state"
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -16 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
                   className="space-y-12 sm:space-y-16"
                 >
                   {resumableScan && (
                     <GlossyCard glow="blue" className="p-5 sm:p-6 rounded-3xl border border-brand-blue/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div>
-                        <p className="text-[10px] font-black text-brand-blue uppercase tracking-widest">Unfinished Scan Found</p>
-                        <h4 className="text-sm sm:text-base font-black text-app-text mt-1">
+                        <p className="text-xs font-semibold text-brand-blue uppercase tracking-wider">Unfinished Scan Found</p>
+                        <h4 className="text-sm sm:text-base font-display font-bold text-app-text mt-1">
                           {resumableScan.fileName} ({resumableScan.totalRows} emails)
                         </h4>
-                        <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-0.5">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-mono mt-0.5">
                           Started {new Date(resumableScan.startedAt).toLocaleString()} &bull; Ref: {resumableScan.requestId}
                         </p>
                       </div>
                       <div className="flex items-center gap-3 w-full sm:w-auto">
                         <button
                           onClick={handleResumeScan}
-                          className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl gradient-bg text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                          className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-brand-blue hover:bg-brand-blue-hover text-white text-xs font-semibold tracking-wide flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer"
                         >
                           <Play className="w-3.5 h-3.5 fill-white" />
                           Resume Last Scan
@@ -408,7 +410,13 @@ export default function App() {
               )}
 
               {appState === 'mapping' && (
-                <motion.div key="mapping-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <motion.div
+                  key="mapping-state"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                >
                   <MappingSection
                     fileName={fileName}
                     totalLeads={fileData.length}
@@ -423,7 +431,13 @@ export default function App() {
               )}
 
               {appState === 'rules' && (
-                <motion.div key="rules-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <motion.div
+                  key="rules-state"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                >
                   <RulesSection
                     rules={validationRules}
                     onToggle={(key) => setValidationRules((p) => ({ ...p, [key]: !p[key] }))}
@@ -432,7 +446,13 @@ export default function App() {
               )}
 
               {appState === 'history' && (
-                <motion.div key="history-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <motion.div
+                  key="history-state"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                >
                   <HistorySection
                     history={history}
                     loadItem={loadHistoryItem}
@@ -443,7 +463,13 @@ export default function App() {
               )}
 
               {(appState === 'results' || appState === 'processing') && (
-                <motion.div key="results-state" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <motion.div
+                  key="results-state"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                >
                   <ResultsDashboard
                     processedData={processor.processedData}
                     eliminatedData={processor.eliminatedData}
@@ -495,5 +521,6 @@ export default function App() {
         title={previewTitle}
       />
     </div>
+    </MotionConfig>
   );
 }

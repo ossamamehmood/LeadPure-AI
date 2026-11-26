@@ -4,6 +4,8 @@ import { ShieldCheck, AlertTriangle, XCircle, HelpCircle, Search, Database, Fing
 import { Virtuoso } from 'react-virtuoso';
 import { cn } from '../lib/utils';
 import { GlossyCard } from './ui/GlossyCard';
+import { StaggerGroup, StaggerItem, AnimatedMetric } from './ui/MotionPrimitives';
+import { MagneticButton } from './ui/MagneticButton';
 import { ProcessedContact } from '../types';
 
 interface ResultsDashboardProps {
@@ -100,7 +102,7 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any; mappings:
       <div className="md:px-8 py-1 md:py-3 w-full md:w-[30%] min-w-0">
         <p className="text-[11px] font-medium text-slate-600 dark:text-slate-400 break-words line-clamp-2">
           {isTimedOutMissing
-            ? 'STILL CHECKING / TIMED OUT — re-run to complete'
+            ? 'STILL CHECKING / TIMED OUT - re-run to complete'
             : (contact.verificationReason || contact.reason || verdict)}
         </p>
       </div>
@@ -214,117 +216,142 @@ export function ResultsDashboard({
           </div>
           <div className="h-2.5 w-full bg-slate-200/70 dark:bg-app-bg/40 rounded-full overflow-hidden border border-app-border">
             <motion.div
-              className="h-full gradient-bg rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.4 }}
+              className="h-full w-full bg-brand-blue rounded-full"
+              style={{ transformOrigin: 'left' }}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: Math.max(0, Math.min(1, progress / 100)) }}
+              transition={{ type: 'spring', stiffness: 120, damping: 20 }}
             />
           </div>
         </GlossyCard>
       )}
 
       {/* Summary Cards (Built strictly from arrived engine results) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <GlossyCard glow="gradient" className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] italic">SAFE</p>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/25">
-              <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+      <StaggerGroup staggerDelay={0.05} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <StaggerItem>
+          <GlossyCard glow="gradient" className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card h-full">
+            <div className="flex justify-between items-start mb-4">
+              <p className="text-emerald-600 dark:text-emerald-400 text-xs font-semibold uppercase tracking-wider">SAFE</p>
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/25">
+                <Activity className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
             </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <p className="text-4xl sm:text-5xl font-black text-app-text font-mono tracking-tighter tabular-nums">{safeCount}</p>
-            <span className="text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest">Ready to Send</span>
-          </div>
-          {/* Technical note: confirmed RFC 250 OK non-catch-all mailboxes */}
-          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold mt-3">Confirmed active &amp; deliverable inboxes</p>
-        </GlossyCard>
+            <div className="flex items-baseline gap-2">
+              <AnimatedMetric value={safeCount} className="text-4xl sm:text-5xl font-display font-bold text-app-text tracking-tight tabular-nums" />
+              <span className="text-slate-600 dark:text-slate-400 font-semibold text-xs">Ready to Send</span>
+            </div>
+            {/* Technical note: confirmed RFC 250 OK non-catch-all mailboxes */}
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-3">Confirmed active &amp; deliverable inboxes</p>
+          </GlossyCard>
+        </StaggerItem>
 
-        <GlossyCard glow="pink" className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-[0.2em] italic">Risky &amp; Invalid</p>
-            <div className="w-8 h-8 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/25">
-              <Zap className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+        <StaggerItem>
+          <GlossyCard glow="pink" className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card h-full">
+            <div className="flex justify-between items-start mb-4">
+              <p className="text-rose-600 dark:text-rose-400 text-xs font-semibold uppercase tracking-wider">Risky &amp; Invalid</p>
+              <div className="w-8 h-8 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/25">
+                <Zap className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+              </div>
             </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <p className="text-4xl sm:text-5xl font-black text-app-text font-mono tracking-tighter tabular-nums">{riskyCount + invalidCount}</p>
-            <span className="text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest">Flagged</span>
-          </div>
-          <div className="flex flex-wrap gap-2 mt-3 text-[10px] font-bold tabular-nums">
-            <span className="text-amber-600 dark:text-amber-400">{riskyCount} RISKY ({catchAllCount} Accept-All)</span>
-            <span className="text-slate-400 dark:text-slate-600">&bull;</span>
-            <span className="text-rose-600 dark:text-rose-500">{invalidCount} INVALID</span>
-          </div>
-        </GlossyCard>
+            <div className="flex items-baseline gap-2">
+              <AnimatedMetric value={riskyCount + invalidCount} className="text-4xl sm:text-5xl font-display font-bold text-app-text tracking-tight tabular-nums" />
+              <span className="text-slate-600 dark:text-slate-400 font-semibold text-xs">Flagged</span>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-3 text-xs font-semibold tabular-nums">
+              <span className="text-amber-600 dark:text-amber-400">{riskyCount} RISKY ({catchAllCount} Accept-All)</span>
+              <span className="text-slate-400 dark:text-slate-600">&bull;</span>
+              <span className="text-rose-600 dark:text-rose-500">{invalidCount} INVALID</span>
+            </div>
+          </GlossyCard>
+        </StaggerItem>
 
-        <GlossyCard className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] italic">Definitive Rate</p>
-            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/25">
-              <Fingerprint className="w-4 h-4 text-brand-blue" />
+        <StaggerItem>
+          <GlossyCard className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card h-full">
+            <div className="flex justify-between items-start mb-4">
+              <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Definitive Rate</p>
+              <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/25">
+                <Fingerprint className="w-4 h-4 text-brand-blue" />
+              </div>
             </div>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <p className="text-4xl sm:text-5xl font-black font-mono tracking-tighter italic text-app-text tabular-nums">
-              {definitiveRate}<span className="text-2xl">%</span>
+            <div className="flex items-baseline gap-2">
+              <AnimatedMetric value={definitiveRate} suffix="%" className="text-4xl sm:text-5xl font-display font-bold tracking-tight text-app-text tabular-nums" />
+            </div>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-3 tabular-nums">
+              {definitiveCount}/{arrivedTotal} clear verdicts ({unknownCount} UNKNOWN)
             </p>
-          </div>
-          <p className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold mt-3 tabular-nums">
-            {definitiveCount}/{arrivedTotal} clear verdicts ({unknownCount} UNKNOWN)
-          </p>
-        </GlossyCard>
+          </GlossyCard>
+        </StaggerItem>
 
-        <GlossyCard className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card">
-          <div className="flex justify-between items-start mb-4">
-            <p className="text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] italic">Engine Release</p>
-            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/25">
-              <Cpu className="w-4 h-4 text-brand-blue" />
+        <StaggerItem>
+          <GlossyCard className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card h-full">
+            <div className="flex justify-between items-start mb-4">
+              <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Engine Release</p>
+              <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/25">
+                <Cpu className="w-4 h-4 text-brand-blue" />
+              </div>
             </div>
-          </div>
-          <p className="text-3xl sm:text-4xl font-black text-app-text tracking-tighter uppercase italic">V17 Active</p>
-          <div className="mt-4 flex items-center justify-between">
-            <p className="text-[10px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider tabular-nums">{arrivedTotal} Checked</p>
-            <div className="px-3 py-1 bg-gradient-to-r from-brand-blue/20 to-brand-purple/20 text-brand-blue text-[9px] font-black rounded-full uppercase tracking-widest border border-brand-blue/30">
-              V17 Engine
+            <p className="text-3xl sm:text-4xl font-display font-bold text-app-text tracking-tight">V17 Active</p>
+            <div className="mt-4 flex items-center justify-between">
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold tabular-nums">{arrivedTotal} Checked</p>
+              <div className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-[11px] font-semibold rounded-full border border-brand-blue/25">
+                V17 Engine
+              </div>
             </div>
-          </div>
-        </GlossyCard>
-      </div>
+          </GlossyCard>
+        </StaggerItem>
+      </StaggerGroup>
 
       {/* Main Results Table Card */}
-      <div className="bg-app-card rounded-3xl sm:rounded-[40px] border border-app-border shadow-2xl overflow-hidden">
+      <div className="bg-app-card rounded-3xl sm:rounded-[32px] border border-app-border shadow-2xl overflow-hidden">
         <div className="px-4 sm:px-8 py-6 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-6 border-b border-app-border">
-          <div className="flex flex-wrap gap-4 sm:gap-8">
+          <div className="flex flex-wrap gap-5 sm:gap-8">
             <button
               onClick={() => { setActiveTab('all'); setSearchTerm(''); }}
               className={cn(
-                'pb-2 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-t-md tabular-nums',
+                'pb-2.5 text-xs font-semibold tracking-wide transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-t-md tabular-nums',
                 activeTab === 'all' ? 'text-app-text' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
               )}
             >
               All ({allRows.length})
-              {activeTab === 'all' && <div className="absolute bottom-0 left-0 right-0 h-[3px] gradient-bg" />}
+              {activeTab === 'all' && (
+                <motion.div
+                  layoutId="results-active-tab"
+                  transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                  className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-brand-blue rounded-full"
+                />
+              )}
             </button>
             <button
               onClick={() => { setActiveTab('safe'); setSearchTerm(''); }}
               className={cn(
-                'pb-2 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-t-md tabular-nums',
+                'pb-2.5 text-xs font-semibold tracking-wide transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-t-md tabular-nums',
                 activeTab === 'safe' ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400'
               )}
             >
               SAFE ({safeCount})
-              {activeTab === 'safe' && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-emerald-500 dark:bg-emerald-400" />}
+              {activeTab === 'safe' && (
+                <motion.div
+                  layoutId="results-active-tab"
+                  transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                  className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-emerald-500 dark:bg-emerald-400 rounded-full"
+                />
+              )}
             </button>
             <button
               onClick={() => { setActiveTab('filtered'); setSearchTerm(''); }}
               className={cn(
-                'pb-2 text-[11px] font-black uppercase tracking-[0.2em] transition-all relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-t-md tabular-nums',
+                'pb-2.5 text-xs font-semibold tracking-wide transition-colors relative cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 rounded-t-md tabular-nums',
                 activeTab === 'filtered' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400'
               )}
             >
               Risky / Invalid / Unknown ({(eliminatedData || []).length})
-              {activeTab === 'filtered' && <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-rose-500 dark:bg-rose-400" />}
+              {activeTab === 'filtered' && (
+                <motion.div
+                  layoutId="results-active-tab"
+                  transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                  className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-rose-500 dark:bg-rose-400 rounded-full"
+                />
+              )}
             </button>
           </div>
 
@@ -337,7 +364,7 @@ export function ResultsDashboard({
                 aria-label="Search email or verdict"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-50/90 dark:bg-app-bg/40 border border-slate-200 dark:border-app-border rounded-xl h-11 pl-11 pr-10 text-xs font-bold text-app-text placeholder:text-slate-500 outline-none focus:border-brand-blue/50 focus:ring-2 focus:ring-brand-blue/15"
+                className="w-full bg-slate-50/90 dark:bg-app-bg/40 border border-slate-200 dark:border-app-border rounded-xl h-11 pl-11 pr-10 text-xs font-medium text-app-text placeholder:text-slate-500 outline-none focus:border-brand-blue/50 focus:ring-2 focus:ring-brand-blue/15"
               />
               {searchTerm && (
                 <button
@@ -352,35 +379,51 @@ export function ResultsDashboard({
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <button
+              <MagneticButton
+                type="button"
+                variant="secondary"
+                size="sm"
+                strength={0.14}
                 onClick={() => onPreview(currentData, 'LeadPure V17 Results Preview')}
-                className="px-4 bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 rounded-xl border border-slate-200 dark:border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:text-brand-blue transition-all flex items-center gap-2 h-11 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+                className="h-11"
               >
                 <Database className="w-4 h-4" />
                 Preview
-              </button>
-              <button
+              </MagneticButton>
+              <MagneticButton
+                type="button"
+                variant="secondary"
+                size="sm"
+                strength={0.14}
                 onClick={onDownloadAll}
-                className="px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-11 border bg-brand-blue/10 border-brand-blue/30 text-brand-blue hover:bg-brand-blue/20 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+                className="h-11 bg-brand-blue/10 border-brand-blue/30 text-brand-blue hover:bg-brand-blue/20 dark:bg-brand-blue/10 dark:hover:bg-brand-blue/20"
               >
                 <Download className="w-4 h-4" />
                 Export Results
-              </button>
-              <button
+              </MagneticButton>
+              <MagneticButton
+                type="button"
+                variant="success"
+                size="sm"
+                strength={0.14}
                 onClick={onDownloadValid}
-                className="px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-11 border bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                className="h-11"
               >
                 <Download className="w-4 h-4" />
                 SAFE Only
-              </button>
+              </MagneticButton>
               {activeTab === 'filtered' && (
-                <button
+                <MagneticButton
+                  type="button"
+                  variant="danger"
+                  size="sm"
+                  strength={0.14}
                   onClick={() => onDownloadEliminated('all')}
-                  className="px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 h-11 border bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-400 hover:bg-rose-500/20 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                  className="h-11"
                 >
                   <Download className="w-4 h-4" />
                   Filtered
-                </button>
+                </MagneticButton>
               )}
             </div>
           </div>
@@ -389,11 +432,11 @@ export function ResultsDashboard({
         <div className="min-h-[420px]">
           {filteredData.length > 0 ? (
             <div className="w-full">
-              <div className="hidden md:flex text-slate-600 dark:text-slate-400 text-[10px] uppercase tracking-[0.3em] font-black bg-slate-50/70 dark:bg-white/[0.02] border-b border-app-border">
-                <div className="px-8 py-5 w-[35%]">Contact</div>
-                <div className="px-6 py-5 w-[20%]">Email Provider</div>
-                <div className="px-6 py-5 w-[15%]">Verdict</div>
-                <div className="px-8 py-5 w-[30%]">Why This Verdict</div>
+              <div className="hidden md:flex text-slate-600 dark:text-slate-400 text-[11px] uppercase tracking-wider font-semibold bg-slate-50/70 dark:bg-white/[0.02] border-b border-app-border">
+                <div className="px-8 py-4 w-[35%]">Contact</div>
+                <div className="px-6 py-4 w-[20%]">Email Provider</div>
+                <div className="px-6 py-4 w-[15%]">Verdict</div>
+                <div className="px-8 py-4 w-[30%]">Why This Verdict</div>
               </div>
               <Virtuoso
                 style={{ height: '65vh' }}
@@ -406,7 +449,7 @@ export function ResultsDashboard({
           ) : (
             <div className="py-24 px-6 flex flex-col items-center justify-center text-center">
               <Database className="w-10 h-10 text-slate-400 dark:text-slate-600 mb-4" />
-              <h4 className="text-lg sm:text-2xl font-black text-app-text uppercase italic tracking-tight mb-2">
+              <h4 className="text-lg sm:text-2xl font-display font-bold text-app-text tracking-tight mb-2">
                 {isProcessing ? 'Checking your first batch now...' : 'No Matching Results'}
               </h4>
               <p className="text-slate-600 dark:text-slate-400 text-xs max-w-md mx-auto">
@@ -417,7 +460,7 @@ export function ResultsDashboard({
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="mt-6 min-h-[40px] px-6 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest rounded-full border border-slate-200 dark:border-white/10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+                  className="mt-6 min-h-[40px] px-6 py-2 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-xs font-semibold text-slate-700 dark:text-slate-300 rounded-full border border-slate-200 dark:border-white/10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
                 >
                   Clear Search
                 </button>
@@ -426,14 +469,14 @@ export function ResultsDashboard({
           )}
         </div>
 
-        <div className="px-4 sm:px-8 py-5 bg-slate-50/70 dark:bg-app-bg/60 border-t border-app-border flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">
+        <div className="px-4 sm:px-8 py-5 bg-slate-50/70 dark:bg-app-bg/60 border-t border-app-border flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-400">
           <div className="flex items-center gap-3">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span className="tabular-nums">{filteredData.length} Rows Shown</span>
           </div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-brand-blue" />
-            <span>LeadPure V17 • Engine 1.3.2</span>
+            <span>LeadPure V17 &bull; Engine 1.3.2</span>
           </div>
         </div>
       </div>

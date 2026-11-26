@@ -399,7 +399,7 @@ export async function validateEmailFull(
   }
 
   // GATE 5.5: Catch-All Detection (Accept-All Domain)
-  // Requirement 2: If the server accepts random nonexistent address, domain is catch-all and verdict for ANY address on it can NEVER be safe — it is RISKY.
+  // Requirement 2: If the server accepts random nonexistent address, domain is catch-all and verdict for ANY address on it can NEVER be safe; it is RISKY.
   if (smtpResult.isCatchAll) {
     trace.push('Catch-All: Active (Accept-All Domain) (ERR_005)');
     const res: ValidationResult = {

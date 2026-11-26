@@ -458,7 +458,7 @@ export const processContacts = async (
             validSnapshot: snap.validSnap,
             eliminatedSnapshot: snap.eliminatedSnap,
             logMessage: madeProgress
-              ? `Chunk ${chunksDone}/${chunkCount} received — ${snap.arrivedCount}/${total} emails verified`
+              ? `Chunk ${chunksDone}/${chunkCount} received: ${snap.arrivedCount}/${total} emails verified`
               : `Polling manifest (${chunksDone}/${chunkCount} chunks, ${snap.arrivedCount}/${total} emails, ${elapsedSec}s elapsed)...`
           });
         }
@@ -502,7 +502,7 @@ export const processContacts = async (
   stats.verifiedLeads = finalSnap.safeCount;
 
   // Any chunks still missing after the 20-minute cap MUST NOT be stamped fake UNKNOWN.
-  // Display explicitly as "STILL CHECKING / TIMED OUT — re-run to complete" and keep excluded from counts/export.
+  // Display explicitly as "STILL CHECKING / TIMED OUT - re-run to complete" and keep excluded from counts/export.
   if (timedOut) {
     for (let cIdx = 0; cIdx < chunkCount; cIdx++) {
       if (chunkResultsMap.has(cIdx)) continue;
@@ -515,10 +515,10 @@ export const processContacts = async (
         finalSnap.eliminatedSnap.push({
           ...item,
           email: emailVal,
-          status: 'STILL CHECKING / TIMED OUT — re-run to complete',
+          status: 'STILL CHECKING / TIMED OUT - re-run to complete',
           verificationStatus: 'unknown',
-          verificationReason: 'STILL CHECKING / TIMED OUT — re-run to complete',
-          reason: 'STILL CHECKING / TIMED OUT — re-run to complete',
+          verificationReason: 'STILL CHECKING / TIMED OUT - re-run to complete',
+          reason: 'STILL CHECKING / TIMED OUT - re-run to complete',
           isTimedOutMissing: true,
           originalIndex: globalIdx,
           __originalData: item

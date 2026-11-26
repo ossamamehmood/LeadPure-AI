@@ -1,10 +1,10 @@
-# 📊 Data Schema & Validation Enums
+# Data Schema & Validation Enums
 
 This document defines the standardized data structures for the LeadPure AI validation engine to ensure consistency across the Network, Processor, and UI layers.
 
 ---
 
-## 🏗 Standardized Validation Object
+## Standardized Validation Object
 Every validation result MUST adhere to this structure.
 
 | Field | Type | Description |
@@ -20,17 +20,17 @@ Every validation result MUST adhere to this structure.
 
 ---
 
-## 🏷 Status Enum (The Four Pillars)
+## Status Enum (The Four Pillars)
 These are the only permitted top-level classifications.
 
-- **`SAFE`**: 100% verified deliverable mailbox. Zero detected bounce risk.
-- **`RISKY`**: Greylisted, timeout, or uncertain infrastructure signals. High probability of soft-bounce.
-- **`INVALID`**: Confirmed non-deliverable mailbox or infrastructure. Guaranteed hard bounce.
-- **`UNKNOWN`**: Processing failure or external API timeout prevents definitive classification.
+- **`SAFE`**: Verified deliverable non-catch-all mailbox.
+- **`RISKY`**: Accept-all (catch-all) or role-flagged domain signal.
+- **`INVALID`**: Confirmed non-deliverable mailbox, syntax error, disposable domain, or missing MX.
+- **`UNKNOWN`**: Greylist, policy refusal, or network timeout prevented a definitive answer.
 
 ---
 
-## 🚫 Failure Code Mapping
+## Failure Code Mapping
 Used to track the exact point of failure within the 10-layer protocol.
 
 | Code | Layer | Description |
@@ -47,5 +47,5 @@ Used to track the exact point of failure within the 10-layer protocol.
 
 ---
 
-## 🧪 Integration Law
+## Integration Law
 The **QA Agent** must verify that all export files (`Cleaned` and `Filtered`) map their internal `verificationStatus` correctly to these enums. Any drift in naming conventions (e.g., using `rejected` instead of `INVALID`) must be corrected at the processing layer.

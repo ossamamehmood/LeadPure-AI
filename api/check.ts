@@ -72,7 +72,7 @@ async function mapProbeResults(resultArray: any[]) {
       verdict = 'SAFE';
       verificationStatus = 'safe';
       ui_label = 'SAFE';
-      ui_reason = 'Safe to send — inbox confirmed active (not catch-all)';
+      ui_reason = 'Safe to send: inbox confirmed active (not accept-all)';
     } else if (reachable === 'risky') {
       verdict = 'RISKY';
       verificationStatus = 'risky';
@@ -98,17 +98,17 @@ async function mapProbeResults(resultArray: any[]) {
       verificationStatus = 'unknown';
       ui_label = 'UNKNOWN';
       if (item.debug?.identity_disagreement) {
-        ui_reason = 'Mail server gave conflicting policy responses — marked UNKNOWN instead of guessing';
+        ui_reason = 'Mail server gave conflicting policy responses; marked UNKNOWN instead of guessing';
       } else if (item.debug?.policy_rejection) {
-        ui_reason = 'Mail server blocked the verification check by policy — status could not be confirmed';
+        ui_reason = 'Mail server blocked the verification check by policy; status could not be confirmed';
       } else if (item.debug?.forwarding_rcpt_rejected) {
-        ui_reason = 'Forwarding service declined check — final inbox could not be confirmed';
+        ui_reason = 'Forwarding service declined check; final inbox could not be confirmed';
       } else if (item.debug?.greylisted_or_temp) {
-        ui_reason = 'Mail server is temporarily rate-limiting checks (greylisted) — try again shortly';
+        ui_reason = 'Mail server is temporarily rate-limiting checks (greylisted); try again shortly';
       } else if (item.debug?.connect_error) {
-        ui_reason = 'Could not reach the mail server in time — try again to confirm';
+        ui_reason = 'Could not reach the mail server in time; try again to confirm';
       } else {
-        ui_reason = 'Mail server answer was inconclusive — kept UNKNOWN rather than guessing';
+        ui_reason = 'Mail server answer was inconclusive; kept UNKNOWN rather than guessing';
       }
     }
 

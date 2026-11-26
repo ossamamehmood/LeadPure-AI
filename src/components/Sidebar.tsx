@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Upload, Settings2, Clock, Database, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GlossyCard } from './ui/GlossyCard';
+import { TACTILE_SPRING } from './ui/MotionPrimitives';
 
 interface SidebarProps {
   currentTab: string;
@@ -12,82 +13,82 @@ interface SidebarProps {
 export function Sidebar({ currentTab, setTab }: SidebarProps) {
   const isUploadActive = ['upload', 'mapping', 'processing', 'results'].includes(currentTab);
 
+  const navItems = [
+    { id: 'upload', label: 'Upload & Verify', icon: Upload, active: isUploadActive },
+    { id: 'rules', label: 'Verification Rules', icon: Settings2, active: currentTab === 'rules' },
+    { id: 'history', label: 'Scan History', icon: Clock, active: currentTab === 'history' },
+  ];
+
   return (
-    <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/40 backdrop-blur-3xl hidden lg:flex shrink-0 z-50">
-      <div className="p-8 flex items-center gap-4 group cursor-pointer">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-cyan via-brand-blue to-brand-pink flex items-center justify-center text-white font-black text-xs shadow-lg transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
-          <Zap className="w-5 h-5 fill-white" />
+    <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/60 backdrop-blur-2xl hidden lg:flex shrink-0 z-50">
+      <div className="p-7 flex items-center gap-3.5 group cursor-pointer">
+        <div className="w-9 h-9 rounded-xl bg-brand-blue flex items-center justify-center text-white shadow-[0_8px_20px_-4px_rgba(90,92,255,0.48),inset_0_1px_0_rgba(255,255,255,0.22)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
+          <Zap className="w-4.5 h-4.5 fill-white" />
         </div>
-        <span className="text-app-text font-black text-2xl tracking-tighter uppercase italic select-none">Lead<span className="gradient-text">Pure</span></span>
+        <span className="text-app-text font-display font-bold text-2xl tracking-tight select-none">
+          Lead<span className="gradient-text">Pure</span>
+        </span>
       </div>
 
-      {/* Runner note: uses ephemeral GitHub Actions Port 25 workers cleanly behind the scenes */}
-      <div className="px-6 mb-8">
-        <div className="p-4 rounded-2xl bg-slate-100/80 dark:bg-app-bg/10 border border-app-border">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">Verification Engine</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm" />
+      {/* Runner note: uses ephemeral GitHub Actions Port 25 workers behind the scenes */}
+      <div className="px-6 mb-6">
+        <div className="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-white/[0.03] border border-app-border shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+              Verification Engine
+            </span>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
           </div>
-          <div className="text-[10px] font-bold text-slate-800 dark:text-slate-200">V17 • LIVE &amp; READY</div>
+          <div className="text-xs font-bold font-mono text-slate-800 dark:text-slate-200 tracking-tight">
+            V17 &middot; LIVE &amp; READY
+          </div>
         </div>
       </div>
 
-      <nav className="flex-1 px-4 space-y-3 mt-4" aria-label="Main navigation">
-        <button
-          onClick={() => setTab('upload')}
-          className={cn(
-            'w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
-            isUploadActive
-              ? 'bg-brand-blue text-white shadow-2xl shadow-brand-blue/30'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5'
-          )}
-        >
-          {isUploadActive && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-lg" />}
-          <Upload className={cn('w-4 h-4 transition-transform group-hover:-translate-y-0.5', isUploadActive ? 'text-white' : 'text-slate-500 dark:text-slate-400')} />
-          Upload & Verify
-        </button>
-        <button
-          onClick={() => setTab('rules')}
-          className={cn(
-            'w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
-            currentTab === 'rules'
-              ? 'bg-brand-blue text-white shadow-2xl shadow-brand-blue/30'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5'
-          )}
-        >
-          {currentTab === 'rules' && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-lg" />}
-          <Settings2 className={cn('w-4 h-4 transition-transform group-hover:rotate-45', currentTab === 'rules' ? 'text-white' : 'text-slate-500 dark:text-slate-400')} />
-          Verification Rules
-        </button>
-        <button
-          onClick={() => setTab('history')}
-          className={cn(
-            'w-full flex items-center gap-4 px-5 py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-[0.2em] relative overflow-hidden group active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
-            currentTab === 'history'
-              ? 'bg-brand-blue text-white shadow-2xl shadow-brand-blue/30'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-black/5 dark:hover:bg-white/5'
-          )}
-        >
-          {currentTab === 'history' && <motion.div layoutId="nav-bg" className="absolute inset-x-0 bottom-0 h-1 gradient-bg shadow-lg" />}
-          <Clock className={cn('w-4 h-4 transition-transform group-hover:scale-110', currentTab === 'history' ? 'text-white' : 'text-slate-500 dark:text-slate-400')} />
-          Scan History
-        </button>
+      <nav className="flex-1 px-4 space-y-2 mt-2" aria-label="Main navigation">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              className={cn(
+                'w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-colors duration-200 font-semibold text-xs tracking-tight relative overflow-hidden group active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
+                item.active
+                  ? 'text-white'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-app-text hover:bg-black/[0.04] dark:hover:bg-white/[0.04]'
+              )}
+            >
+              {item.active && (
+                <motion.div
+                  layoutId="nav-active-pill"
+                  transition={TACTILE_SPRING}
+                  className="absolute inset-0 bg-brand-blue rounded-2xl shadow-[0_8px_22px_-6px_rgba(90,92,255,0.55),inset_0_1px_0_rgba(255,255,255,0.2)]"
+                />
+              )}
+              <Icon className={cn('w-4 h-4 relative z-10 transition-transform duration-200 group-hover:scale-105', item.active ? 'text-white' : 'text-slate-500 dark:text-slate-400')} />
+              <span className="relative z-10">{item.label}</span>
+            </button>
+          );
+        })}
       </nav>
 
-      <div className="p-8 border-t border-app-border">
-        <GlossyCard glow="gradient" className="p-5 rounded-3xl border border-app-border">
-          <p className="text-[9px] text-slate-500 dark:text-zinc-500 uppercase font-black mb-3 tracking-[0.3em]">Engine Version</p>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center">
+      <div className="p-6 border-t border-app-border">
+        <GlossyCard className="p-4 rounded-2xl border border-app-border">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider mb-2.5">
+            Engine Release
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-brand-blue/10 border border-brand-blue/20 flex items-center justify-center shrink-0">
               <Database className="w-4 h-4 text-brand-blue" />
             </div>
-            <div>
-              <span className="text-[10px] uppercase font-black text-app-text block">LeadPure V17</span>
-              <span className="text-[8px] uppercase font-bold text-brand-blue tracking-widest">Probe 1.3.2 (Chunked)</span>
+            <div className="min-w-0">
+              <span className="text-xs font-display font-bold text-app-text block leading-tight">LeadPure V17</span>
+              <span className="text-[10px] font-mono font-medium text-brand-blue">Probe 1.3.2 (Chunked)</span>
             </div>
-          </div>
-          <div className="w-full bg-slate-100 dark:bg-app-bg h-1.5 rounded-full mt-4 overflow-hidden border border-app-border">
-            <div className="gradient-bg h-full w-[100%] shadow-lg" />
           </div>
         </GlossyCard>
       </div>

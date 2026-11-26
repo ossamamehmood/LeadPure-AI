@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
-import { CheckCircle2 } from 'lucide-react';
+import { TACTILE_SPRING } from './ui/MotionPrimitives';
 
 interface RuleToggleProps {
   domain: string;
@@ -13,7 +13,7 @@ interface RuleToggleProps {
 
 export function RuleToggle({ domain, title, description, active, onToggle }: RuleToggleProps) {
   return (
-    <div 
+    <div
       role="switch"
       aria-checked={active}
       tabIndex={0}
@@ -25,67 +25,62 @@ export function RuleToggle({ domain, title, description, active, onToggle }: Rul
         }
       }}
       className={cn(
-        "p-6 rounded-[32px] transition-all cursor-pointer flex items-center justify-between group select-none relative overflow-hidden border h-full duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue",
-        active 
-          ? "bg-app-card border-app-border glow-gradient" 
-          : "bg-transparent border-app-border hover:border-brand-blue/40 hover:bg-app-card/50"
+        'p-5 sm:p-6 rounded-2xl transition-colors duration-200 cursor-pointer flex items-center justify-between gap-4 group select-none relative overflow-hidden border h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue active:scale-[0.99]',
+        active
+          ? 'bg-brand-blue/[0.06] dark:bg-brand-blue/[0.08] border-brand-blue/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+          : 'bg-slate-50/50 dark:bg-white/[0.02] border-app-border hover:border-brand-blue/35'
       )}
     >
       {active && (
-        <>
-          <div className="absolute inset-0 bg-gradient-to-tr from-brand-cyan/10 via-brand-blue/5 to-brand-pink/5 pointer-events-none opacity-40" />
-          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-brand-cyan via-brand-blue to-brand-pink shadow-lg" />
-        </>
+        <div className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-brand-blue" aria-hidden="true" />
       )}
-      
-      <div className="space-y-2 relative z-10 flex-1 px-4">
-        <div className="flex items-center gap-3">
-          <span className={cn(
-            "text-[8px] font-black uppercase tracking-[0.3em] px-2 py-0.5 rounded-full border transition-all duration-300",
-            active 
-              ? "bg-brand-blue/20 text-brand-blue border-brand-blue/25" 
-              : "bg-slate-100 dark:bg-app-bg/10 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-app-border"
-          )}>
+
+      <div className="space-y-1.5 relative z-10 flex-1 pl-2">
+        <div className="flex items-center gap-2.5">
+          <span
+            className={cn(
+              'text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border transition-colors',
+              active
+                ? 'bg-brand-blue/15 text-brand-blue border-brand-blue/25'
+                : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-app-border'
+            )}
+          >
             {domain}
           </span>
           {active && (
-            <motion.div 
-               initial={{ opacity: 0, x: -10 }}
-               animate={{ opacity: 1, x: 0 }}
-               className="text-[8px] font-black uppercase tracking-[0.3em] flex items-center gap-2"
-            >
-              <div className="w-1.5 h-1.5 rounded-full gradient-bg animate-pulse shadow-sm" />
-              <span className="gradient-text">Rule Active</span>
-            </motion.div>
+            <span className="text-[10px] font-semibold text-brand-blue flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-blue animate-pulse" />
+              Active
+            </span>
           )}
         </div>
-        <h3 className={cn(
-          "font-black text-xl uppercase italic tracking-tighter transition-all duration-300",
-          active ? "gradient-text" : "text-slate-700 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200"
-        )}>{title}</h3>
-        <p className={cn(
-          "text-[10px] font-medium leading-relaxed pr-8 transition-colors duration-300",
-          active ? "text-slate-600 dark:text-slate-300" : "text-slate-500 dark:text-slate-500"
-        )}>{description}</p>
+        <h3 className="font-display font-bold text-base sm:text-lg text-app-text tracking-tight">
+          {title}
+        </h3>
+        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed pr-2">
+          {description}
+        </p>
       </div>
 
-      <div className="shrink-0 relative z-10 pr-2">
-        <div className={cn(
-          "w-12 h-6 rounded-full border transition-all duration-300 relative bg-slate-200/80 dark:bg-app-bg",
-          active ? "border-brand-blue/50" : "border-slate-300 dark:border-app-border"
-        )}>
-          <div className={cn(
-            "absolute top-1 w-4 h-4 rounded-full transition-all duration-300",
-            active 
-              ? "left-[26px] gradient-bg shadow-lg" 
-              : "left-1 bg-slate-400 dark:bg-slate-600"
-          )} />
+      <div className="shrink-0 relative z-10">
+        <div
+          className={cn(
+            'w-12 h-6 rounded-full border transition-colors duration-200 relative p-0.5 flex items-center',
+            active
+              ? 'bg-brand-blue/20 border-brand-blue/50 justify-end'
+              : 'bg-slate-200 dark:bg-white/[0.06] border-slate-300 dark:border-white/10 justify-start'
+          )}
+        >
+          <motion.div
+            layout
+            transition={TACTILE_SPRING}
+            className={cn(
+              'w-4 h-4 rounded-full shadow-sm',
+              active ? 'bg-brand-blue' : 'bg-slate-400 dark:bg-slate-500'
+            )}
+          />
         </div>
       </div>
-
-      {active && (
-        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-cyan/10 blur-[60px] rounded-full -mr-16 -mt-16 pointer-events-none" />
-      )}
     </div>
   );
-} 
+}

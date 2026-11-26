@@ -1,4 +1,4 @@
-# 🧪 Debugging Protocol
+# Debugging Protocol
 
 Follow these exact steps when investigating processing inconsistencies or validation failures.
 

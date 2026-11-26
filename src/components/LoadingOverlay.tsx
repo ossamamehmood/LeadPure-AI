@@ -45,10 +45,10 @@ export function LoadingOverlay({
         </div>
       </div>
 
-      <h2 className="text-2xl sm:text-4xl font-black text-app-text mb-2 uppercase italic tracking-tighter">
+      <h2 className="text-2xl sm:text-4xl font-display font-bold text-app-text mb-2 tracking-tight">
         {customText || 'Cleaning Your Lead List'}
       </h2>
-      <p className="text-slate-500 max-w-md text-xs sm:text-sm font-medium uppercase tracking-widest leading-relaxed">
+      <p className="text-slate-500 max-w-md text-xs sm:text-sm font-medium leading-relaxed">
         {/* Technical note: dispatches 100-email batches to Port 25 workers (max 3 concurrent runs) */}
         {customDescription || 'Checking mailboxes directly with recipient mail servers in parallel batches.'}
       </p>
@@ -86,10 +86,11 @@ export function LoadingOverlay({
 
         <div className="h-3 w-full bg-app-bg/10 rounded-full overflow-hidden relative border border-app-border">
           <motion.div
-            className="h-full gradient-bg rounded-full relative"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4 }}
+            className="h-full w-full bg-brand-blue rounded-full relative"
+            style={{ transformOrigin: 'left' }}
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: Math.max(0, Math.min(1, progress / 100)) }}
+            transition={{ type: 'spring', stiffness: 120, damping: 20 }}
           />
         </div>
 

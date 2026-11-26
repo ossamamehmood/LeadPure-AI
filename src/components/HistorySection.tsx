@@ -16,19 +16,19 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-app-text tracking-tight flex items-center gap-3">
+          <h2 className="text-2xl font-display font-bold text-app-text tracking-tight flex items-center gap-3">
             <Clock className="w-6 h-6 text-brand-blue" />
-            SCAN HISTORY
+            Scan History
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mt-1 uppercase tracking-widest">
-            {history.length} Completed Scans Stored Locally
+          <p className="text-slate-600 dark:text-slate-400 text-xs font-medium mt-1">
+            {history.length} completed {history.length === 1 ? 'scan' : 'scans'} saved in your browser
           </p>
         </div>
 
         {history.length > 0 && (
           <button
             onClick={clearHistory}
-            className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/20 transition-all border border-rose-500/25 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+            className="min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-semibold hover:bg-rose-500/20 transition-all border border-rose-500/25 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
           >
             <Trash2 className="w-3.5 h-3.5" />
             Clear History
@@ -65,10 +65,10 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                         <FileText className="w-6 h-6 text-brand-blue" />
                       </div>
                       <div className="space-y-1 min-w-0">
-                        <h4 className="text-app-text font-black text-sm sm:text-base uppercase tracking-wider truncate group-hover:text-brand-blue transition-colors font-mono">
+                        <h4 className="text-app-text font-semibold text-sm sm:text-base tracking-tight truncate group-hover:text-brand-blue transition-colors font-mono">
                           {item.fileName}
                         </h4>
-                        <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-600 dark:text-slate-400 font-bold">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400 font-medium">
                           <span>{new Date(item.date).toLocaleDateString()}</span>
                           <span>&bull;</span>
                           <span>{new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -79,11 +79,11 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                       <div className="text-left sm:text-right">
                         <div className="flex items-baseline gap-1.5 tabular-nums">
-                          <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">{item.validRows}</span>
-                          <span className="text-slate-400 dark:text-slate-600 font-black">/</span>
-                          <span className="text-slate-600 dark:text-slate-400 font-bold text-base font-mono">{item.totalRows}</span>
+                          <span className="text-2xl sm:text-3xl font-display font-bold text-emerald-600 dark:text-emerald-400">{item.validRows}</span>
+                          <span className="text-slate-400 dark:text-slate-600 font-semibold">/</span>
+                          <span className="text-slate-600 dark:text-slate-400 font-semibold text-base">{item.totalRows}</span>
                         </div>
-                        <p className="text-[9px] text-slate-600 dark:text-slate-400 uppercase font-black tracking-widest">SAFE Emails</p>
+                        <p className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">SAFE Emails</p>
                       </div>
 
                       <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -92,7 +92,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                           className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.04] text-slate-700 dark:text-slate-300 hover:text-app-text hover:bg-brand-blue/15 transition-all border border-slate-200 dark:border-white/10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
                         >
                           <Download className="w-4 h-4" />
-                          <span className="text-[10px] font-black uppercase tracking-widest">Export</span>
+                          <span className="text-xs font-semibold">Export</span>
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); loadItem(item); }}

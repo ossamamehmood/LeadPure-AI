@@ -1,4 +1,4 @@
-# 🏁 Testing Requirements
+# Testing Requirements
 
 To achieve the "Final Success Criteria," all major updates must pass this testing suite.
 

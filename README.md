@@ -5,7 +5,7 @@
 
   <br /><br />
 
-  <h1>LeadPure AI — Precision SMTP Verification Engine</h1>
+  <h1>LeadPure AI: Precision SMTP Verification Engine</h1>
   <p>
     <strong>Serverless single &amp; chunked-bulk email verification powered by Own SMTP Engine 1.3.2.</strong><br />
     Zero external verification SaaS APIs. Zero fabricated confidence scores. Honest verdicts straight from live Port-25 handshakes.

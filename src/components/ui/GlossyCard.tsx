@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef } from 'react';
+import { motion, useMotionTemplate, useMotionValue, useReducedMotion } from 'motion/react';
 import { cn } from '../../lib/utils';
 
 interface GlossyCardProps {
@@ -8,46 +9,59 @@ interface GlossyCardProps {
   onClick?: () => void;
 }
 
+/**
+ * Elevated surface with top specular glaze and cursor-tracking spotlight
+ * driven via Framer MotionValues outside the React render cycle.
+ */
 export function GlossyCard({ children, className, glow = 'none', onClick }: GlossyCardProps) {
-  const glowClasses = {
-    cyan: 'glow-cyan',
-    pink: 'glow-pink',
-    blue: 'glow-blue',
-    purple: 'glow-purple',
-    gradient: 'glow-gradient',
-    none: ''
+  const ref = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
+  const mouseX = useMotionValue(-999);
+  const mouseY = useMotionValue(-999);
+
+  const spotlight = useMotionTemplate`radial-gradient(260px circle at ${mouseX}px ${mouseY}px, rgba(90, 92, 255, 0.11), transparent 75%)`;
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (shouldReduceMotion || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(-999);
+    mouseY.set(-999);
   };
 
   return (
-    <div 
+    <div
+      ref={ref}
       onClick={onClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       className={cn(
-        "glossy-card relative overflow-hidden group",
-        glow !== 'none' && glowClasses[glow],
-        onClick && "glossy-card-interactive cursor-pointer transition-all active:scale-[0.98] active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/70",
+        'glossy-card relative overflow-hidden group',
+        glow !== 'none' && 'ring-1 ring-inset ring-white/[0.04]',
+        onClick &&
+          'glossy-card-interactive cursor-pointer transition-all active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/70',
         className
       )}
     >
+      {!shouldReduceMotion && (
+        <motion.div
+          className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{ background: spotlight }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Machined top bezel edge refraction */}
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 dark:via-white/15 to-transparent opacity-80"
         aria-hidden="true"
       />
-      {/* Glossy Overlay effect - Layered for depth */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-black/[0.05] dark:block hidden pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.6] via-white/[0.15] to-transparent dark:hidden block pointer-events-none" />
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-tr from-transparent via-white/[0.08] to-transparent pointer-events-none" />
-      
-      {/* Dynamic Glow Corner (Subtle) */}
-      <div className={cn(
-        "absolute -top-20 -right-20 w-40 h-40 blur-[80px] opacity-20 pointer-events-none transition-all duration-1000 group-hover:opacity-40",
-        glow === 'cyan' && "bg-brand-cyan",
-        glow === 'pink' && "bg-brand-pink",
-        glow === 'blue' && "bg-brand-blue",
-        glow === 'purple' && "bg-brand-purple",
-        glow === 'gradient' && "gradient-bg shadow-lg"
-      )} />
 
       <div className="relative z-10 h-full">{children}</div>
     </div>
   );
-} 
+}

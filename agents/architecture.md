@@ -1,4 +1,4 @@
-# 🏗 LeadPure AI — System Architecture Blueprint
+# LeadPure AI: System Architecture Blueprint
 
 ## System Boundaries & Data Flow
 LeadPure AI follows a strict, deterministic unidirectional data flow to ensure validation integrity.

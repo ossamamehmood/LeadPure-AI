@@ -435,7 +435,7 @@ export async function queryExternalSmtpBackend(email: string): Promise<SmtpCheck
 }
 
 /**
- * Executes full LeadPure neural deliverability and catch-all checks
+ * Executes full LeadPure SMTP deliverability and catch-all checks
  */
 export async function verifySmtpDeliverability(
   email: string,

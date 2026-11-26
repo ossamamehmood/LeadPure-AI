@@ -1,4 +1,4 @@
-# 🧠 LeadPure AI — Intelligence Protocol & Enterprise Skill Architecture
+# LeadPure AI: Intelligence Protocol & Enterprise Skill Architecture
 
 > **Official Technical Blueprint for Elite-Grade Email Validation, Deliverability Protection & Near-Zero Bounce Infrastructure.**
 > **Version:** 13.0.0 Enterprise Deployment Protocol
@@ -6,14 +6,14 @@
 
 ---
 
-## 📌 Executive Overview
+## Executive Overview
 LeadPure AI is a deterministic, enterprise-grade validation engine engineered to protect outbound infrastructure from sender reputation degradation and ISP trust decay. 
 
 Unlike traditional validators, LeadPure AI operates as a **Deliverability Intelligence Firewall**. It sits between raw lead data and outbound campaign systems, ensuring only highly verified and deliverable identities survive validation.
 
 ---
 
-## 🛡 Engineering Philosophy
+## Engineering Philosophy
 LeadPure AI is NOT designed to maximize lead retention. It is designed to maximize:
 * **Deliverability Certainty**: Prioritizing "Safe-to-Send" over "Potentially Valid."
 * **Infrastructure Longevity**: Protecting domains and SMTP accounts from being blacklisted.
@@ -21,7 +21,7 @@ LeadPure AI is NOT designed to maximize lead retention. It is designed to maximi
 
 ---
 
-## 🛠 The 10-Layer Validation Protocol (Intelligence Kernel)
+## The 10-Layer Validation Protocol (Intelligence Kernel)
 
 ### 1. RFC Syntax Intelligence
 *   **Skill**: Strict RFC 5321 / 5322 compliance.
@@ -67,7 +67,7 @@ LeadPure AI is NOT designed to maximize lead retention. It is designed to maximi
 
 ---
 
-## 📈 Achieving "Practical 0%" Bounce Suppression
+## Achieving "Practical 0%" Bounce Suppression
 The strategy is **Aggressive Elimination of Uncertainty.**
 1.  **Eliminate Uncertainty**: If an email is `Risky`, `Uncertain`, or `Catch-All`, it is removed.
 2.  **Near-Zero Goal**: We prioritize sender safety over list size, aiming for the lowest possible bounce footprint.
@@ -75,7 +75,7 @@ The strategy is **Aggressive Elimination of Uncertainty.**
 
 ---
 
-## 🧱 Deterministic Processing Protocol
+## Deterministic Processing Protocol
 LeadPure AI must behave as a deterministic validation engine. The SAME input file must ALWAYS generate:
 *   Identical lead counts
 *   Identical classifications
@@ -85,10 +85,10 @@ No probabilistic logic, unstable async execution, race conditions, or environmen
 
 ---
 
-## 🔐 Stateless Enterprise Architecture
+## Stateless Enterprise Architecture
 *   **Privacy**: Zero persistent lead storage; data exists only in-memory during processing.
 *   **Compliance**: GDPR/CCPA ready by design.
 *   **Parity**: Stateless execution ensures identical behavior across Localhost and Vercel Production.
 
 ---
-*LeadPure AI v13.0.0 — Engineered for Absolute Deliverability Precision.*
+*LeadPure AI v13.0.0: Engineered for Deliverability Precision.*

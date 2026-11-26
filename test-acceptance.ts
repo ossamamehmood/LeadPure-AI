@@ -309,7 +309,7 @@ async function startTestBackend(port: number): Promise<http.Server> {
 
 async function runAcceptanceTest() {
   console.log("===============================================================================");
-  console.log("   LEADPURE AI — ACCEPTANCE VERIFICATION RUN (14 GROUND-TRUTH ADDRESSES)      ");
+  console.log("   LEADPURE AI - ACCEPTANCE VERIFICATION RUN (14 GROUND-TRUTH ADDRESSES)      ");
   console.log("===============================================================================\n");
 
   const TEST_PORT = 18080;

@@ -86,8 +86,8 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
                     <TableIcon className="w-5 h-5 sm:w-6 sm:h-6 text-brand-blue" />
                   </div>
                   <div>
-                    <h2 className="text-lg sm:text-2xl font-black text-app-text uppercase italic tracking-tight">{title}</h2>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest mt-0.5 tabular-nums">{data.length} records</p>
+                    <h2 className="text-lg sm:text-2xl font-display font-bold text-app-text tracking-tight">{title}</h2>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5 tabular-nums">{data.length} records</p>
                   </div>
                 </div>
 

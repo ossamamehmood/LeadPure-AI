@@ -1,11 +1,11 @@
-// LeadPure own verification engine — probe.mjs v1.3.2
+ // LeadPure own verification engine: probe.mjs v1.3.2
 // Reacher's system, rebuilt as LeadPure's own code. Zero dependencies (Node 20 stdlib only).
 // Pipeline per address: syntax -> MX -> SMTP RCPT probe across ALL MX candidates ->
 // catch-all probe (random local part) -> safe / risky / invalid / unknown.
 // v1.2 changes: (1) up to 2 full passes when the first ends in a connection failure,
 // (2) greylist retry waits 30s, (3) forwarding-provider MX (ImprovMX / ForwardEmail /
-// Cloudflare Email Routing) can never produce INVALID from an RCPT 5xx — the forwarder
-// answers for the domain, not the real mailbox — such results become unknown/risky with
+// Cloudflare Email Routing) can never produce INVALID from an RCPT 5xx: the forwarder
+// answers for the domain, not the real mailbox, so such results become unknown/risky with
 // an explicit forwarding note instead of a false "mailbox does not exist".
 // v1.3 changes: adds a 4-worker parallel pool in main() for 100-email chunks.
 // v1.3.1 change: INVALID now requires an enhanced status code 5.1.x in the RCPT reply
@@ -14,7 +14,7 @@
 // v1.3.2 changes: (1) the full RCPT reply line is always recorded in
 // debug.rcpt_reply so every verdict carries its evidence; (2) a 5.1.x RCPT
 // rejection is CONFIRMED with a second probe under an alternate sender
-// identity (B: gmail.com) before INVALID is returned — Proofpoint PPE /
+// identity (B: gmail.com) before INVALID is returned: Proofpoint PPE /
 // PrivateEmail hosts reject the leadpure.ai sender identity at RCPT with
 // 5.1.x codes for mailboxes that exist (Reacher, probing under a gmail.com
 // identity, got 250 for all of them). If identity B is accepted, the mailbox
@@ -182,19 +182,19 @@ async function probeOnce(email) {
     const enhanced = ((rcpt.reply || '').match(/(?:^|\s)(5\.\d+\.\d+)/) || [])[1] || '';
     if (enhanced) out.debug.rcpt_enhanced = enhanced;
     if (!enhanced.startsWith('5.1.')) {
-      // Policy rejection of the probe itself (5.7.x etc.) — the server refused the
+      // Policy rejection of the probe itself (5.7.x etc.): the server refused the
       // conversation, it did not prove the mailbox is gone. Stay honest: unknown.
       out.debug.policy_rejection = { code: rcpt.code, enhanced: enhanced || null };
       return out;
     }
     if (isForwarding) {
       // The forwarder rejected at RCPT, but it answers for the domain, not the real
-      // mailbox — this cannot prove the mailbox does not exist. Stay honest: unknown.
+      // mailbox: this cannot prove the mailbox does not exist. Stay honest: unknown.
       out.debug.forwarding_rcpt_rejected = rcpt.code;
       return out; // remains unknown
     }
     // 5.1.x rejection under identity A. Some hosts (Proofpoint PPE, PrivateEmail)
-    // reject by SENDER identity with 5.1.x codes for mailboxes that exist —
+    // reject by SENDER identity with 5.1.x codes for mailboxes that exist:
     // confirm under identity B before calling this mailbox non-existent.
     const conf = await probeAcrossCandidates(candidates, probeTarget, IDENTITY_B);
     if (conf.reply) out.debug.confirm_reply = String(conf.reply).slice(0, 200);
@@ -213,10 +213,10 @@ async function probeOnce(email) {
         return out;
       }
       out.debug.identity_disagreement = { a_code: rcpt.code, b_code: conf.code };
-      return out; // unknown — B was policy-rejected instead
+      return out; // unknown: B was policy-rejected instead
     } else {
       out.debug.identity_disagreement = { a_code: rcpt.code, b_code: conf.code };
-      return out; // unknown — confirmation inconclusive (4xx / connect failure)
+      return out; // unknown: confirmation inconclusive (4xx / connect failure)
     }
   }
   // RCPT accepted (2xx).
