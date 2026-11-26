@@ -187,8 +187,12 @@
     "debug": {
       "backend_name": "leadpure-own-engine",
       "engine_version": "1.3.2",
-      "rcpt_reply": "450 4.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
-      "greylisted_or_temp": 450
+      "rcpt_reply": "550 5.7.1 Mail from IP 52.148.2.212 was rejected due to listing in Spamhaus SBL. For details please see http://www.spamhaus.org/query/bl?ip=52.148.2.212",
+      "rcpt_enhanced": "5.7.1",
+      "policy_rejection": {
+        "code": 550,
+        "enhanced": "5.7.1"
+      }
     }
   },
   {
@@ -224,9 +228,9 @@
     "debug": {
       "backend_name": "leadpure-own-engine",
       "engine_version": "1.3.2",
-      "rcpt_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 41be03b00d2f7-cdebefcd72csi1331401a12.395 - gsmtp",
+      "rcpt_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser a92af1059eb24-1b588224876si9968436c88.61 - gsmtp",
       "rcpt_enhanced": "5.1.1",
-      "confirm_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser d9443c01a7336-2f0b8b09c11si168601735ad.195 - gsmtp",
+      "confirm_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 586e51a60fabf-4bc60a95e00si28336220fac.139 - gsmtp",
       "rcpt_code": 550,
       "confirmed_two_identities": true
     }
