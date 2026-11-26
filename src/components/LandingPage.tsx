@@ -39,18 +39,18 @@ const COMPARISON_ROWS: {
     zerobounce: { ok: false, note: '100/mo free' },
     emailable: { ok: false, note: '250 trial' },
     hunter: { ok: false, note: '50/mo free' },
-    reacher: { ok: false, note: 'VPS / Paid' },
+    reacher: { ok: false, note: 'Paid / Hosted' },
   },
   {
-    feature: 'Zero server setup',
+    feature: 'Zero technical setup',
     leadpure: { ok: true },
     zerobounce: { ok: true },
     emailable: { ok: true },
     hunter: { ok: true },
-    reacher: { ok: false, note: 'Needs server' },
+    reacher: { ok: false, note: 'Needs hosting' },
   },
   {
-    feature: 'Finds Accept-All domains',
+    feature: 'Flags risky catch-all domains',
     leadpure: { ok: true },
     zerobounce: { ok: true },
     emailable: { ok: true },
@@ -63,18 +63,18 @@ const COMPARISON_ROWS: {
     zerobounce: { ok: true },
     emailable: { ok: true },
     hunter: { ok: true },
-    reacher: { ok: false, note: 'API-first' },
+    reacher: { ok: false, note: 'Dev-focused' },
   },
   {
-    feature: 'Extra columns stay in browser',
+    feature: 'Names & notes stay in browser',
     leadpure: { ok: true },
-    zerobounce: { ok: false, note: 'Cloud upload' },
-    emailable: { ok: false, note: 'Cloud upload' },
-    hunter: { ok: false, note: 'Cloud upload' },
-    reacher: { ok: false, note: 'API payload' },
+    zerobounce: { ok: false, note: 'Uploaded to cloud' },
+    emailable: { ok: false, note: 'Uploaded to cloud' },
+    hunter: { ok: false, note: 'Uploaded to cloud' },
+    reacher: { ok: false, note: 'External sync' },
   },
   {
-    feature: 'Open source codebase',
+    feature: 'Open & transparent software',
     leadpure: { ok: true },
     zerobounce: { ok: false },
     emailable: { ok: false },
@@ -123,27 +123,27 @@ function ComparisonCell({ cell, primary = false }: { cell: MatrixCell; primary?:
 const FAQS = [
   {
     q: 'Does LeadPure actually send an email to my contacts?',
-    a: 'No. LeadPure checks whether the destination mailbox is ready to accept mail and ends the check immediately before any message is ever sent.',
+    a: 'No. LeadPure checks whether each inbox is active without sending any message, keeping your sender reputation protected.',
   },
   {
-    q: 'How can LeadPure check emails without charging per credit?',
-    a: 'Traditional platforms rent shared mail clusters and bill you for every single row. LeadPure runs its own lightweight verification engine through your deployment workflow, removing per-lead SaaS markups.',
+    q: 'How is LeadPure free without monthly credit charges?',
+    a: 'Instead of locking small quotas behind recurring per-email subscriptions, LeadPure verifies contacts directly inside your workspace with zero credit fees.',
   },
   {
-    q: 'Why does an email sometimes show as Unknown?',
-    a: 'Some providers temporarily ask senders to wait when traffic is busy. LeadPure retries automatically, and if the server still refuses to give a clear answer, it marks the contact Unknown so you never lose a real lead or send blindly.',
+    q: 'Why does an address sometimes show as Unconfirmed?',
+    a: 'Some providers ask senders to pause briefly when traffic is busy. LeadPure retries automatically and marks uncertain contacts honestly so you never drop real leads by mistake.',
   },
   {
-    q: 'What makes LeadPure simpler than ZeroBounce, Emailable, Hunter, or Reacher?',
-    a: 'You avoid recurring credit invoices from SaaS platforms and avoid renting a specialized mail server like Reacher self-hosting requires. Upload your spreadsheet, see honest verdicts with clear explanations, and export immediately.',
+    q: 'How does LeadPure compare to ZeroBounce, Emailable, Hunter, or Reacher?',
+    a: 'LeadPure gives you instant single checks, full spreadsheet cleaning, and browser privacy without monthly credit invoices or technical setup.',
   },
   {
-    q: 'Is my spreadsheet data kept private?',
-    a: 'Yes. Extra spreadsheet columns such as names, notes, and phone numbers stay inside your browser while formatting. Only email addresses are checked, and finished scan records automatically delete after 7 days.',
+    q: 'Are names, phone numbers, and extra columns kept private?',
+    a: 'Yes. Names, phone numbers, and custom notes stay in your browser. Only email addresses are checked, and completed scan history clears automatically after 7 days.',
   },
 ];
 
-const MICRO_VERDICTS = ['SAFE', 'RISKY', 'INVALID', 'UNKNOWN'] as const;
+const MICRO_VERDICTS = ['SAFE', 'RISKY', 'REMOVE', 'REVIEW'] as const;
 
 /** Self-contained cycling verdict badge strip so parent LandingPage never re-renders. */
 function VerdictMicroInstrument() {
@@ -157,10 +157,10 @@ function VerdictMicroInstrument() {
   }, [shouldReduceMotion]);
 
   return (
-    <div className="p-4 rounded-2xl bg-slate-50/90 dark:bg-white/[0.025] border border-app-border space-y-2.5">
-      <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+    <div className="p-4 rounded-2xl bg-white/55 dark:bg-white/[0.03] border border-white/75 dark:border-app-border backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-none space-y-2.5">
+      <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
         <Activity className="w-4 h-4 text-brand-blue shrink-0" />
-        <span>Verdict Output</span>
+        <span>Instant Status</span>
       </div>
       <div className="flex flex-wrap items-center gap-1.5">
         {MICRO_VERDICTS.map((v, i) => (
@@ -170,12 +170,12 @@ function VerdictMicroInstrument() {
               'px-2 py-0.5 rounded-md text-[10px] font-bold transition-all duration-300',
               i === verdictTick
                 ? v === 'SAFE'
-                  ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300'
+                  ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                   : v === 'RISKY'
                     ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                    : v === 'INVALID'
-                      ? 'bg-rose-500/20 text-rose-600 dark:text-rose-300'
-                      : 'bg-slate-500/20 text-slate-700 dark:text-slate-200'
+                    : v === 'REMOVE'
+                      ? 'bg-rose-500/20 text-rose-700 dark:text-rose-300'
+                      : 'bg-slate-500/20 text-slate-800 dark:text-slate-200'
                 : 'text-slate-400 dark:text-slate-500 opacity-50'
             )}
           >
@@ -298,127 +298,108 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
         </header>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-16 space-y-24 sm:space-y-36 relative z-10">
-        {/* 1. ARCHITECTURAL HERO + INTERACTIVE 3D LIQUID GLASS CRYSTAL + LIVE STAGE */}
-        <section className="space-y-12 sm:space-y-16">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
-            <div className="lg:col-span-7 text-center lg:text-left space-y-6">
-              <motion.div
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.45, ease: EDITORIAL_EASE }}
-                className="liquid-glass inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-medium text-slate-700 dark:text-slate-200"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>LeadPure V14 &middot; Zero credit charges</span>
-              </motion.div>
-
-              <h1 className="text-[2.1rem] sm:text-6xl lg:text-[4.25rem] font-display font-bold tracking-[-0.04em] leading-[1.06] sm:leading-[1.03] text-app-text">
-                <KineticHeadlineLine words={['Know', 'every', 'email', 'is', 'real']} delayBase={0.04} />{' '}
-                <KineticHeadlineLine words={['before', 'you', 'hit', 'send.']} delayBase={0.22} gradient />
-              </h1>
-
-              <motion.p
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.34, ease: EDITORIAL_EASE }}
-                className="text-base sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal"
-              >
-                Verify individual contacts in seconds or clean spreadsheets up to 5,000 rows so campaigns reach real inboxes instead of bouncing.
-              </motion.p>
-
-              <motion.div
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.55, delay: 0.42, ease: EDITORIAL_EASE }}
-                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-1"
-              >
-                <MagneticButton onClick={onOpenDashboard} variant="primary" size="lg" className="group/hero px-8 w-full sm:w-auto rounded-full">
-                  <span>Try It Now in Dashboard</span>
-                  <ArrowRight className="w-4 h-4 transition-transform group-hover/hero:translate-x-0.5" />
-                </MagneticButton>
-                <a
-                  href="#compare"
-                  className="liquid-glass min-h-[54px] sm:min-h-[58px] px-7 py-3.5 rounded-full text-sm font-semibold text-slate-900 dark:text-slate-100 hover:border-brand-blue/50 flex items-center justify-center gap-2 w-full sm:w-auto transition-all"
-                >
-                  <span>Compare Verifiers</span>
-                </a>
-              </motion.div>
-            </div>
-
-            {/* Interactive 3D Liquid-Glass Prism Stage */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-18 pb-16 space-y-24 sm:space-y-36 relative z-10">
+        {/* 1. BALANCED ARCHITECTURAL HERO + TRANSLUCENT 3D PRISM & LIVE STAGE */}
+        <section className="space-y-6 sm:space-y-8">
+          <div className="max-w-4xl mx-auto text-center space-y-5 sm:space-y-6">
             <motion.div
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.25, ease: EDITORIAL_EASE }}
-              className="lg:col-span-5 relative w-full h-[300px] sm:h-[380px]"
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45, ease: EDITORIAL_EASE }}
+              className="liquid-glass inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-medium text-slate-700 dark:text-slate-200"
             >
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-6 rounded-full opacity-35 dark:opacity-50 blur-3xl"
-                style={{
-                  background:
-                    'radial-gradient(circle at 35% 35%, rgba(2,254,220,0.35), rgba(90,92,255,0.28) 45%, rgba(245,2,253,0.22) 78%, transparent 100%)',
-                }}
-              />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Real-Time Email Verification</span>
+            </motion.div>
 
-              <Suspense
-                fallback={
-                  <div className="w-48 h-48 rounded-full liquid-glass flex items-center justify-center">
-                    <Sparkles className="w-7 h-7 text-brand-blue animate-pulse" />
-                  </div>
-                }
-              >
-                <HeroSpatial3D className="w-full h-full z-10" />
-              </Suspense>
+            <h1 className="text-[2.1rem] sm:text-6xl lg:text-[4.35rem] font-display font-bold tracking-[-0.04em] leading-[1.06] sm:leading-[1.03] text-app-text">
+              <KineticHeadlineLine words={['Know', 'every', 'email', 'is', 'real']} delayBase={0.04} />
+              <br className="hidden sm:block" />{' '}
+              <KineticHeadlineLine words={['before', 'you', 'hit', 'send.']} delayBase={0.22} gradient />
+            </h1>
 
-              {/* Floating iOS-style Optical Depth Telemetry Pills */}
-              <motion.div
-                animate={shouldReduceMotion ? undefined : { y: [0, -7, 0] }}
-                transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
-                className="liquid-glass pointer-events-none absolute top-3 right-2 sm:right-4 z-20 px-3.5 py-2 rounded-2xl inline-flex items-center gap-2 text-xs font-semibold text-app-text whitespace-nowrap"
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                <span>0 Emails Sent</span>
-              </motion.div>
+            <motion.p
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.34, ease: EDITORIAL_EASE }}
+              className="text-base sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto font-normal"
+            >
+              Check single emails in seconds or clean contact spreadsheets up to 5,000 leads so your messages reach real inboxes.
+            </motion.p>
 
-              <motion.div
-                animate={shouldReduceMotion ? undefined : { y: [0, 7, 0] }}
-                transition={{ duration: 6.2, repeat: Infinity, ease: 'easeInOut' }}
-                className="liquid-glass pointer-events-none absolute bottom-3 left-2 sm:left-4 z-20 px-3.5 py-2 rounded-2xl inline-flex items-center gap-2 text-xs font-semibold text-app-text whitespace-nowrap"
+            <motion.div
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.42, ease: EDITORIAL_EASE }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2"
+            >
+              <MagneticButton onClick={onOpenDashboard} variant="primary" size="lg" className="group/hero px-8 w-full sm:w-auto rounded-full">
+                <span>Verify Emails Free</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover/hero:translate-x-0.5" />
+              </MagneticButton>
+              <a
+                href="#preview"
+                className="liquid-glass min-h-[54px] sm:min-h-[58px] px-7 py-3.5 rounded-full text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-center gap-2 w-full sm:w-auto transition-all"
               >
-                <Activity className="w-3.5 h-3.5 text-brand-blue shrink-0" />
-                <span>5,000 Rows / Run</span>
-              </motion.div>
+                <span>See How It Works</span>
+              </a>
             </motion.div>
           </div>
 
-          <motion.div
-            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 0.48, ease: EDITORIAL_EASE }}
-          >
-            <LiveHandshakeVisualizer />
-          </motion.div>
+          {/* Harmonized 3D Refractive Backdrop + Interactive Liquid-Glass Preview Stage */}
+          <div className="relative pt-2">
+            <motion.div
+              aria-hidden="true"
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.85, delay: 0.3, ease: EDITORIAL_EASE }}
+              className="pointer-events-none max-w-3xl mx-auto h-[220px] sm:h-[290px] relative z-0 flex items-center justify-center"
+            >
+              <div
+                className="absolute inset-8 rounded-full opacity-45 dark:opacity-55 blur-3xl"
+                style={{
+                  background:
+                    'radial-gradient(circle at 50% 50%, rgba(2,254,220,0.34), rgba(90,92,255,0.28) 45%, rgba(245,2,253,0.20) 75%, transparent 100%)',
+                }}
+              />
+              <Suspense
+                fallback={
+                  <div className="w-36 h-36 rounded-full liquid-glass flex items-center justify-center opacity-70">
+                    <Sparkles className="w-6 h-6 text-brand-blue" />
+                  </div>
+                }
+              >
+                <HeroSpatial3D theme={theme} className="w-full h-full opacity-90" />
+              </Suspense>
+            </motion.div>
+
+            <motion.div
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, delay: 0.48, ease: EDITORIAL_EASE }}
+              className="relative z-10 -mt-20 sm:-mt-28"
+            >
+              <LiveHandshakeVisualizer />
+            </motion.div>
+          </div>
         </section>
 
-        {/* 2. INTERACTIVE 3D LIQUID-GLASS BENTO PILLARS */}
+        {/* 2. INTERACTIVE 3D LIQUID-GLASS VALUE PILLARS */}
         <section className="group/bento grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
           <SpatialTiltCard delay={0}>
-            <div className="depth-layer-sm p-4 rounded-2xl bg-slate-50/85 dark:bg-white/[0.03] border border-app-border flex items-center justify-between gap-3">
+            <div className="depth-layer-sm p-4 rounded-2xl bg-white/55 dark:bg-white/[0.03] border border-white/75 dark:border-app-border backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-none flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 text-xs font-medium text-app-text">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                <span>Invisible Check</span>
+                <span>Private Check</span>
               </div>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25">
                 0 Emails Sent
               </span>
             </div>
             <div className="depth-layer-md space-y-2">
-              <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500">01</span>
               <h2 className="text-xl font-display font-bold text-app-text tracking-tight">No messages ever delivered</h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                LeadPure confirms mailbox availability quietly with the receiving mail host and disconnects before any email is sent.
+                LeadPure confirms whether an inbox can accept mail cleanly without sending a single message to your prospects.
               </p>
             </div>
           </SpatialTiltCard>
@@ -428,24 +409,23 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               <VerdictMicroInstrument />
             </div>
             <div className="depth-layer-md space-y-2">
-              <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500">02</span>
               <h2 className="text-xl font-display font-bold text-app-text tracking-tight">Honest labels, zero guesswork</h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Catch-all domains stay marked Risky, dead boxes are blocked, and busy mail servers read Unknown instead of fake certainty.
+                Uncertain domains stay labeled Risky, dead addresses are filtered out, and busy inboxes wait for review.
               </p>
             </div>
           </SpatialTiltCard>
 
           <SpatialTiltCard delay={0.16}>
-            <div className="depth-layer-sm p-4 rounded-2xl bg-slate-50/85 dark:bg-white/[0.03] border border-app-border space-y-2.5">
+            <div className="depth-layer-sm p-4 rounded-2xl bg-white/55 dark:bg-white/[0.03] border border-white/75 dark:border-app-border backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-none space-y-2.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 font-medium text-app-text">
                   <FileSpreadsheet className="w-4 h-4 text-brand-blue" />
-                  Batch Capacity
+                  Spreadsheet Upload
                 </span>
-                <span className="font-mono font-bold text-app-text tabular-nums">5,000 Rows</span>
+                <span className="font-semibold text-app-text tabular-nums">Up to 5,000 Leads</span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-slate-200/80 dark:bg-white/10 overflow-hidden">
+              <div className="h-1.5 w-full rounded-full bg-slate-300/60 dark:bg-white/10 overflow-hidden">
                 <motion.div
                   className="h-full w-full gradient-bg origin-left rounded-full"
                   initial={{ scaleX: 0 }}
@@ -456,10 +436,9 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               </div>
             </div>
             <div className="depth-layer-md space-y-2">
-              <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500">03</span>
-              <h2 className="text-xl font-display font-bold text-app-text tracking-tight">Built for full spreadsheets</h2>
+              <h2 className="text-xl font-display font-bold text-app-text tracking-tight">Clean whole spreadsheets fast</h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Upload CSV or Excel sheets right in your browser, monitor live progress, resume any interrupted scan, and export cleanly.
+                Drop in any CSV or Excel sheet in your browser, track progress live, and download ready-to-send contacts in one click.
               </p>
             </div>
           </SpatialTiltCard>
@@ -486,7 +465,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               </p>
             </div>
             <MagneticButton onClick={onOpenDashboard} variant="primary" size="md" className="shrink-0 rounded-full">
-              <span>Launch Workspace</span>
+              <span>Start Verifying</span>
               <ArrowRight className="w-4 h-4" />
             </MagneticButton>
           </div>
@@ -495,9 +474,9 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
             <div className="overflow-x-auto">
               <table className="w-full min-w-[740px] text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-app-border bg-slate-50/80 dark:bg-white/[0.025] text-xs font-display font-bold text-app-text">
+                  <tr className="border-b border-app-border bg-white/45 dark:bg-white/[0.025] text-xs font-display font-bold text-app-text">
                     <th className="py-5 px-6 w-[28%] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">Capability</th>
-                    <th className="py-5 px-4 w-[16%] text-center bg-slate-900/[0.03] dark:bg-white/[0.04] border-x border-app-border">
+                    <th className="py-5 px-4 w-[16%] text-center bg-white/40 dark:bg-white/[0.04] border-x border-app-border">
                       <div className="inline-flex items-center gap-1.5 justify-center">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                         <span className="text-sm font-bold text-app-text">LeadPure</span>
@@ -525,7 +504,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
                   {COMPARISON_ROWS.map((row) => (
                     <tr key={row.feature} className="hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-colors">
                       <td className="py-4 px-6 font-medium text-app-text align-middle">{row.feature}</td>
-                      <td className="py-4 px-4 bg-slate-900/[0.03] dark:bg-white/[0.04] border-x border-app-border align-middle">
+                      <td className="py-4 px-4 bg-white/30 dark:bg-white/[0.04] border-x border-app-border align-middle">
                         <ComparisonCell cell={row.leadpure} primary />
                       </td>
                       <td className="py-4 px-4 align-middle">
@@ -603,26 +582,23 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
             Clean your list. <span className="gradient-text">Protect your inbox.</span>
           </h2>
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-lg mx-auto leading-relaxed relative z-10">
-            Open the dashboard to verify an email right now or upload your next campaign spreadsheet.
+            Start checking an individual contact right now or upload your next campaign spreadsheet in seconds.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2 relative z-10">
             <MagneticButton onClick={onOpenDashboard} variant="primary" size="lg" className="px-9 w-full sm:w-auto rounded-full">
-              <span>Open /dashboard</span>
+              <span>Start Verifying Free</span>
               <ArrowRight className="w-4 h-4" />
             </MagneticButton>
             <a
-              href="https://github.com/ossamamehmood/LeadPure-AI"
-              target="_blank"
-              rel="noreferrer"
-              className="min-h-[54px] sm:min-h-[58px] px-7 py-3 rounded-full border border-slate-300 dark:border-white/15 bg-white/95 dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:border-brand-blue/50 shadow-sm text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-center gap-2 w-full sm:w-auto transition-all"
+              href="#compare"
+              className="liquid-glass min-h-[54px] sm:min-h-[58px] px-7 py-3 rounded-full text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-center gap-2 w-full sm:w-auto transition-all"
             >
-              <span>View on GitHub</span>
-              <ExternalLink className="w-4 h-4 opacity-70" />
+              <span>Compare Tools</span>
             </a>
           </div>
         </section>
 
-        <Footer />
+        <Footer variant="landing" />
       </main>
     </div>
   );

@@ -94,14 +94,16 @@ export function ArchitecturePipeline() {
         {/* Simple 4-Step Flow Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 pt-2">
           {[
-            { num: '01', title: 'Upload CSV or Excel' },
-            { num: '02', title: 'Check Every Inbox Live' },
-            { num: '03', title: 'Separate Risky Leads' },
-            { num: '04', title: 'Export Ready Contacts' },
-          ].map((step) => (
-            <div key={step.num} className="flex items-center gap-3 p-3 rounded-2xl border border-app-border bg-app-card/60">
-              <span className="text-[11px] font-mono font-bold text-slate-400 dark:text-slate-500">{step.num}</span>
-              <span className="text-xs font-semibold text-app-text">{step.title}</span>
+            'Upload spreadsheet',
+            'Check every inbox',
+            'Separate risky leads',
+            'Download clean list',
+          ].map((title, idx) => (
+            <div key={title} className="flex items-center gap-2.5 p-3 rounded-2xl liquid-glass">
+              <span className="w-5 h-5 rounded-full bg-brand-blue/12 dark:bg-white/10 text-[11px] font-semibold text-brand-blue dark:text-white flex items-center justify-center shrink-0">
+                {idx + 1}
+              </span>
+              <span className="text-xs font-semibold text-app-text">{title}</span>
             </div>
           ))}
         </div>

@@ -21,45 +21,45 @@ const CONTACTS: SampleContact[] = [
   {
     id: 'real',
     tab: 'Active Inbox',
-    label: 'Sales Team',
+    label: 'Sales Desk',
     email: 'sales@company.example',
     outcome: 'Safe to Send',
     tone: 'emerald',
     summary: 'Real inbox confirmed directly without sending an email.',
-    checks: ['Format verified', 'Domain accepts mail', 'Inbox active'],
+    checks: ['Spelling valid', 'Domain ready', 'Inbox active'],
     bars: [0.35, 0.7, 0.55, 0.95, 0.75, 0.9, 0.65, 1],
   },
   {
     id: 'catchall',
-    tab: 'Catch-All',
+    tab: 'Risky Domain',
     label: 'Partner Desk',
     email: 'partners@agency.example',
     outcome: 'Risky',
     tone: 'amber',
     summary: 'Domain accepts any username entered, so delivery is uncertain.',
-    checks: ['Format verified', 'Domain accepts mail', 'Accepts any name'],
+    checks: ['Spelling valid', 'Domain ready', 'Accepts any name'],
     bars: [0.4, 0.85, 0.6, 0.6, 0.8, 0.55, 0.65, 0.55],
   },
   {
     id: 'bounce',
-    tab: 'Dead Email',
-    label: 'Closed Mailbox',
+    tab: 'Closed Inbox',
+    label: 'Former Contact',
     email: 'former.desk@domain.example',
     outcome: 'Will Bounce',
     tone: 'rose',
-    summary: 'Removed before sending so your sender score stays protected.',
-    checks: ['Format verified', 'Mail server reached', 'Inbox does not exist'],
+    summary: 'Removed before sending so your sender reputation stays safe.',
+    checks: ['Spelling valid', 'Host reached', 'Inbox closed'],
     bars: [0.3, 0.65, 0.85, 0.25, 0.2, 0.15, 0.2, 0.15],
   },
   {
     id: 'busy',
-    tab: 'Busy Server',
+    tab: 'Busy Host',
     label: 'General Desk',
     email: 'contact@gateway.example',
     outcome: 'Unconfirmed',
     tone: 'slate',
-    summary: 'Mail server asked us to wait. Marked honest Unknown instead of guessing.',
-    checks: ['Format verified', 'Mail server busy', 'Kept aside for review'],
+    summary: 'Receiving host asked to wait. Marked honest Unconfirmed instead of guessing.',
+    checks: ['Spelling valid', 'Host busy now', 'Saved for review'],
     bars: [0.45, 0.55, 0.4, 0.5, 0.45, 0.5, 0.4, 0.45],
   },
 ];
@@ -145,7 +145,7 @@ export function LiveHandshakeVisualizer() {
             </div>
             <div className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-300">
               <Sparkles className="w-3.5 h-3.5 text-brand-blue" />
-              <span>Interactive example (demo data only)</span>
+              <span>Live Verification Preview</span>
             </div>
           </div>
 
@@ -188,9 +188,9 @@ export function LiveHandshakeVisualizer() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, x: 10 }}
                 transition={{ duration: 0.28, ease: EDITORIAL_EASE }}
-                className="p-4 sm:p-5 rounded-2xl bg-slate-50/90 dark:bg-white/[0.03] border border-app-border shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                className="p-4 sm:p-5 rounded-2xl bg-white/55 dark:bg-white/[0.035] border border-white/70 dark:border-app-border backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
               >
-                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Sample Input</p>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Contact Check</p>
                 <p className="text-sm font-display font-bold text-app-text mt-1">{current.label}</p>
                 <p className="text-xs font-mono text-slate-600 dark:text-slate-300 mt-0.5 truncate">{current.email}</p>
               </motion.div>
@@ -261,7 +261,7 @@ export function LiveHandshakeVisualizer() {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.97, y: -6 }}
                 transition={{ duration: 0.3, ease: EDITORIAL_EASE }}
-                className="p-4 sm:p-5 rounded-2xl bg-slate-50/90 dark:bg-white/[0.03] border border-app-border shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+                className="p-4 sm:p-5 rounded-2xl bg-white/55 dark:bg-white/[0.035] border border-white/70 dark:border-app-border backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
               >
                 <div className="flex items-center justify-between gap-2 mb-2.5">
                   <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Result</span>

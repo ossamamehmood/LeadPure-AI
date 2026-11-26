@@ -134,10 +134,10 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
       {/* Precision masked 64px architectural dot matrix */}
       <div className="absolute inset-0 architectural-grid opacity-85" />
 
-      {/* Scroll-Linked Neon Signature Ribbon (refracts vibrantly behind `.liquid-glass` panels) */}
+      {/* Scroll-Linked Neon Signature Ribbon (refracts vibrantly behind `.liquid-glass` panels in Dark & Light modes) */}
       {variant === 'hero' && (
         <motion.div
-          className="fixed -inset-x-[12vw] -top-[18vh] h-[140vh] w-[124vw] opacity-[0.22] dark:opacity-[0.55]"
+          className="fixed -inset-x-[12vw] -top-[18vh] h-[140vh] w-[124vw] opacity-[0.40] dark:opacity-[0.58]"
           style={
             shouldReduceMotion
               ? undefined
@@ -205,11 +205,11 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
         />
       )}
 
-      {/* Soft peripheral depth glow spheres */}
+      {/* Soft peripheral depth glow spheres (provide colorful light for Light & Dark glass refraction) */}
       {!shouldReduceMotion && (
         <>
           <motion.div
-            className="absolute -top-36 -left-24 w-[440px] h-[440px] sm:w-[640px] sm:h-[640px] rounded-full blur-3xl opacity-[0.06] dark:opacity-[0.09]"
+            className="absolute -top-36 -left-24 w-[440px] h-[440px] sm:w-[640px] sm:h-[640px] rounded-full blur-3xl opacity-[0.16] dark:opacity-[0.09]"
             style={{ background: 'radial-gradient(circle, #02FEDC 0%, transparent 70%)', willChange: 'transform' }}
             animate={{
               x: [0, 48, -22, 0],
@@ -220,7 +220,7 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
           />
 
           <motion.div
-            className="absolute -bottom-36 -right-24 w-[420px] h-[420px] sm:w-[620px] sm:h-[620px] rounded-full blur-3xl opacity-[0.05] dark:opacity-[0.08]"
+            className="absolute -bottom-36 -right-24 w-[420px] h-[420px] sm:w-[620px] sm:h-[620px] rounded-full blur-3xl opacity-[0.13] dark:opacity-[0.08]"
             style={{ background: 'radial-gradient(circle, #F502FD 0%, transparent 70%)', willChange: 'transform' }}
             animate={{
               x: [0, -48, 22, 0],

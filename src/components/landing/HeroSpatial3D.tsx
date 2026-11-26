@@ -4,31 +4,24 @@ import * as THREE from 'three';
 
 interface HeroSpatial3DProps {
   className?: string;
-  accentTone?: 'emerald' | 'amber' | 'rose' | 'slate';
+  theme?: 'dark' | 'light';
 }
 
-const ACCENT_HEX: Record<NonNullable<HeroSpatial3DProps['accentTone']>, number> = {
-  emerald: 0x02fedc,
-  amber: 0xf59e0b,
-  rose: 0xf502fd,
-  slate: 0x5a5cff,
-};
-
 /**
- * Interactive WebGL 3D liquid-glass torus prism powered by Three.js Physical PBR
- * with synthetic studio environment reflection, pointer-tracked tilt, scroll
- * rotation, and zero external asset dependencies. Falls back gracefully if WebGL
- * is unavailable or reduced motion is enabled.
+ * Sleek, translucent 3D liquid-glass orbital ribbon and faceted prism
+ * powered by Three.js Physical PBR. Uses thin, airy geometry and
+ * iridescent highlights so it frames frosted UI elements cleanly without
+ * heavy visual clutter.
  */
-export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSpatial3DProps) {
+export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const accentColorRef = useRef<number>(ACCENT_HEX[accentTone]);
+  const themeRef = useRef<'dark' | 'light'>(theme);
   const [webglReady, setWebglReady] = useState(true);
   const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
-    accentColorRef.current = ACCENT_HEX[accentTone];
-  }, [accentTone]);
+    themeRef.current = theme;
+  }, [theme]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -55,12 +48,12 @@ export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSp
       return;
     }
 
-    const width = Math.max(container.clientWidth, 260);
+    const width = Math.max(container.clientWidth, 280);
     const height = Math.max(container.clientHeight, 260);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
+    renderer.toneMappingExposure = 1.15;
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
     renderer.domElement.style.display = 'block';
@@ -71,28 +64,28 @@ export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSp
     const scene = new THREE.Scene();
     const initialAspect = width / height;
     const camera = new THREE.PerspectiveCamera(36, initialAspect, 0.1, 100);
-    const computeCameraZ = (aspect: number) => (aspect < 1 ? 6.8 / Math.max(aspect, 0.74) : 6.9);
+    const computeCameraZ = (aspect: number) => (aspect < 1 ? 6.9 / Math.max(aspect, 0.72) : 6.8);
     camera.position.set(0, 0, computeCameraZ(initialAspect));
 
-    // Synthesize a smooth studio reflection map in memory so physical glass refracts cleanly
+    // In-memory iridescent studio reflection map
     const envCanvas = document.createElement('canvas');
     envCanvas.width = 128;
     envCanvas.height = 64;
     const ctx = envCanvas.getContext('2d');
     if (ctx) {
       const grad = ctx.createLinearGradient(0, 0, 128, 64);
-      grad.addColorStop(0.0, '#09101f');
-      grad.addColorStop(0.24, '#02fedc');
-      grad.addColorStop(0.48, '#ffffff');
-      grad.addColorStop(0.68, '#5a5cff');
-      grad.addColorStop(0.88, '#f502fd');
-      grad.addColorStop(1.0, '#07080f');
+      grad.addColorStop(0.0, '#070b18');
+      grad.addColorStop(0.25, '#02fedc');
+      grad.addColorStop(0.50, '#ffffff');
+      grad.addColorStop(0.72, '#5a5cff');
+      grad.addColorStop(0.92, '#f502fd');
+      grad.addColorStop(1.0, '#0a0f24');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 128, 64);
 
-      ctx.fillStyle = 'rgba(255,255,255,0.85)';
-      ctx.fillRect(16, 8, 28, 10);
-      ctx.fillRect(76, 18, 22, 8);
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.fillRect(14, 6, 32, 10);
+      ctx.fillRect(78, 16, 24, 8);
     }
 
     envTexture = new THREE.CanvasTexture(envCanvas);
@@ -102,135 +95,112 @@ export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSp
     envRenderTarget = pmremGenerator.fromEquirectangular(envTexture);
     scene.environment = envRenderTarget.texture;
 
-    // 3-point studio lighting tinted in brand cyan, electric blue, and pink
-    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambient);
 
-    const cyanLight = new THREE.PointLight(0x02fedc, 36, 18);
-    cyanLight.position.set(-3.2, 2.4, 3.0);
+    const cyanLight = new THREE.PointLight(0x02fedc, 34, 18);
+    cyanLight.position.set(-3.4, 2.2, 3.2);
     scene.add(cyanLight);
 
-    const pinkLight = new THREE.PointLight(0xf502fd, 32, 18);
-    pinkLight.position.set(3.2, -2.1, 2.6);
+    const pinkLight = new THREE.PointLight(0xf502fd, 30, 18);
+    pinkLight.position.set(3.4, -2.0, 2.8);
     scene.add(pinkLight);
 
-    const blueLight = new THREE.PointLight(0x5a5cff, 40, 20);
-    blueLight.position.set(0.2, 2.8, -2.4);
+    const blueLight = new THREE.PointLight(0x5a5cff, 38, 20);
+    blueLight.position.set(0.2, 2.6, -2.2);
     scene.add(blueLight);
 
     const coreGroup = new THREE.Group();
     scene.add(coreGroup);
 
-    // Sculptural Liquid Glass Torus Knot
-    const knotGeo = new THREE.TorusKnotGeometry(1.06, 0.31, 144, 28, 2, 3);
-    const knotMat = new THREE.MeshPhysicalMaterial({
-      color: 0xedf6ff,
-      metalness: 0.04,
-      roughness: 0.06,
-      transmission: 0.86,
-      thickness: 1.4,
-      ior: 1.48,
+    // Sleek airy liquid-glass mobius ribbon (slender tube radius for refined luxury silhouettes)
+    const ribbonGeo = new THREE.TorusKnotGeometry(1.36, 0.088, 192, 32, 2, 3);
+    const ribbonMat = new THREE.MeshPhysicalMaterial({
+      color: themeRef.current === 'light' ? 0xdbeafe : 0x6f86ff,
+      metalness: 0.08,
+      roughness: 0.05,
+      transmission: 0.88,
+      transparent: true,
+      opacity: 0.78,
+      thickness: 0.75,
+      ior: 1.52,
       clearcoat: 1.0,
-      clearcoatRoughness: 0.05,
-      iridescence: 0.85,
-      iridescenceIOR: 1.34,
-      reflectivity: 0.95,
-      envMapIntensity: 1.45,
+      clearcoatRoughness: 0.04,
+      iridescence: 1.0,
+      iridescenceIOR: 1.35,
+      envMapIntensity: 1.65,
     });
-    const knotMesh = new THREE.Mesh(knotGeo, knotMat);
-    coreGroup.add(knotMesh);
+    const ribbonMesh = new THREE.Mesh(ribbonGeo, ribbonMat);
+    coreGroup.add(ribbonMesh);
 
-    // Inner verification crystal octahedron
-    const crystalGeo = new THREE.OctahedronGeometry(0.46, 0);
-    const crystalMat = new THREE.MeshPhysicalMaterial({
+    // Translucent faceted inner crystal
+    const prismGeo = new THREE.OctahedronGeometry(0.46, 0);
+    const prismMat = new THREE.MeshPhysicalMaterial({
       color: 0x5a5cff,
-      emissive: accentColorRef.current,
-      emissiveIntensity: 0.35,
-      metalness: 0.25,
-      roughness: 0.12,
+      emissive: 0x02fedc,
+      emissiveIntensity: 0.25,
+      metalness: 0.15,
+      roughness: 0.08,
+      transparent: true,
+      opacity: 0.72,
       clearcoat: 1.0,
+      iridescence: 0.9,
     });
-    const crystalMesh = new THREE.Mesh(crystalGeo, crystalMat);
-    coreGroup.add(crystalMesh);
+    const prismMesh = new THREE.Mesh(prismGeo, prismMat);
+    coreGroup.add(prismMesh);
 
-    // Wireframe lattice cage around the crystal
-    const cageGeo = new THREE.IcosahedronGeometry(1.68, 1);
+    // Ultra-fine geodesic wireframe enclosure
+    const cageGeo = new THREE.IcosahedronGeometry(1.75, 1);
     const cageMat = new THREE.MeshBasicMaterial({
       color: 0x5a5cff,
       wireframe: true,
       transparent: true,
-      opacity: 0.14,
+      opacity: themeRef.current === 'light' ? 0.16 : 0.12,
     });
     const cageMesh = new THREE.Mesh(cageGeo, cageMat);
     coreGroup.add(cageMesh);
 
-    // Orbital glass halo rings + satellite spheres
-    const ringGeoA = new THREE.TorusGeometry(1.94, 0.016, 12, 120);
-    const ringMatA = new THREE.MeshStandardMaterial({
+    // Dual precision orbital halos
+    const haloGeoA = new THREE.TorusGeometry(2.05, 0.011, 12, 128);
+    const haloMatA = new THREE.MeshBasicMaterial({
       color: 0x02fedc,
-      emissive: 0x02fedc,
-      emissiveIntensity: 0.45,
-      metalness: 0.8,
-      roughness: 0.15,
-    });
-    const ringA = new THREE.Mesh(ringGeoA, ringMatA);
-    ringA.rotation.x = Math.PI * 0.36;
-    ringA.rotation.y = Math.PI * 0.14;
-    coreGroup.add(ringA);
-
-    const ringGeoB = new THREE.TorusGeometry(2.22, 0.012, 12, 120);
-    const ringMatB = new THREE.MeshStandardMaterial({
-      color: 0xf502fd,
-      emissive: 0xf502fd,
-      emissiveIntensity: 0.4,
-      metalness: 0.8,
-      roughness: 0.15,
-    });
-    const ringB = new THREE.Mesh(ringGeoB, ringMatB);
-    ringB.rotation.x = -Math.PI * 0.28;
-    ringB.rotation.y = -Math.PI * 0.22;
-    coreGroup.add(ringB);
-
-    const satGeo = new THREE.SphereGeometry(0.065, 16, 16);
-    const satMatCyan = new THREE.MeshBasicMaterial({ color: 0x02fedc });
-    const satMatPink = new THREE.MeshBasicMaterial({ color: 0xf502fd });
-    const satA = new THREE.Mesh(satGeo, satMatCyan);
-    satA.position.set(1.94, 0, 0);
-    ringA.add(satA);
-
-    const satB = new THREE.Mesh(satGeo, satMatPink);
-    satB.position.set(-2.22, 0, 0);
-    ringB.add(satB);
-
-    // Ambient volumetric particle shell
-    const particleCount = 68;
-    const positions = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount; i++) {
-      const r = 1.9 + ((i * 37) % 100) / 85;
-      const theta = i * 2.39996;
-      const phi = Math.acos(1 - (2 * (i + 0.5)) / particleCount);
-      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      positions[i * 3 + 2] = r * Math.cos(phi);
-    }
-    const particleGeo = new THREE.BufferGeometry();
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const particleMat = new THREE.PointsMaterial({
-      color: 0x94a3ff,
-      size: 0.045,
       transparent: true,
-      opacity: 0.72,
+      opacity: 0.55,
     });
-    const particleField = new THREE.Points(particleGeo, particleMat);
-    coreGroup.add(particleField);
+    const haloA = new THREE.Mesh(haloGeoA, haloMatA);
+    haloA.rotation.x = Math.PI * 0.34;
+    haloA.rotation.y = Math.PI * 0.15;
+    coreGroup.add(haloA);
+
+    const haloGeoB = new THREE.TorusGeometry(2.28, 0.009, 12, 128);
+    const haloMatB = new THREE.MeshBasicMaterial({
+      color: 0xf502fd,
+      transparent: true,
+      opacity: 0.45,
+    });
+    const haloB = new THREE.Mesh(haloGeoB, haloMatB);
+    haloB.rotation.x = -Math.PI * 0.26;
+    haloB.rotation.y = -Math.PI * 0.2;
+    coreGroup.add(haloB);
+
+    const nodeGeo = new THREE.SphereGeometry(0.048, 16, 16);
+    const nodeMatCyan = new THREE.MeshBasicMaterial({ color: 0x02fedc });
+    const nodeMatPink = new THREE.MeshBasicMaterial({ color: 0xf502fd });
+    const nodeA = new THREE.Mesh(nodeGeo, nodeMatCyan);
+    nodeA.position.set(2.05, 0, 0);
+    haloA.add(nodeA);
+
+    const nodeB = new THREE.Mesh(nodeGeo, nodeMatPink);
+    nodeB.position.set(-2.28, 0, 0);
+    haloB.add(nodeB);
 
     let targetRotX = 0;
     let targetRotY = 0;
     const handlePointerMove = (e: PointerEvent) => {
       const nx = (e.clientX / Math.max(window.innerWidth, 1)) * 2 - 1;
       const ny = (e.clientY / Math.max(window.innerHeight, 1)) * 2 - 1;
-      targetRotY = nx * 0.42;
-      targetRotX = -ny * 0.32;
+      targetRotY = nx * 0.38;
+      targetRotX = -ny * 0.28;
     };
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
 
@@ -256,8 +226,9 @@ export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSp
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
 
-    const targetEmissive = new THREE.Color(accentColorRef.current);
     const clock = new THREE.Clock();
+    const darkTint = new THREE.Color(0x6f86ff);
+    const lightTint = new THREE.Color(0xb8d4ff);
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
@@ -266,25 +237,22 @@ export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSp
       const elapsed = clock.getElapsedTime();
       const scrollRatio = Math.min(window.scrollY / 900, 1.4);
 
-      knotMesh.rotation.y = elapsed * 0.24 + scrollRatio * 1.1;
-      knotMesh.rotation.x = Math.sin(elapsed * 0.35) * 0.22 + scrollRatio * 0.4;
+      ribbonMat.color.lerp(themeRef.current === 'light' ? lightTint : darkTint, 0.08);
+      cageMat.opacity = themeRef.current === 'light' ? 0.17 : 0.11;
 
-      crystalMesh.rotation.y = -elapsed * 0.48;
-      crystalMesh.rotation.z = elapsed * 0.3;
+      ribbonMesh.rotation.y = elapsed * 0.22 + scrollRatio * 1.1;
+      ribbonMesh.rotation.x = Math.sin(elapsed * 0.3) * 0.2 + scrollRatio * 0.35;
 
-      targetEmissive.setHex(accentColorRef.current);
-      crystalMat.emissive.lerp(targetEmissive, 0.06);
+      prismMesh.rotation.y = -elapsed * 0.45;
+      prismMesh.rotation.z = elapsed * 0.26;
+      cageMesh.rotation.y = elapsed * 0.07;
 
-      cageMesh.rotation.y = elapsed * 0.08;
-      cageMesh.rotation.x = -elapsed * 0.06;
-
-      ringA.rotation.z = elapsed * 0.38;
-      ringB.rotation.z = -elapsed * 0.29;
-      particleField.rotation.y = -elapsed * 0.09;
+      haloA.rotation.z = elapsed * 0.32;
+      haloB.rotation.z = -elapsed * 0.24;
 
       coreGroup.rotation.y += (targetRotY - coreGroup.rotation.y) * 0.05;
       coreGroup.rotation.x += (targetRotX - coreGroup.rotation.x) * 0.05;
-      coreGroup.position.y = Math.sin(elapsed * 1.1) * 0.08;
+      coreGroup.position.y = Math.sin(elapsed * 0.95) * 0.06;
 
       renderer.render(scene, camera);
     };
@@ -297,21 +265,19 @@ export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSp
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('resize', handleResize);
 
-      knotGeo.dispose();
-      knotMat.dispose();
-      crystalGeo.dispose();
-      crystalMat.dispose();
+      ribbonGeo.dispose();
+      ribbonMat.dispose();
+      prismGeo.dispose();
+      prismMat.dispose();
       cageGeo.dispose();
       cageMat.dispose();
-      ringGeoA.dispose();
-      ringMatA.dispose();
-      ringGeoB.dispose();
-      ringMatB.dispose();
-      satGeo.dispose();
-      satMatCyan.dispose();
-      satMatPink.dispose();
-      particleGeo.dispose();
-      particleMat.dispose();
+      haloGeoA.dispose();
+      haloMatA.dispose();
+      haloGeoB.dispose();
+      haloMatB.dispose();
+      nodeGeo.dispose();
+      nodeMatCyan.dispose();
+      nodeMatPink.dispose();
 
       envRenderTarget?.dispose();
       envTexture?.dispose();
@@ -324,15 +290,11 @@ export function HeroSpatial3D({ className = '', accentTone = 'emerald' }: HeroSp
   }, [shouldReduceMotion]);
 
   return (
-    <div
-      ref={containerRef}
-      aria-hidden="true"
-      className={`relative select-none ${className}`}
-    >
+    <div ref={containerRef} aria-hidden="true" className={`relative select-none ${className}`}>
       {!webglReady && (
         <div className="w-full h-full flex items-center justify-center">
-          <div className="relative w-44 h-44 rounded-full border border-brand-blue/35 liquid-glass flex items-center justify-center">
-            <div className="w-24 h-24 rounded-2xl rotate-45 gradient-surface border border-[#02FEDC]/40 shadow-[0_0_40px_rgba(90,92,255,0.3)]" />
+          <div className="w-40 h-40 rounded-full liquid-glass flex items-center justify-center">
+            <div className="w-18 h-18 rounded-2xl rotate-45 gradient-surface border border-[#5A5CFF]/30" />
           </div>
         </div>
       )}

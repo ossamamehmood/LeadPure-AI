@@ -1,16 +1,24 @@
 import React from 'react';
 
-export function Footer() {
+interface FooterProps {
+  variant?: 'landing' | 'dashboard';
+}
+
+export function Footer({ variant = 'dashboard' }: FooterProps) {
   return (
     <footer className="py-10 border-t border-app-border flex flex-col md:flex-row items-center justify-between gap-6 px-2 text-xs font-medium text-slate-600 dark:text-slate-400 transition-colors duration-300">
       <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-8">
         <div className="flex items-center gap-2.5">
           <div className="w-2 h-2 rounded-full gradient-bg shadow-[0_0_10px_rgba(90,92,255,0.55)]" />
-          <span className="font-display font-bold gradient-text">LeadPure V14</span>
+          <span className="font-display font-bold gradient-text">
+            {variant === 'landing' ? 'LeadPure AI' : 'LeadPure V14'}
+          </span>
         </div>
         <div className="flex items-center gap-2.5">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span className="text-slate-600 dark:text-slate-400">Own SMTP Engine 1.3.2</span>
+          <span className="text-slate-600 dark:text-slate-400">
+            {variant === 'landing' ? 'Real-Time Email Verification' : 'Own SMTP Engine 1.3.2'}
+          </span>
         </div>
       </div>
 
