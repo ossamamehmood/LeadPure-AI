@@ -45,8 +45,8 @@ export function GlossyCard({ children, className, glow = 'none', onClick }: Glos
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className={cn(
-        'glossy-card relative overflow-hidden group',
-        glow !== 'none' && 'ring-1 ring-inset ring-white/[0.04]',
+        'glossy-card liquid-glass relative overflow-hidden group',
+        glow !== 'none' && 'ring-1 ring-inset ring-white/[0.05]',
         onClick &&
           'glossy-card-interactive cursor-pointer transition-all active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue/70',
         className

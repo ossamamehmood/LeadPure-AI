@@ -17,6 +17,7 @@ import { SingleValidation } from './components/SingleValidation';
 import { GlossyCard } from './components/ui/GlossyCard';
 import { MagneticButton } from './components/ui/MagneticButton';
 import { BackgroundMotion } from './components/ui/BackgroundMotion';
+import { LiquidGlassFilter } from './components/ui/LiquidGlassFilter';
 import { LandingPage } from './components/LandingPage';
 
 // Hooks & Types
@@ -388,6 +389,7 @@ export default function App() {
   if (route === '/') {
     return (
       <MotionConfig reducedMotion="user">
+        <LiquidGlassFilter />
         <LandingPage
           onOpenDashboard={() => navigate('/dashboard')}
           theme={theme}
@@ -399,6 +401,7 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user">
+      <LiquidGlassFilter />
       <div className="flex min-h-[100dvh] lg:h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white" data-theme={theme}>
       <BackgroundMotion variant="ambient" />
 

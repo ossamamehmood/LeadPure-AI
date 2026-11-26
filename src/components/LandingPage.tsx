@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import React, { Suspense, lazy, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion, useScroll, useSpring } from 'motion/react';
 import {
-  Zap, ArrowRight, Check, X, Sun, Moon, Plus, Minus, ExternalLink, ShieldCheck, Activity, FileSpreadsheet
+  Zap, ArrowRight, Check, X, Sun, Moon, Plus, Minus, ExternalLink, ShieldCheck, Activity, FileSpreadsheet, Sparkles
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { MagneticButton } from './ui/MagneticButton';
 import { BackgroundMotion } from './ui/BackgroundMotion';
+import { SpatialTiltCard } from './ui/SpatialTiltCard';
 import { EDITORIAL_EASE } from './ui/MotionPrimitives';
 import { LiveHandshakeVisualizer } from './landing/LiveHandshakeVisualizer';
 import { ArchitecturePipeline } from './landing/ArchitecturePipeline';
 import { Footer } from './Footer';
+
+const HeroSpatial3D = lazy(() => import('./landing/HeroSpatial3D'));
 
 interface LandingPageProps {
   onOpenDashboard: () => void;
@@ -228,15 +231,26 @@ function KineticHeadlineLine({ words, delayBase = 0, gradient = false }: { words
 export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPageProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const shouldReduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const progressScale = useSpring(scrollYProgress, { stiffness: 120, damping: 28, restDelta: 0.001 });
 
   return (
     <div className="min-h-[100dvh] bg-app-bg text-app-text font-sans relative selection:bg-brand-blue/30 selection:text-white overflow-x-clip">
+      {/* Scroll-linked neon hairline gauge */}
+      {!shouldReduceMotion && (
+        <motion.div
+          aria-hidden="true"
+          className="fixed top-0 inset-x-0 h-[2px] z-[60] gradient-bg origin-left"
+          style={{ scaleX: progressScale }}
+        />
+      )}
+
       {/* Futuristic Spatial Background Motion */}
       <BackgroundMotion variant="hero" />
 
-      {/* Detached Floating Glass Capsule Header */}
+      {/* Detached Floating iOS Liquid Glass Capsule Header */}
       <div className="sticky top-0 z-50 px-3 sm:px-6 pt-3 sm:pt-4 pointer-events-none">
-        <header className="pointer-events-auto max-w-5xl mx-auto px-3 sm:px-5 h-15 sm:h-16 rounded-full border border-app-border bg-app-bg/75 backdrop-blur-2xl shadow-[0_14px_40px_-14px_rgba(0,0,0,0.38)] flex items-center justify-between gap-2 sm:gap-4">
+        <header className="liquid-glass pointer-events-auto max-w-5xl mx-auto px-3 sm:px-5 h-15 sm:h-16 rounded-full flex items-center justify-between gap-2 sm:gap-4">
           <a
             href="/"
             onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
@@ -284,50 +298,98 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
         </header>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-16 space-y-28 sm:space-y-40 relative z-10">
-        {/* 1. ARCHITECTURAL MINIMALIST HERO + SPATIAL HARDWARE STAGE */}
-        <section className="space-y-14 sm:space-y-18">
-          <div className="max-w-4xl mx-auto text-center space-y-6 sm:space-y-7">
-            <motion.div
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: EDITORIAL_EASE }}
-              className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-white/[0.04] border border-app-border text-xs font-medium text-slate-700 dark:text-slate-300 backdrop-blur-md"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>LeadPure V14 &middot; Zero credit charges</span>
-            </motion.div>
-
-            <h1 className="text-[2.05rem] sm:text-6xl lg:text-[4.5rem] font-display font-bold tracking-[-0.04em] leading-[1.06] sm:leading-[1.03] text-app-text">
-              <KineticHeadlineLine words={['Know', 'every', 'email', 'is', 'real']} delayBase={0.04} />{' '}
-              <KineticHeadlineLine words={['before', 'you', 'hit', 'send.']} delayBase={0.22} gradient />
-            </h1>
-
-            <motion.p
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.34, ease: EDITORIAL_EASE }}
-              className="text-base sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto font-normal"
-            >
-              Verify individual contacts in seconds or clean spreadsheets up to 5,000 rows so campaigns reach real inboxes instead of bouncing.
-            </motion.p>
-
-            <motion.div
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.42, ease: EDITORIAL_EASE }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2"
-            >
-              <MagneticButton onClick={onOpenDashboard} variant="primary" size="lg" className="group/hero px-8 w-full sm:w-auto rounded-full">
-                <span>Try It Now in Dashboard</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover/hero:translate-x-0.5" />
-              </MagneticButton>
-              <a
-                href="#compare"
-                className="min-h-[54px] sm:min-h-[58px] px-7 py-3.5 rounded-full border border-slate-300 dark:border-white/15 bg-white/95 dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] hover:border-brand-blue/50 shadow-sm text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-center gap-2 w-full sm:w-auto transition-all"
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-16 space-y-24 sm:space-y-36 relative z-10">
+        {/* 1. ARCHITECTURAL HERO + INTERACTIVE 3D LIQUID GLASS CRYSTAL + LIVE STAGE */}
+        <section className="space-y-12 sm:space-y-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            <div className="lg:col-span-7 text-center lg:text-left space-y-6">
+              <motion.div
+                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: EDITORIAL_EASE }}
+                className="liquid-glass inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-medium text-slate-700 dark:text-slate-200"
               >
-                <span>Compare Verifiers</span>
-              </a>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>LeadPure V14 &middot; Zero credit charges</span>
+              </motion.div>
+
+              <h1 className="text-[2.1rem] sm:text-6xl lg:text-[4.25rem] font-display font-bold tracking-[-0.04em] leading-[1.06] sm:leading-[1.03] text-app-text">
+                <KineticHeadlineLine words={['Know', 'every', 'email', 'is', 'real']} delayBase={0.04} />{' '}
+                <KineticHeadlineLine words={['before', 'you', 'hit', 'send.']} delayBase={0.22} gradient />
+              </h1>
+
+              <motion.p
+                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.34, ease: EDITORIAL_EASE }}
+                className="text-base sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal"
+              >
+                Verify individual contacts in seconds or clean spreadsheets up to 5,000 rows so campaigns reach real inboxes instead of bouncing.
+              </motion.p>
+
+              <motion.div
+                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.42, ease: EDITORIAL_EASE }}
+                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-1"
+              >
+                <MagneticButton onClick={onOpenDashboard} variant="primary" size="lg" className="group/hero px-8 w-full sm:w-auto rounded-full">
+                  <span>Try It Now in Dashboard</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover/hero:translate-x-0.5" />
+                </MagneticButton>
+                <a
+                  href="#compare"
+                  className="liquid-glass min-h-[54px] sm:min-h-[58px] px-7 py-3.5 rounded-full text-sm font-semibold text-slate-900 dark:text-slate-100 hover:border-brand-blue/50 flex items-center justify-center gap-2 w-full sm:w-auto transition-all"
+                >
+                  <span>Compare Verifiers</span>
+                </a>
+              </motion.div>
+            </div>
+
+            {/* Interactive 3D Liquid-Glass Prism Stage */}
+            <motion.div
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.94 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.25, ease: EDITORIAL_EASE }}
+              className="lg:col-span-5 relative h-[270px] sm:h-[360px] flex items-center justify-center"
+            >
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-6 rounded-full opacity-35 dark:opacity-50 blur-3xl"
+                style={{
+                  background:
+                    'radial-gradient(circle at 35% 35%, rgba(2,254,220,0.35), rgba(90,92,255,0.28) 45%, rgba(245,2,253,0.22) 78%, transparent 100%)',
+                }}
+              />
+
+              <Suspense
+                fallback={
+                  <div className="w-48 h-48 rounded-full liquid-glass flex items-center justify-center">
+                    <Sparkles className="w-7 h-7 text-brand-blue animate-pulse" />
+                  </div>
+                }
+              >
+                <HeroSpatial3D className="w-full h-full z-10" />
+              </Suspense>
+
+              {/* Floating iOS-style Optical Depth Telemetry Pills */}
+              <motion.div
+                animate={shouldReduceMotion ? undefined : { y: [0, -7, 0] }}
+                transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
+                className="liquid-glass pointer-events-none absolute top-3 right-2 sm:right-4 z-20 px-3.5 py-2 rounded-2xl flex items-center gap-2 text-xs font-semibold text-app-text"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>0 Emails Sent</span>
+              </motion.div>
+
+              <motion.div
+                animate={shouldReduceMotion ? undefined : { y: [0, 7, 0] }}
+                transition={{ duration: 6.2, repeat: Infinity, ease: 'easeInOut' }}
+                className="liquid-glass pointer-events-none absolute bottom-3 left-2 sm:left-4 z-20 px-3.5 py-2 rounded-2xl flex items-center gap-2 text-xs font-semibold text-app-text"
+              >
+                <Activity className="w-3.5 h-3.5 text-brand-blue" />
+                <span>5,000 Rows / Run</span>
+              </motion.div>
             </motion.div>
           </div>
 
@@ -340,17 +402,10 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
           </motion.div>
         </section>
 
-        {/* 2. MICRO-INSTRUMENT ARCHITECTURAL BENTO PILLARS */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
-          {/* Card 01: Shielded Check Micro-Instrument */}
-          <motion.div
-            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.45, ease: EDITORIAL_EASE }}
-            className="rounded-3xl border border-app-border bg-app-card/85 backdrop-blur-xl p-6 sm:p-7 flex flex-col justify-between gap-6 shadow-sm"
-          >
-            <div className="p-4 rounded-2xl bg-slate-50/90 dark:bg-white/[0.025] border border-app-border flex items-center justify-between gap-3">
+        {/* 2. INTERACTIVE 3D LIQUID-GLASS BENTO PILLARS */}
+        <section className="group/bento grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+          <SpatialTiltCard delay={0}>
+            <div className="depth-layer-sm p-4 rounded-2xl bg-slate-50/85 dark:bg-white/[0.03] border border-app-border flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 text-xs font-medium text-app-text">
                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
                 <span>Invisible Check</span>
@@ -359,42 +414,30 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
                 0 Emails Sent
               </span>
             </div>
-            <div className="space-y-2">
+            <div className="depth-layer-md space-y-2">
               <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500">01</span>
               <h2 className="text-xl font-display font-bold text-app-text tracking-tight">No messages ever delivered</h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 LeadPure confirms mailbox availability quietly with the receiving mail host and disconnects before any email is sent.
               </p>
             </div>
-          </motion.div>
+          </SpatialTiltCard>
 
-          {/* Card 02: Animated Honest Verdict Cycler */}
-          <motion.div
-            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.45, delay: 0.08, ease: EDITORIAL_EASE }}
-            className="rounded-3xl border border-app-border bg-app-card/85 backdrop-blur-xl p-6 sm:p-7 flex flex-col justify-between gap-6 shadow-sm"
-          >
-            <VerdictMicroInstrument />
-            <div className="space-y-2">
+          <SpatialTiltCard delay={0.08}>
+            <div className="depth-layer-sm">
+              <VerdictMicroInstrument />
+            </div>
+            <div className="depth-layer-md space-y-2">
               <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500">02</span>
               <h2 className="text-xl font-display font-bold text-app-text tracking-tight">Honest labels, zero guesswork</h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 Catch-all domains stay marked Risky, dead boxes are blocked, and busy mail servers read Unknown instead of fake certainty.
               </p>
             </div>
-          </motion.div>
+          </SpatialTiltCard>
 
-          {/* Card 03: Scale Capacity Micro-Instrument */}
-          <motion.div
-            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.45, delay: 0.16, ease: EDITORIAL_EASE }}
-            className="rounded-3xl border border-app-border bg-app-card/85 backdrop-blur-xl p-6 sm:p-7 flex flex-col justify-between gap-6 shadow-sm"
-          >
-            <div className="p-4 rounded-2xl bg-slate-50/90 dark:bg-white/[0.025] border border-app-border space-y-2.5">
+          <SpatialTiltCard delay={0.16}>
+            <div className="depth-layer-sm p-4 rounded-2xl bg-slate-50/85 dark:bg-white/[0.03] border border-app-border space-y-2.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 font-medium text-app-text">
                   <FileSpreadsheet className="w-4 h-4 text-brand-blue" />
@@ -412,14 +455,14 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
                 />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="depth-layer-md space-y-2">
               <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500">03</span>
               <h2 className="text-xl font-display font-bold text-app-text tracking-tight">Built for full spreadsheets</h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 Upload CSV or Excel sheets right in your browser, monitor live progress, resume any interrupted scan, and export cleanly.
               </p>
             </div>
-          </motion.div>
+          </SpatialTiltCard>
         </section>
 
         {/* 3. INTERACTIVE LIST CLEANING MOTION DEMO */}
@@ -448,7 +491,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
             </MagneticButton>
           </div>
 
-          <div className="rounded-3xl border border-app-border bg-app-card/90 backdrop-blur-xl overflow-hidden shadow-sm">
+          <div className="liquid-glass rounded-3xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[740px] text-left border-collapse">
                 <thead>
@@ -505,9 +548,9 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
           </div>
         </section>
 
-        {/* 5. MINIMALIST EDITORIAL FAQ */}
+        {/* 5. MINIMALIST LIQUID-GLASS FAQ */}
         <section id="faq" className="grid grid-cols-1 lg:grid-cols-12 gap-10 scroll-mt-24">
-          <div className="lg:col-span-5 space-y-4">
+          <div className="lg:col-span-5 space-y-4 lg:sticky lg:top-28 lg:self-start">
             <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Common Questions</p>
             <h2 className="text-3xl sm:text-4xl font-display font-bold text-app-text tracking-tight">
               Everything clearly explained.
@@ -517,11 +560,11 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
             </p>
           </div>
 
-          <div className="lg:col-span-7 divide-y divide-app-border border-y border-app-border">
+          <div className="lg:col-span-7 space-y-3.5">
             {FAQS.map((item, idx) => {
               const isOpen = openFaq === idx;
               return (
-                <div key={item.q}>
+                <div key={item.q} className="liquid-glass rounded-2xl sm:rounded-3xl px-5 sm:px-6 overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
@@ -542,7 +585,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
                         exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
                         transition={{ duration: 0.2, ease: EDITORIAL_EASE }}
                       >
-                        <p className="pb-5 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                        <p className="pb-5 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                           {item.a}
                         </p>
                       </motion.div>
@@ -554,8 +597,8 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
           </div>
         </section>
 
-        {/* 6. CALM MINIMALIST HORIZON CTA */}
-        <section className="py-12 sm:py-20 text-center space-y-6 relative rounded-3xl sm:rounded-[36px] border border-app-border bg-app-card/75 backdrop-blur-xl px-6 overflow-hidden">
+        {/* 6. CALM MINIMALIST LIQUID-GLASS HORIZON CTA */}
+        <section className="liquid-glass py-12 sm:py-20 text-center space-y-6 relative rounded-3xl sm:rounded-[36px] px-6 overflow-hidden">
           <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-app-text max-w-2xl mx-auto leading-[1.08] relative z-10">
             Clean your list. <span className="gradient-text">Protect your inbox.</span>
           </h2>

@@ -130,10 +130,10 @@ export function LiveHandshakeVisualizer() {
         }}
       />
 
-      {/* Spatial 3D Ceramic/Obsidian Hardware Console */}
+      {/* Spatial 3D iOS Liquid Glass Console */}
       <motion.div
         style={shouldReduceMotion ? undefined : { rotateX, scale: stageScale }}
-        className="relative rounded-3xl sm:rounded-[34px] border border-slate-200/90 dark:border-white/[0.09] bg-white/95 dark:bg-[#0D1017]/92 p-4 sm:p-8 backdrop-blur-3xl shadow-[0_32px_90px_-30px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.12)]"
+        className="liquid-glass relative rounded-3xl sm:rounded-[34px] p-4 sm:p-8"
       >
         {/* Top Recessed Glass Window Chrome & Scenario Selector */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-app-border">

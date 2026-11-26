@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import React, { useRef, useState } from 'react';
+import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { Check, AlertTriangle, X, Sparkles } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { EDITORIAL_EASE } from '../ui/MotionPrimitives';
@@ -23,6 +23,13 @@ const SAMPLE_LIST: SampleRow[] = [
 export function ArchitecturePipeline() {
   const [cleaned, setCleaned] = useState(true);
   const shouldReduceMotion = useReducedMotion();
+  const stageRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: stageRef,
+    offset: ['start end', 'center center'],
+  });
+  const cardRotateX = useTransform(scrollYProgress, [0, 1], [7, 0]);
+  const cardY = useTransform(scrollYProgress, [0, 1], [24, 0]);
 
   const sortedRows = cleaned
     ? [
@@ -101,8 +108,11 @@ export function ArchitecturePipeline() {
       </div>
 
       {/* Right Kinetic List Stage */}
-      <div className="lg:col-span-7">
-        <div className="rounded-3xl border border-app-border bg-app-card/85 backdrop-blur-xl p-5 sm:p-7 space-y-3 shadow-xl">
+      <div ref={stageRef} className="lg:col-span-7" style={{ perspective: '1100px' }}>
+        <motion.div
+          style={shouldReduceMotion ? undefined : { rotateX: cardRotateX, y: cardY }}
+          className="liquid-glass rounded-3xl p-5 sm:p-7 space-y-3"
+        >
           <div className="flex items-center justify-between text-xs pb-3 border-b border-app-border">
             <span className="font-display font-bold text-app-text">
               {cleaned ? 'Sorted Contact List' : 'Unchecked Spreadsheet'}
@@ -174,7 +184,7 @@ export function ArchitecturePipeline() {
               );
             })}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

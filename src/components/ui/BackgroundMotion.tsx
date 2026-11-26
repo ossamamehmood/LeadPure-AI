@@ -1,44 +1,54 @@
-import React, { useEffect } from 'react';
-import { motion, useMotionTemplate, useMotionValue, useReducedMotion, useSpring } from 'motion/react';
+import React, { useEffect, useRef } from 'react';
+import {
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from 'motion/react';
 
 interface BackgroundMotionProps {
   variant?: 'hero' | 'ambient';
 }
 
-const HORIZONTAL_PULSES = [
-  { top: '16%', duration: 9.0, delay: 0, width: '170px', reverse: false },
-  { top: '44%', duration: 12.5, delay: 2.2, width: '230px', reverse: true },
-  { top: '76%', duration: 10.8, delay: 1.1, width: '190px', reverse: false },
-];
+interface CanvasParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  alpha: number;
+  color: string;
+}
 
-const VERTICAL_PULSES = [
-  { left: '19%', duration: 10.2, delay: 0.6, height: '150px', reverse: false },
-  { left: '81%', duration: 12.0, delay: 3.1, height: '180px', reverse: true },
-];
-
-const FLOATING_MOTES = [
-  { left: '12%', top: '78%', size: 2, duration: 15, delay: 0, drift: -18 },
-  { left: '24%', top: '64%', size: 2.5, duration: 19, delay: 2, drift: 22 },
-  { left: '38%', top: '82%', size: 2, duration: 17, delay: 4, drift: -14 },
-  { left: '54%', top: '72%', size: 2.5, duration: 21, delay: 1, drift: 16 },
-  { left: '68%', top: '86%', size: 2, duration: 16, delay: 3, drift: -20 },
-  { left: '79%', top: '68%', size: 2.5, duration: 18, delay: 5, drift: 12 },
-  { left: '89%', top: '76%', size: 2, duration: 20, delay: 2.5, drift: -16 },
-  { left: '46%', top: '54%', size: 2, duration: 22, delay: 6, drift: 14 },
-];
+const PARTICLE_COLORS = ['#02FEDC', '#5A5CFF', '#F502FD', '#94A3B8'];
 
 /**
- * Spatial background motion engine powered strictly by GPU-composited transforms,
- * opacity, and Framer MotionValues (zero React re-renders on pointer move).
+ * Spatial background motion engine:
+ * - Architectural 64px dot grid + calibrated horizon mesh
+ * - Scroll-linked neon gradient ribbon that sweeps and refracts behind `.liquid-glass` cards
+ * - GPU ambient micro-particle `<canvas>` loop with reduced-motion & visibility guards
+ * - Interactive pointer-following atmospheric aura
  */
 export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
   const shouldReduceMotion = useReducedMotion();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
   const pointerX = useMotionValue(-999);
   const pointerY = useMotionValue(-999);
   const smoothX = useSpring(pointerX, { stiffness: 65, damping: 24, mass: 0.6 });
   const smoothY = useSpring(pointerY, { stiffness: 65, damping: 24, mass: 0.6 });
 
-  const cursorSpotlight = useMotionTemplate`radial-gradient(560px circle at ${smoothX}px ${smoothY}px, rgba(90, 92, 255, 0.12), rgba(2, 254, 220, 0.045) 38%, transparent 72%)`;
+  const cursorSpotlight = useMotionTemplate`radial-gradient(620px circle at ${smoothX}px ${smoothY}px, rgba(90, 92, 255, 0.13), rgba(2, 254, 220, 0.05) 38%, transparent 72%)`;
+
+  const { scrollYProgress } = useScroll();
+  const smoothScroll = useSpring(scrollYProgress, { stiffness: 70, damping: 24, restDelta: 0.001 });
+  const primaryPathLength = useTransform(smoothScroll, [0, 1], [0.14, 0.96]);
+  const secondaryPathLength = useTransform(smoothScroll, [0, 1], [0.05, 0.88]);
+  const ribbonY = useTransform(smoothScroll, [0, 1], ['2%', '-24%']);
+  const ribbonRotate = useTransform(smoothScroll, [0, 1], [0, 14]);
 
   useEffect(() => {
     if (shouldReduceMotion || variant !== 'hero') return;
@@ -50,180 +60,175 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
     return () => window.removeEventListener('pointermove', handlePointerMove);
   }, [shouldReduceMotion, variant, pointerX, pointerY]);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || shouldReduceMotion) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let rafId = 0;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    const resize = () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+
+    const count = variant === 'hero' ? 42 : 24;
+    const particles: CanvasParticle[] = Array.from({ length: count }, (_, i) => ({
+      x: ((i * 197) % Math.max(width, 320)),
+      y: ((i * 251) % Math.max(height, 320)),
+      vx: ((i % 7) - 3) * 0.09,
+      vy: -0.14 - (i % 5) * 0.05,
+      radius: 1 + (i % 3) * 0.6,
+      alpha: 0.25 + (i % 4) * 0.12,
+      color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
+    }));
+
+    const renderFrame = () => {
+      rafId = requestAnimationFrame(renderFrame);
+      if (document.hidden) return;
+
+      ctx.clearRect(0, 0, width, height);
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.y < -12) {
+          p.y = height + 12;
+          p.x = (p.x + width * 0.37) % width;
+        }
+        if (p.x < -12) p.x = width + 12;
+        if (p.x > width + 12) p.x = -12;
+
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    rafId = requestAnimationFrame(renderFrame);
+    window.addEventListener('resize', resize, { passive: true });
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('resize', resize);
+    };
+  }, [shouldReduceMotion, variant]);
+
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden z-0">
       {/* Base calibrated atmospheric horizon mesh */}
       <div className="mesh-background" />
 
-      {/* Ultra-fine matte film surface preventing banding */}
-      <div className="absolute inset-0 matte-grain" />
+      {/* Precision masked 64px architectural dot matrix */}
+      <div className="absolute inset-0 architectural-grid opacity-85" />
 
-      {/* Precision masked architectural grid + intersection dots */}
-      <div className="absolute inset-0 architectural-grid opacity-80" />
+      {/* Scroll-Linked Neon Signature Ribbon (refracts vibrantly behind `.liquid-glass` panels) */}
+      {variant === 'hero' && (
+        <motion.div
+          className="fixed -inset-x-[12vw] -top-[18vh] h-[140vh] w-[124vw] opacity-[0.22] dark:opacity-[0.55]"
+          style={
+            shouldReduceMotion
+              ? undefined
+              : {
+                  y: ribbonY,
+                  rotate: ribbonRotate,
+                  willChange: 'transform',
+                }
+          }
+        >
+          <svg
+            viewBox="0 0 1440 1024"
+            fill="none"
+            preserveAspectRatio="xMidYMid slice"
+            className="w-full h-full"
+          >
+            <defs>
+              <linearGradient id="leadpureScrollRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#02FEDC" />
+                <stop offset="48%" stopColor="#5A5CFF" />
+                <stop offset="100%" stopColor="#F502FD" />
+              </linearGradient>
+              <linearGradient id="leadpureScrollRibbonAlt" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#F502FD" stopOpacity="0.65" />
+                <stop offset="52%" stopColor="#5A5CFF" stopOpacity="0.7" />
+                <stop offset="100%" stopColor="#02FEDC" stopOpacity="0.6" />
+              </linearGradient>
+            </defs>
+
+            <motion.path
+              d="M -180 760 C 260 640, 420 220, 820 340 C 1180 450, 1280 120, 1660 220"
+              stroke="url(#leadpureScrollRibbon)"
+              strokeWidth={150}
+              strokeLinecap="round"
+              style={shouldReduceMotion ? { pathLength: 0.7 } : { pathLength: primaryPathLength }}
+            />
+
+            <motion.path
+              d="M 1620 820 C 1180 760, 1020 420, 640 560 C 310 680, 140 260, -160 180"
+              stroke="url(#leadpureScrollRibbonAlt)"
+              strokeWidth={105}
+              strokeLinecap="round"
+              style={shouldReduceMotion ? { pathLength: 0.5 } : { pathLength: secondaryPathLength }}
+            />
+          </svg>
+        </motion.div>
+      )}
+
+      {/* Drifting bokeh & telemetry particle `<canvas>` */}
+      {!shouldReduceMotion && (
+        <canvas
+          ref={canvasRef}
+          className="fixed inset-0 w-full h-full opacity-55 dark:opacity-75 pointer-events-none"
+        />
+      )}
+
+      {/* Ultra-fine matte film surface preventing gradient banding */}
+      <div className="absolute inset-0 matte-grain" />
 
       {/* Interactive pointer-reactive light aura */}
       {!shouldReduceMotion && variant === 'hero' && (
         <motion.div
-          className="absolute inset-0 opacity-90 dark:opacity-100"
+          className="absolute inset-0 opacity-85 dark:opacity-100"
           style={{ background: cursorSpotlight }}
         />
       )}
 
-      {/* Drifting ambient aurora depth spheres (GPU translate3d + scale) */}
+      {/* Soft peripheral depth glow spheres */}
       {!shouldReduceMotion && (
         <>
           <motion.div
-            className="absolute -top-36 -left-24 w-[440px] h-[440px] sm:w-[640px] sm:h-[640px] rounded-full blur-3xl opacity-[0.07] dark:opacity-[0.09]"
+            className="absolute -top-36 -left-24 w-[440px] h-[440px] sm:w-[640px] sm:h-[640px] rounded-full blur-3xl opacity-[0.06] dark:opacity-[0.09]"
             style={{ background: 'radial-gradient(circle, #02FEDC 0%, transparent 70%)', willChange: 'transform' }}
             animate={{
-              x: [0, 52, -22, 0],
-              y: [0, 34, 18, 0],
+              x: [0, 48, -22, 0],
+              y: [0, 30, 18, 0],
               scale: [1, 1.07, 0.96, 1],
             }}
             transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut' }}
           />
 
           <motion.div
-            className="absolute top-1/4 -right-32 w-[480px] h-[480px] sm:w-[700px] sm:h-[700px] rounded-full blur-3xl opacity-[0.06] dark:opacity-[0.10]"
-            style={{ background: 'radial-gradient(circle, #5A5CFF 0%, transparent 72%)', willChange: 'transform' }}
+            className="absolute -bottom-36 -right-24 w-[420px] h-[420px] sm:w-[620px] sm:h-[620px] rounded-full blur-3xl opacity-[0.05] dark:opacity-[0.08]"
+            style={{ background: 'radial-gradient(circle, #F502FD 0%, transparent 70%)', willChange: 'transform' }}
             animate={{
-              x: [0, -56, 22, 0],
-              y: [0, -34, 28, 0],
-              scale: [1, 0.95, 1.08, 1],
+              x: [0, -48, 22, 0],
+              y: [0, -30, 22, 0],
+              scale: [1, 0.96, 1.06, 1],
             }}
             transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut' }}
           />
-
-          <motion.div
-            className="absolute -bottom-36 left-1/3 w-[380px] h-[380px] sm:w-[580px] sm:h-[580px] rounded-full blur-3xl opacity-[0.05] dark:opacity-[0.07]"
-            style={{ background: 'radial-gradient(circle, #F502FD 0%, transparent 70%)', willChange: 'transform' }}
-            animate={{
-              x: [0, 42, -36, 0],
-              y: [0, -28, 16, 0],
-              scale: [1, 1.06, 0.94, 1],
-            }}
-            transition={{ duration: 31, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </>
-      )}
-
-      {/* Futuristic Planetary Horizon Corona + Orbital Reticles + Signal Filaments */}
-      {variant === 'hero' && (
-        <>
-          {/* Curved subtle architectural horizon arc */}
-          <motion.div
-            className="absolute left-1/2 top-[340px] sm:top-[380px] -translate-x-1/2 w-[1100px] sm:w-[1550px] h-[750px] rounded-[100%] border-t border-slate-400/20 dark:border-white/10"
-            style={{
-              background:
-                'radial-gradient(50% 30% at 50% 0%, rgba(90,92,255,0.08), transparent 68%)',
-              willChange: 'transform, opacity',
-            }}
-            animate={shouldReduceMotion ? undefined : { scale: [1, 1.015, 1], opacity: [0.75, 1, 0.75] }}
-            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-          />
-
-          {/* Concentric Orbital Rings */}
-          <div className="absolute left-1/2 top-[265px] -translate-x-1/2 -translate-y-1/2 w-[780px] h-[780px] sm:w-[1060px] sm:h-[1060px]">
-            <motion.div
-              className="absolute inset-0 rounded-full border border-slate-400/[0.14] dark:border-white/[0.065]"
-              style={{
-                maskImage: 'radial-gradient(circle, transparent 48%, black 70%, transparent 74%)',
-                WebkitMaskImage: 'radial-gradient(circle, transparent 48%, black 70%, transparent 74%)',
-              }}
-              animate={shouldReduceMotion ? undefined : { rotate: 360 }}
-              transition={{ duration: 64, repeat: Infinity, ease: 'linear' }}
-            />
-            <motion.div
-              className="absolute inset-[14%] rounded-full border border-dashed border-brand-blue/20 dark:border-[#02FEDC]/16"
-              animate={shouldReduceMotion ? undefined : { rotate: -360 }}
-              transition={{ duration: 48, repeat: Infinity, ease: 'linear' }}
-            />
-            <motion.div
-              className="absolute inset-[27%] rounded-full border border-slate-400/[0.11] dark:border-white/[0.05]"
-              animate={shouldReduceMotion ? undefined : { scale: [1, 1.03, 1], opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          </div>
-
-          {/* Floating spatial luminance motes */}
-          {!shouldReduceMotion &&
-            FLOATING_MOTES.map((mote, i) => (
-              <motion.span
-                key={`mote-${i}`}
-                className="absolute rounded-full bg-brand-blue/50 dark:bg-[#02FEDC]/60"
-                style={{
-                  left: mote.left,
-                  top: mote.top,
-                  width: `${mote.size}px`,
-                  height: `${mote.size}px`,
-                  willChange: 'transform, opacity',
-                }}
-                animate={{
-                  y: [0, -110, -220],
-                  x: [0, mote.drift, mote.drift * 1.4],
-                  opacity: [0, 0.55, 0],
-                }}
-                transition={{
-                  duration: mote.duration,
-                  delay: mote.delay,
-                  repeat: Infinity,
-                  ease: 'linear',
-                }}
-              />
-            ))}
-
-          {/* Orthogonal travelling optical signal pulses along grid tracks */}
-          {!shouldReduceMotion &&
-            HORIZONTAL_PULSES.map((p, idx) => (
-              <motion.div
-                key={`hpulse-${idx}`}
-                className="absolute h-px rounded-full"
-                style={{
-                  top: p.top,
-                  left: 0,
-                  width: p.width,
-                  background: p.reverse
-                    ? 'linear-gradient(90deg, transparent 0%, #F502FD 45%, #5A5CFF 85%, transparent 100%)'
-                    : 'linear-gradient(90deg, transparent 0%, #02FEDC 45%, #5A5CFF 85%, transparent 100%)',
-                  opacity: 0.48,
-                  willChange: 'transform',
-                }}
-                initial={{ x: p.reverse ? '110vw' : '-240px' }}
-                animate={{ x: p.reverse ? ['110vw', '-240px'] : ['-240px', '110vw'] }}
-                transition={{
-                  duration: p.duration,
-                  delay: p.delay,
-                  repeat: Infinity,
-                  ease: 'linear',
-                }}
-              />
-            ))}
-
-          {!shouldReduceMotion &&
-            VERTICAL_PULSES.map((p, idx) => (
-              <motion.div
-                key={`vpulse-${idx}`}
-                className="absolute w-px rounded-full hidden md:block"
-                style={{
-                  left: p.left,
-                  top: 0,
-                  height: p.height,
-                  background: p.reverse
-                    ? 'linear-gradient(180deg, transparent 0%, #F502FD 45%, #5A5CFF 85%, transparent 100%)'
-                    : 'linear-gradient(180deg, transparent 0%, #02FEDC 45%, #5A5CFF 85%, transparent 100%)',
-                  opacity: 0.38,
-                  willChange: 'transform',
-                }}
-                initial={{ y: p.reverse ? '110vh' : '-200px' }}
-                animate={{ y: p.reverse ? ['110vh', '-200px'] : ['-200px', '110vh'] }}
-                transition={{
-                  duration: p.duration,
-                  delay: p.delay,
-                  repeat: Infinity,
-                  ease: 'linear',
-                }}
-              />
-            ))}
         </>
       )}
     </div>
