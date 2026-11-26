@@ -188,7 +188,17 @@ function VerdictMicroInstrument() {
 }
 
 /** Baseline-masked reveal keeping gradient phrases continuous across all words. */
-function KineticHeadlineLine({ words, delayBase = 0, gradient = false }: { words: string[]; delayBase?: number; gradient?: boolean }) {
+function KineticHeadlineLine({
+  words,
+  delayBase = 0,
+  gradient = false,
+  leftDesktop = false,
+}: {
+  words: string[];
+  delayBase?: number;
+  gradient?: boolean;
+  leftDesktop?: boolean;
+}) {
   const shouldReduceMotion = useReducedMotion();
 
   if (gradient) {
@@ -207,7 +217,7 @@ function KineticHeadlineLine({ words, delayBase = 0, gradient = false }: { words
   }
 
   return (
-    <span className="inline-flex flex-wrap justify-center gap-x-[0.26em]">
+    <span className={cn('inline-flex flex-wrap gap-x-[0.25em]', leftDesktop ? 'justify-center lg:justify-start' : 'justify-center')}>
       {words.map((word, idx) => (
         <span key={`${word}-${idx}`} className="inline-block overflow-hidden py-[0.04em]">
           <motion.span
@@ -298,90 +308,92 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
         </header>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-18 pb-16 space-y-24 sm:space-y-36 relative z-10">
-        {/* 1. BALANCED ARCHITECTURAL HERO + TRANSLUCENT 3D PRISM & LIVE STAGE */}
-        <section className="space-y-6 sm:space-y-8">
-          <div className="max-w-4xl mx-auto text-center space-y-5 sm:space-y-6">
-            <motion.div
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, ease: EDITORIAL_EASE }}
-              className="liquid-glass inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-medium text-slate-700 dark:text-slate-200"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Real-Time Email Verification</span>
-            </motion.div>
-
-            <h1 className="text-[2.1rem] sm:text-6xl lg:text-[4.35rem] font-display font-bold tracking-[-0.04em] leading-[1.06] sm:leading-[1.03] text-app-text">
-              <KineticHeadlineLine words={['Know', 'every', 'email', 'is', 'real']} delayBase={0.04} />
-              <br className="hidden sm:block" />{' '}
-              <KineticHeadlineLine words={['before', 'you', 'hit', 'send.']} delayBase={0.22} gradient />
-            </h1>
-
-            <motion.p
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.34, ease: EDITORIAL_EASE }}
-              className="text-base sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto font-normal"
-            >
-              Check single emails in seconds or clean contact spreadsheets up to 5,000 leads so your messages reach real inboxes.
-            </motion.p>
-
-            <motion.div
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.42, ease: EDITORIAL_EASE }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2"
-            >
-              <MagneticButton onClick={onOpenDashboard} variant="primary" size="lg" className="group/hero px-8 w-full sm:w-auto rounded-full">
-                <span>Verify Emails Free</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover/hero:translate-x-0.5" />
-              </MagneticButton>
-              <a
-                href="#preview"
-                className="liquid-glass min-h-[54px] sm:min-h-[58px] px-7 py-3.5 rounded-full text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-center gap-2 w-full sm:w-auto transition-all"
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-16 pb-16 space-y-24 sm:space-y-36 relative z-10">
+        {/* 1. ARCHITECTURAL HERO + 3D GLOSSY EMAIL SHIELD + INTERACTIVE PREVIEW */}
+        <section className="space-y-10 sm:space-y-14">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
+            <div className="lg:col-span-7 text-center lg:text-left space-y-5 sm:space-y-6">
+              <motion.div
+                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: EDITORIAL_EASE }}
+                className="liquid-glass inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-xs font-medium text-slate-700 dark:text-slate-200"
               >
-                <span>See How It Works</span>
-              </a>
-            </motion.div>
-          </div>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Real-Time Email Verification</span>
+              </motion.div>
 
-          {/* Harmonized 3D Refractive Backdrop + Interactive Liquid-Glass Preview Stage */}
-          <div className="relative pt-2">
+              <h1 className="text-[2.1rem] sm:text-5xl lg:text-[3.35rem] font-display font-bold tracking-[-0.038em] leading-[1.08] text-app-text">
+                <KineticHeadlineLine words={['Know', 'every', 'email', 'is', 'real']} delayBase={0.04} leftDesktop />
+                <br className="hidden lg:block" />{' '}
+                <KineticHeadlineLine words={['before', 'you', 'hit', 'send.']} delayBase={0.22} gradient />
+              </h1>
+
+              <motion.p
+                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.34, ease: EDITORIAL_EASE }}
+                className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0 font-normal"
+              >
+                Check single emails in seconds or clean contact spreadsheets up to 5,000 leads so your messages reach real inboxes.
+              </motion.p>
+
+              <motion.div
+                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.55, delay: 0.42, ease: EDITORIAL_EASE }}
+                className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-1"
+              >
+                <MagneticButton onClick={onOpenDashboard} variant="primary" size="lg" className="group/hero px-8 w-full sm:w-auto rounded-full">
+                  <span>Verify Emails Free</span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover/hero:translate-x-0.5" />
+                </MagneticButton>
+                <a
+                  href="#preview"
+                  className="liquid-glass min-h-[54px] sm:min-h-[58px] px-7 py-3.5 rounded-full text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center justify-center gap-2 w-full sm:w-auto transition-all"
+                >
+                  <span>See How It Works</span>
+                </a>
+              </motion.div>
+            </div>
+
+            {/* Meaningful Unobstructed 3D Glossy Email & Verification Shield Sculpture */}
             <motion.div
-              aria-hidden="true"
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.94 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.85, delay: 0.3, ease: EDITORIAL_EASE }}
-              className="pointer-events-none max-w-3xl mx-auto h-[220px] sm:h-[290px] relative z-0 flex items-center justify-center"
+              transition={{ duration: 0.75, delay: 0.22, ease: EDITORIAL_EASE }}
+              className="lg:col-span-5 relative w-full h-[280px] sm:h-[360px]"
             >
               <div
-                className="absolute inset-8 rounded-full opacity-45 dark:opacity-55 blur-3xl"
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-6 rounded-full opacity-40 dark:opacity-50 blur-3xl"
                 style={{
                   background:
-                    'radial-gradient(circle at 50% 50%, rgba(2,254,220,0.34), rgba(90,92,255,0.28) 45%, rgba(245,2,253,0.20) 75%, transparent 100%)',
+                    'radial-gradient(circle at 42% 45%, rgba(2,254,220,0.34), rgba(90,92,255,0.28) 46%, rgba(245,2,253,0.18) 78%, transparent 100%)',
                 }}
               />
               <Suspense
                 fallback={
-                  <div className="w-36 h-36 rounded-full liquid-glass flex items-center justify-center opacity-70">
-                    <Sparkles className="w-6 h-6 text-brand-blue" />
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-40 h-32 rounded-3xl liquid-glass flex items-center justify-center">
+                      <Sparkles className="w-6 h-6 text-brand-blue animate-pulse" />
+                    </div>
                   </div>
                 }
               >
-                <HeroSpatial3D theme={theme} className="w-full h-full opacity-90" />
+                <HeroSpatial3D theme={theme} className="w-full h-full z-10" />
               </Suspense>
             </motion.div>
-
-            <motion.div
-              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.65, delay: 0.48, ease: EDITORIAL_EASE }}
-              className="relative z-10 -mt-20 sm:-mt-28"
-            >
-              <LiveHandshakeVisualizer />
-            </motion.div>
           </div>
+
+          <motion.div
+            initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.48, ease: EDITORIAL_EASE }}
+            className="relative z-10"
+          >
+            <LiveHandshakeVisualizer />
+          </motion.div>
         </section>
 
         {/* 2. INTERACTIVE 3D LIQUID-GLASS VALUE PILLARS */}

@@ -168,17 +168,17 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
             </defs>
 
             <motion.path
-              d="M -180 760 C 260 640, 420 220, 820 340 C 1180 450, 1280 120, 1660 220"
+              d="M -340 940 C 180 760, 420 260, 840 360 C 1220 450, 1460 120, 1820 210"
               stroke="url(#leadpureScrollRibbon)"
-              strokeWidth={150}
+              strokeWidth={145}
               strokeLinecap="round"
               style={shouldReduceMotion ? { pathLength: 0.7 } : { pathLength: primaryPathLength }}
             />
 
             <motion.path
-              d="M 1620 820 C 1180 760, 1020 420, 640 560 C 310 680, 140 260, -160 180"
+              d="M 1800 940 C 1280 820, 1020 440, 620 560 C 260 670, 20 280, -320 140"
               stroke="url(#leadpureScrollRibbonAlt)"
-              strokeWidth={105}
+              strokeWidth={100}
               strokeLinecap="round"
               style={shouldReduceMotion ? { pathLength: 0.5 } : { pathLength: secondaryPathLength }}
             />
