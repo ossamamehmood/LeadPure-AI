@@ -184,15 +184,31 @@ function VerdictMicroInstrument() {
   );
 }
 
-/** Baseline-masked word reveal matching editorial architectural typography. */
+/** Baseline-masked reveal keeping gradient phrases continuous across all words. */
 function KineticHeadlineLine({ words, delayBase = 0, gradient = false }: { words: string[]; delayBase?: number; gradient?: boolean }) {
   const shouldReduceMotion = useReducedMotion();
+
+  if (gradient) {
+    return (
+      <span className="inline-block overflow-hidden py-[0.04em] max-w-full">
+        <motion.span
+          className="inline-block gradient-text"
+          initial={shouldReduceMotion ? { y: 0, opacity: 1 } : { y: '105%', opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.58, delay: delayBase, ease: EDITORIAL_EASE }}
+        >
+          {words.join(' ')}
+        </motion.span>
+      </span>
+    );
+  }
+
   return (
     <span className="inline-flex flex-wrap justify-center gap-x-[0.26em]">
       {words.map((word, idx) => (
         <span key={`${word}-${idx}`} className="inline-block overflow-hidden py-[0.04em]">
           <motion.span
-            className={cn('inline-block', gradient && 'gradient-text')}
+            className="inline-block"
             initial={shouldReduceMotion ? { y: 0, opacity: 1 } : { y: '105%', opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{
@@ -282,7 +298,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               <span>LeadPure V14 &middot; Zero credit charges</span>
             </motion.div>
 
-            <h1 className="text-4xl sm:text-6xl lg:text-[4.5rem] font-display font-bold tracking-[-0.04em] leading-[1.03] text-app-text">
+            <h1 className="text-[2.05rem] sm:text-6xl lg:text-[4.5rem] font-display font-bold tracking-[-0.04em] leading-[1.06] sm:leading-[1.03] text-app-text">
               <KineticHeadlineLine words={['Know', 'every', 'email', 'is', 'real']} delayBase={0.04} />{' '}
               <KineticHeadlineLine words={['before', 'you', 'hit', 'send.']} delayBase={0.22} gradient />
             </h1>
