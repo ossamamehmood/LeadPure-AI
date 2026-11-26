@@ -24,9 +24,9 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
       {/* Benefit Overview Cards (Engine details: RFC 5321 Port 25 + catch-all probe + 100-email CI chunks) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
         <GlossyCard glow="gradient" className="p-6 sm:p-8 rounded-2xl sm:rounded-[32px] group">
-          <div className="flex justify-between items-start mb-4 sm:mb-6">
-            <p className="text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">Real-Time Check</p>
-            <span className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-[9px] rounded-full uppercase font-black tracking-widest border border-brand-blue/20">No Email Sent</span>
+          <div className="flex justify-between items-center gap-2 mb-4 sm:mb-6">
+            <p className="text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-[0.25em] whitespace-nowrap">Real-Time Check</p>
+            <span className="px-3 py-1 bg-brand-blue/10 text-brand-blue text-[9px] rounded-full uppercase font-black tracking-widest border border-brand-blue/20 whitespace-nowrap shrink-0">No Email Sent</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-app-text tracking-wide uppercase italic">Live Inbox Check</h3>
           <p className="text-slate-600 dark:text-slate-400 text-xs mt-2.5 leading-relaxed font-medium">

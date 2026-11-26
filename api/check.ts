@@ -30,7 +30,9 @@ function identifyProviderName(mxHost: string, isFree: boolean): string {
   if (host.includes('forwardemail')) return 'ForwardEmail (Forwarding)';
   if (host.includes('mx.cloudflare.net') || host.includes('email-routing')) return 'Cloudflare Email Routing';
   if (host.includes('mimecast')) return 'Mimecast Gateway';
+  if (host.includes('ppe-hosted')) return 'Proofpoint Essentials';
   if (host.includes('pphosted')) return 'Proofpoint Gateway';
+  if (host.includes('privateemail')) return 'PrivateEmail';
   return mxHost ? mxHost.replace(/\.$/, '') : (isFree ? 'Consumer Provider' : 'Custom MX');
 }
 
