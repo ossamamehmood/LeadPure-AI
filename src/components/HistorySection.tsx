@@ -96,7 +96,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); loadItem(item); }}
-                          className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-6 py-3 rounded-xl gradient-bg text-white text-xs font-semibold tracking-wide transition-all shadow-[0_8px_22px_-6px_rgba(79,70,229,0.5)] hover:brightness-110 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
+                          className="flex-1 sm:flex-none min-h-[44px] flex items-center justify-center gap-2 px-6 py-3 rounded-xl gradient-cta text-white text-xs font-semibold tracking-wide transition-all shadow-[0_8px_22px_-6px_rgba(90,92,255,0.48)] hover:brightness-110 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
                         >
                           <span>View</span>
                           <ChevronRight className="w-4 h-4" />

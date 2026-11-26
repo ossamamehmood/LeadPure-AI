@@ -19,7 +19,7 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
     <header className="h-20 sm:h-24 border-b border-app-border flex items-center justify-between px-4 sm:px-8 lg:px-10 bg-app-bg/60 backdrop-blur-2xl shrink-0 sticky top-0 z-50 gap-3">
       <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
         <div className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer shrink-0">
-          <div className="w-8 h-8 rounded-xl gradient-bg flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(90,92,255,0.5),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
+          <div className="w-8 h-8 rounded-xl gradient-cta flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(90,92,255,0.5),0_2px_10px_-2px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
             <Zap className="w-4 h-4 fill-white" />
           </div>
           <h1 className="text-xl sm:text-2xl font-display font-bold text-app-text tracking-tight flex items-center gap-1 select-none">

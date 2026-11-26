@@ -48,7 +48,7 @@ export function MagneticButton({
 
   const variantStyles = {
     primary:
-      'gradient-bg text-white border border-indigo-400/35 shadow-[0_10px_28px_-6px_rgba(79,70,229,0.52),0_2px_10px_-2px_rgba(14,165,233,0.28),inset_0_1px_0_rgba(255,255,255,0.28)] hover:brightness-110 hover:shadow-[0_14px_34px_-6px_rgba(79,70,229,0.65),0_4px_14px_-2px_rgba(56,189,248,0.35),inset_0_1px_0_rgba(255,255,255,0.35)]',
+      'gradient-cta text-white border border-white/20 shadow-[0_10px_28px_-6px_rgba(90,92,255,0.48),0_4px_14px_-4px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.34)] hover:brightness-110 hover:shadow-[0_14px_34px_-6px_rgba(2,254,220,0.28),0_6px_22px_-4px_rgba(245,2,253,0.32),inset_0_1px_0_rgba(255,255,255,0.42)]',
     secondary:
       'bg-slate-100/90 dark:bg-white/[0.05] hover:bg-slate-200/80 dark:hover:bg-white/[0.1] text-app-text border border-slate-200 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]',
     ghost:

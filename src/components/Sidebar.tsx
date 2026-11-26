@@ -22,7 +22,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
   return (
     <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/60 backdrop-blur-2xl hidden lg:flex shrink-0 z-50">
       <div className="p-7 flex items-center gap-3.5 group cursor-pointer">
-        <div className="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center text-white shadow-[0_8px_20px_-4px_rgba(90,92,255,0.5),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
+        <div className="w-9 h-9 rounded-xl gradient-cta flex items-center justify-center text-white shadow-[0_8px_20px_-4px_rgba(90,92,255,0.5),0_2px_12px_-2px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
           <Zap className="w-4.5 h-4.5 fill-white" />
         </div>
         <span className="text-app-text font-display font-bold text-2xl tracking-tight select-none">
@@ -66,7 +66,7 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
                 <motion.div
                   layoutId="nav-active-pill"
                   transition={TACTILE_SPRING}
-                  className="absolute inset-0 gradient-bg rounded-2xl shadow-[0_8px_24px_-6px_rgba(79,70,229,0.55),0_2px_10px_-2px_rgba(14,165,233,0.28),inset_0_1px_0_rgba(255,255,255,0.24)]"
+                  className="absolute inset-0 gradient-cta rounded-2xl shadow-[0_8px_24px_-6px_rgba(90,92,255,0.5),0_3px_12px_-3px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]"
                 />
               )}
               <Icon className={cn('w-4 h-4 relative z-10 transition-transform duration-200 group-hover:scale-105', item.active ? 'text-white' : 'text-slate-500 dark:text-slate-400')} />

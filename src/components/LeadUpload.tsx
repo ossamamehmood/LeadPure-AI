@@ -30,7 +30,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
               <p className="text-slate-600 dark:text-slate-400 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
                 Real-Time Check
               </p>
-              <span className="px-2.5 py-0.5 gradient-surface text-brand-blue text-[10px] rounded-full font-semibold tracking-wide border border-brand-blue/25 whitespace-nowrap shrink-0">
+              <span className="px-2.5 py-0.5 gradient-surface text-indigo-700 dark:text-slate-100 text-[10px] rounded-full font-semibold tracking-wide border border-brand-blue/25 whitespace-nowrap shrink-0">
                 No Email Sent
               </span>
             </div>
@@ -84,7 +84,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
           )}
         >
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue via-sky-400 to-transparent opacity-0 group-hover/drop:opacity-100 transition-opacity duration-300"
+            className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-[#02FEDC] via-[#5A5CFF] to-[#F502FD] opacity-0 group-hover/drop:opacity-100 transition-opacity duration-300"
             aria-hidden="true"
           />
           <div className="relative z-10 flex flex-col items-center text-center p-6 sm:p-12 space-y-6">

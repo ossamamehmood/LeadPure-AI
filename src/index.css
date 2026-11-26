@@ -7,11 +7,11 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --color-brand-blue: #5A5CFF;
-  --color-brand-cyan: #38BDF8;
+  --color-brand-cyan: #02FEDC;
+  --color-brand-pink: #F502FD;
   --color-brand-indigo: #4F46E5;
-  --color-brand-violet: #7C3AED;
-  --color-brand-pink: #6366F1;
-  --color-brand-purple: #4F46E5;
+  --color-brand-violet: #9E2CFF;
+  --color-brand-purple: #9E2CFF;
   --color-brand-teal: #10B981;
 
   --radius-xl: 1rem;
@@ -90,27 +90,27 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #5A5CFF 0%, #38BDF8 100%);
+  background: linear-gradient(180deg, #02FEDC 0%, #5A5CFF 50%, #F502FD 100%);
   background-clip: content-box;
 }
 
-/* Signature calibrated atmospheric field (Cobalt -> Indigo -> Sky) */
+/* Signature LeadPure atmospheric field (#02FEDC -> #5A5CFF -> #F502FD) */
 .mesh-background {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 15% -5%, rgba(90, 92, 255, 0.14) 0%, transparent 62%),
-    radial-gradient(ellipse 55% 40% at 88% 12%, rgba(124, 58, 237, 0.08) 0%, transparent 58%),
-    radial-gradient(ellipse 65% 45% at 82% 102%, rgba(56, 189, 248, 0.08) 0%, transparent 60%);
+    radial-gradient(ellipse 65% 45% at 10% 0%, rgba(2, 254, 220, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 48% at 50% -8%, rgba(90, 92, 255, 0.13) 0%, transparent 62%),
+    radial-gradient(ellipse 65% 45% at 90% 102%, rgba(245, 2, 253, 0.08) 0%, transparent 60%);
   z-index: -1;
   pointer-events: none;
 }
 
 [data-theme='light'] .mesh-background {
   background:
-    radial-gradient(ellipse 80% 50% at 15% -5%, rgba(90, 92, 255, 0.09) 0%, transparent 62%),
-    radial-gradient(ellipse 55% 40% at 88% 12%, rgba(99, 102, 241, 0.06) 0%, transparent 58%),
-    radial-gradient(ellipse 65% 45% at 82% 102%, rgba(14, 165, 233, 0.07) 0%, transparent 60%);
+    radial-gradient(ellipse 65% 45% at 10% 0%, rgba(2, 254, 220, 0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 75% 48% at 50% -8%, rgba(90, 92, 255, 0.07) 0%, transparent 62%),
+    radial-gradient(ellipse 65% 45% at 90% 102%, rgba(245, 2, 253, 0.06) 0%, transparent 60%);
 }
 
 .glass-panel {
@@ -145,15 +145,15 @@ body {
 
 .gradient-text {
   color: #5A5CFF;
-  background: linear-gradient(125deg, #818CF8 0%, #5A5CFF 44%, #38BDF8 100%);
+  background: linear-gradient(90deg, #02FEDC 0%, #5A5CFF 50%, #F502FD 100%);
   -webkit-background-clip: text;
   background-clip: text;
   display: inline-block;
 }
 
 [data-theme='light'] .gradient-text {
-  color: #4338CA;
-  background: linear-gradient(125deg, #3730A3 0%, #4F46E5 50%, #0284C7 100%);
+  color: #484AFF;
+  background: linear-gradient(90deg, #00A892 0%, #484AFF 50%, #C800CF 100%);
   -webkit-background-clip: text;
   background-clip: text;
 }
@@ -165,22 +165,30 @@ body {
 }
 
 .gradient-bg {
-  background: linear-gradient(130deg, #5A5CFF 0%, #4F46E5 48%, #0284C7 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  background: linear-gradient(90deg, #02FEDC 0%, #5A5CFF 50%, #F502FD 100%);
+}
+
+/* Preserves #02FEDC -> #5A5CFF -> #F502FD gradient flow while keeping white CTA text crisp */
+.gradient-cta {
+  background:
+    linear-gradient(180deg, rgba(7, 8, 16, 0.20) 0%, rgba(7, 8, 16, 0.34) 100%),
+    linear-gradient(90deg, #02FEDC 0%, #5A5CFF 50%, #F502FD 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.42);
 }
 
 .gradient-surface {
-  background: linear-gradient(135deg, rgba(90, 92, 255, 0.14) 0%, rgba(79, 70, 229, 0.09) 55%, rgba(56, 189, 248, 0.10) 100%);
+  background: linear-gradient(90deg, rgba(2, 254, 220, 0.11) 0%, rgba(90, 92, 255, 0.14) 50%, rgba(245, 2, 253, 0.11) 100%);
 }
 
 [data-theme='light'] .gradient-surface {
-  background: linear-gradient(135deg, rgba(90, 92, 255, 0.09) 0%, rgba(79, 70, 229, 0.06) 55%, rgba(14, 165, 233, 0.09) 100%);
+  background: linear-gradient(90deg, rgba(2, 254, 220, 0.14) 0%, rgba(90, 92, 255, 0.09) 50%, rgba(245, 2, 253, 0.09) 100%);
 }
 
 .gradient-border {
   background:
     linear-gradient(var(--glossy-bg), var(--glossy-bg)) padding-box,
-    linear-gradient(135deg, rgba(90, 92, 255, 0.45), rgba(56, 189, 248, 0.35)) border-box;
+    linear-gradient(90deg, #02FEDC 0%, #5A5CFF 50%, #F502FD 100%) border-box;
   border: 1px solid transparent;
 }
 

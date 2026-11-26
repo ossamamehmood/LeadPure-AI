@@ -20,11 +20,11 @@ export function GlossyCard({ children, className, glow = 'none', onClick }: Glos
   const mouseY = useMotionValue(-999);
 
   const spotlightColor = glow === 'pink'
-    ? 'rgba(99, 102, 241, 0.13)'
+    ? 'rgba(245, 2, 253, 0.11)'
     : glow === 'cyan'
-      ? 'rgba(56, 189, 248, 0.13)'
+      ? 'rgba(2, 254, 220, 0.11)'
       : 'rgba(90, 92, 255, 0.13)';
-  const spotlight = useMotionTemplate`radial-gradient(280px circle at ${mouseX}px ${mouseY}px, ${spotlightColor}, rgba(56, 189, 248, 0.04) 48%, transparent 75%)`;
+  const spotlight = useMotionTemplate`radial-gradient(280px circle at ${mouseX}px ${mouseY}px, ${spotlightColor}, rgba(245, 2, 253, 0.04) 48%, transparent 75%)`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || !ref.current) return;
@@ -62,7 +62,7 @@ export function GlossyCard({ children, className, glow = 'none', onClick }: Glos
 
       {/* Machined top bezel edge refraction */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-blue/35 dark:via-white/20 to-transparent group-hover:via-brand-blue/70 dark:group-hover:via-sky-400/55 transition-colors duration-300"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-[#02FEDC]/25 via-[#5A5CFF]/40 to-[#F502FD]/25 opacity-75 group-hover:from-[#02FEDC]/70 group-hover:via-[#5A5CFF]/80 group-hover:to-[#F502FD]/70 group-hover:opacity-100 transition-all duration-300"
         aria-hidden="true"
       />
 
