@@ -32,7 +32,7 @@
     "debug": {
       "backend_name": "leadpure-own-engine",
       "engine_version": "1.3.2",
-      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-86316931358si29441145a34.142 - gsmtp",
+      "rcpt_reply": "250 2.1.5 OK 5614622812f47-57a34259849si25068836b6e.46 - gsmtp",
       "freemail": true
     }
   }
