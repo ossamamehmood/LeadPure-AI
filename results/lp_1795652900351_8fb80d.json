@@ -29,8 +29,12 @@
     "debug": {
       "backend_name": "leadpure-own-engine",
       "engine_version": "1.3.2",
-      "rcpt_reply": "450 4.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
-      "greylisted_or_temp": 450
+      "rcpt_reply": "550 5.7.1 Mail from IP 4.154.246.147 was rejected due to listing in Spamhaus SBL. For details please see http://www.spamhaus.org/query/bl?ip=4.154.246.147",
+      "rcpt_enhanced": "5.7.1",
+      "policy_rejection": {
+        "code": 550,
+        "enhanced": "5.7.1"
+      }
     }
   }
 ]
