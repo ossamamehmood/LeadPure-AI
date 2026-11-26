@@ -97,12 +97,12 @@ function VerdictMicroInstrument() {
   }, [shouldReduceMotion]);
 
   return (
-    <div className="p-4 rounded-2xl bg-slate-50/90 dark:bg-white/[0.025] border border-app-border flex items-center justify-between gap-2">
+    <div className="p-4 rounded-2xl bg-slate-50/90 dark:bg-white/[0.025] border border-app-border space-y-2.5">
       <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-        <Activity className="w-4 h-4 text-brand-blue" />
+        <Activity className="w-4 h-4 text-brand-blue shrink-0" />
         <span>Verdict Output</span>
       </div>
-      <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         {MICRO_VERDICTS.map((v, i) => (
           <span
             key={v}
