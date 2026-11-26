@@ -188,8 +188,14 @@ body {
 .gradient-border {
   background:
     linear-gradient(var(--glossy-bg), var(--glossy-bg)) padding-box,
-    linear-gradient(90deg, #02FEDC 0%, #5A5CFF 50%, #F502FD 100%) border-box;
+    linear-gradient(110deg, rgba(2, 254, 220, 0.34) 0%, rgba(90, 92, 255, 0.44) 50%, rgba(245, 2, 253, 0.34) 100%) border-box;
   border: 1px solid transparent;
+}
+
+[data-theme='light'] .gradient-border {
+  background:
+    linear-gradient(var(--glossy-bg), var(--glossy-bg)) padding-box,
+    linear-gradient(110deg, rgba(0, 168, 146, 0.30) 0%, rgba(72, 74, 255, 0.36) 50%, rgba(200, 0, 207, 0.28) 100%) border-box;
 }
 
 .glow-cyan,
@@ -200,20 +206,32 @@ body {
   box-shadow: var(--glossy-shadow);
 }
 
-/* Subtle futuristic architectural perspective grid masked gently at edges */
+/* Subtle futuristic architectural perspective grid + dot intersections masked gently at edges */
 .architectural-grid {
   background-image:
-    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+    radial-gradient(circle, rgba(148, 163, 184, 0.22) 1px, transparent 1px),
+    linear-gradient(to right, rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
   background-size: 56px 56px;
-  mask-image: radial-gradient(ellipse 75% 60% at 50% 25%, #000 15%, transparent 80%);
-  -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 25%, #000 15%, transparent 80%);
+  mask-image: radial-gradient(ellipse 80% 65% at 50% 24%, #000 18%, transparent 82%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 65% at 50% 24%, #000 18%, transparent 82%);
 }
 
 [data-theme='light'] .architectural-grid {
   background-image:
-    linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px);
+    radial-gradient(circle, rgba(15, 23, 42, 0.14) 1px, transparent 1px),
+    linear-gradient(to right, rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
+}
+
+/* Ultra-fine anodized surface film texture to prevent gradient banding */
+.matte-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.032;
+}
+
+[data-theme='light'] .matte-grain {
+  opacity: 0.018;
 }
 
 @media (prefers-reduced-motion: reduce) {

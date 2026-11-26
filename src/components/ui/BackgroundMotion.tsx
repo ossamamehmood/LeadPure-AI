@@ -6,28 +6,39 @@ interface BackgroundMotionProps {
 }
 
 const HORIZONTAL_PULSES = [
-  { top: '18%', duration: 9.5, delay: 0, width: '160px', reverse: false },
-  { top: '42%', duration: 13.0, delay: 2.8, width: '220px', reverse: true },
-  { top: '74%', duration: 11.2, delay: 1.4, width: '180px', reverse: false },
+  { top: '16%', duration: 9.0, delay: 0, width: '170px', reverse: false },
+  { top: '44%', duration: 12.5, delay: 2.2, width: '230px', reverse: true },
+  { top: '76%', duration: 10.8, delay: 1.1, width: '190px', reverse: false },
 ];
 
 const VERTICAL_PULSES = [
-  { left: '22%', duration: 10.5, delay: 0.7, height: '140px', reverse: false },
-  { left: '78%', duration: 12.4, delay: 3.2, height: '170px', reverse: true },
+  { left: '19%', duration: 10.2, delay: 0.6, height: '150px', reverse: false },
+  { left: '81%', duration: 12.0, delay: 3.1, height: '180px', reverse: true },
+];
+
+const FLOATING_MOTES = [
+  { left: '12%', top: '78%', size: 2, duration: 15, delay: 0, drift: -18 },
+  { left: '24%', top: '64%', size: 2.5, duration: 19, delay: 2, drift: 22 },
+  { left: '38%', top: '82%', size: 2, duration: 17, delay: 4, drift: -14 },
+  { left: '54%', top: '72%', size: 2.5, duration: 21, delay: 1, drift: 16 },
+  { left: '68%', top: '86%', size: 2, duration: 16, delay: 3, drift: -20 },
+  { left: '79%', top: '68%', size: 2.5, duration: 18, delay: 5, drift: 12 },
+  { left: '89%', top: '76%', size: 2, duration: 20, delay: 2.5, drift: -16 },
+  { left: '46%', top: '54%', size: 2, duration: 22, delay: 6, drift: 14 },
 ];
 
 /**
- * Spatial Minimsam-grade atmospheric canvas powered strictly by GPU-composited
- * transforms, opacity, and Framer MotionValues (zero React re-renders on pointer move).
+ * Spatial background motion engine powered strictly by GPU-composited transforms,
+ * opacity, and Framer MotionValues (zero React re-renders on pointer move).
  */
 export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
   const shouldReduceMotion = useReducedMotion();
   const pointerX = useMotionValue(-999);
   const pointerY = useMotionValue(-999);
-  const smoothX = useSpring(pointerX, { stiffness: 70, damping: 24, mass: 0.6 });
-  const smoothY = useSpring(pointerY, { stiffness: 70, damping: 24, mass: 0.6 });
+  const smoothX = useSpring(pointerX, { stiffness: 65, damping: 24, mass: 0.6 });
+  const smoothY = useSpring(pointerY, { stiffness: 65, damping: 24, mass: 0.6 });
 
-  const cursorSpotlight = useMotionTemplate`radial-gradient(520px circle at ${smoothX}px ${smoothY}px, rgba(90, 92, 255, 0.11), rgba(2, 254, 220, 0.04) 40%, transparent 72%)`;
+  const cursorSpotlight = useMotionTemplate`radial-gradient(560px circle at ${smoothX}px ${smoothY}px, rgba(90, 92, 255, 0.12), rgba(2, 254, 220, 0.045) 38%, transparent 72%)`;
 
   useEffect(() => {
     if (shouldReduceMotion || variant !== 'hero') return;
@@ -44,13 +55,16 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
       {/* Base calibrated atmospheric horizon mesh */}
       <div className="mesh-background" />
 
-      {/* Precision masked architectural grid */}
-      <div className="absolute inset-0 architectural-grid opacity-75" />
+      {/* Ultra-fine matte film surface preventing banding */}
+      <div className="absolute inset-0 matte-grain" />
+
+      {/* Precision masked architectural grid + intersection dots */}
+      <div className="absolute inset-0 architectural-grid opacity-80" />
 
       {/* Interactive pointer-reactive light aura */}
       {!shouldReduceMotion && variant === 'hero' && (
         <motion.div
-          className="absolute inset-0 opacity-85 dark:opacity-100"
+          className="absolute inset-0 opacity-90 dark:opacity-100"
           style={{ background: cursorSpotlight }}
         />
       )}
@@ -59,10 +73,10 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
       {!shouldReduceMotion && (
         <>
           <motion.div
-            className="absolute -top-32 -left-24 w-[420px] h-[420px] sm:w-[620px] sm:h-[620px] rounded-full blur-3xl opacity-[0.14] dark:opacity-[0.16]"
+            className="absolute -top-36 -left-24 w-[440px] h-[440px] sm:w-[640px] sm:h-[640px] rounded-full blur-3xl opacity-[0.13] dark:opacity-[0.17]"
             style={{ background: 'radial-gradient(circle, #02FEDC 0%, transparent 70%)', willChange: 'transform' }}
             animate={{
-              x: [0, 48, -20, 0],
+              x: [0, 52, -22, 0],
               y: [0, 34, 18, 0],
               scale: [1, 1.07, 0.96, 1],
             }}
@@ -70,21 +84,21 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
           />
 
           <motion.div
-            className="absolute top-1/4 -right-32 w-[460px] h-[460px] sm:w-[680px] sm:h-[680px] rounded-full blur-3xl opacity-[0.12] dark:opacity-[0.18]"
+            className="absolute top-1/4 -right-32 w-[480px] h-[480px] sm:w-[700px] sm:h-[700px] rounded-full blur-3xl opacity-[0.11] dark:opacity-[0.18]"
             style={{ background: 'radial-gradient(circle, #5A5CFF 0%, transparent 72%)', willChange: 'transform' }}
             animate={{
-              x: [0, -54, 22, 0],
-              y: [0, -32, 28, 0],
+              x: [0, -56, 22, 0],
+              y: [0, -34, 28, 0],
               scale: [1, 0.95, 1.08, 1],
             }}
             transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut' }}
           />
 
           <motion.div
-            className="absolute -bottom-36 left-1/3 w-[380px] h-[380px] sm:w-[560px] sm:h-[560px] rounded-full blur-3xl opacity-[0.10] dark:opacity-[0.14]"
+            className="absolute -bottom-36 left-1/3 w-[380px] h-[380px] sm:w-[580px] sm:h-[580px] rounded-full blur-3xl opacity-[0.10] dark:opacity-[0.15]"
             style={{ background: 'radial-gradient(circle, #F502FD 0%, transparent 70%)', willChange: 'transform' }}
             animate={{
-              x: [0, 40, -36, 0],
+              x: [0, 42, -36, 0],
               y: [0, -28, 16, 0],
               scale: [1, 1.06, 0.94, 1],
             }}
@@ -93,12 +107,25 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
         </>
       )}
 
-      {/* Concentric Minimalist Orbital Horizon Rings + Travelling Telemetry Filaments (Hero mode) */}
+      {/* Futuristic Planetary Horizon Corona + Orbital Reticles + Signal Filaments */}
       {variant === 'hero' && (
         <>
-          <div className="absolute left-1/2 top-[260px] -translate-x-1/2 -translate-y-1/2 w-[780px] h-[780px] sm:w-[1040px] sm:h-[1040px]">
+          {/* Curved luminous planetary horizon arc */}
+          <motion.div
+            className="absolute left-1/2 top-[340px] sm:top-[380px] -translate-x-1/2 w-[1100px] sm:w-[1550px] h-[750px] rounded-[100%] border-t border-brand-blue/30 dark:border-white/15"
+            style={{
+              background:
+                'radial-gradient(50% 35% at 50% 0%, rgba(90,92,255,0.14), rgba(2,254,220,0.05) 35%, transparent 70%)',
+              willChange: 'transform, opacity',
+            }}
+            animate={shouldReduceMotion ? undefined : { scale: [1, 1.015, 1], opacity: [0.75, 1, 0.75] }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+          />
+
+          {/* Concentric Orbital Rings */}
+          <div className="absolute left-1/2 top-[265px] -translate-x-1/2 -translate-y-1/2 w-[780px] h-[780px] sm:w-[1060px] sm:h-[1060px]">
             <motion.div
-              className="absolute inset-0 rounded-full border border-slate-400/[0.12] dark:border-white/[0.06]"
+              className="absolute inset-0 rounded-full border border-slate-400/[0.14] dark:border-white/[0.065]"
               style={{
                 maskImage: 'radial-gradient(circle, transparent 48%, black 70%, transparent 74%)',
                 WebkitMaskImage: 'radial-gradient(circle, transparent 48%, black 70%, transparent 74%)',
@@ -107,16 +134,43 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
               transition={{ duration: 64, repeat: Infinity, ease: 'linear' }}
             />
             <motion.div
-              className="absolute inset-[13%] rounded-full border border-dashed border-brand-blue/20 dark:border-[#02FEDC]/15"
+              className="absolute inset-[14%] rounded-full border border-dashed border-brand-blue/20 dark:border-[#02FEDC]/16"
               animate={shouldReduceMotion ? undefined : { rotate: -360 }}
               transition={{ duration: 48, repeat: Infinity, ease: 'linear' }}
             />
             <motion.div
-              className="absolute inset-[26%] rounded-full border border-slate-400/[0.10] dark:border-white/[0.05]"
+              className="absolute inset-[27%] rounded-full border border-slate-400/[0.11] dark:border-white/[0.05]"
               animate={shouldReduceMotion ? undefined : { scale: [1, 1.03, 1], opacity: [0.6, 1, 0.6] }}
               transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
             />
           </div>
+
+          {/* Floating spatial luminance motes */}
+          {!shouldReduceMotion &&
+            FLOATING_MOTES.map((mote, i) => (
+              <motion.span
+                key={`mote-${i}`}
+                className="absolute rounded-full bg-brand-blue/50 dark:bg-[#02FEDC]/60"
+                style={{
+                  left: mote.left,
+                  top: mote.top,
+                  width: `${mote.size}px`,
+                  height: `${mote.size}px`,
+                  willChange: 'transform, opacity',
+                }}
+                animate={{
+                  y: [0, -110, -220],
+                  x: [0, mote.drift, mote.drift * 1.4],
+                  opacity: [0, 0.55, 0],
+                }}
+                transition={{
+                  duration: mote.duration,
+                  delay: mote.delay,
+                  repeat: Infinity,
+                  ease: 'linear',
+                }}
+              />
+            ))}
 
           {/* Orthogonal travelling optical signal pulses along grid tracks */}
           {!shouldReduceMotion &&
@@ -131,7 +185,7 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
                   background: p.reverse
                     ? 'linear-gradient(90deg, transparent 0%, #F502FD 45%, #5A5CFF 85%, transparent 100%)'
                     : 'linear-gradient(90deg, transparent 0%, #02FEDC 45%, #5A5CFF 85%, transparent 100%)',
-                  opacity: 0.45,
+                  opacity: 0.48,
                   willChange: 'transform',
                 }}
                 initial={{ x: p.reverse ? '110vw' : '-240px' }}
@@ -157,7 +211,7 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
                   background: p.reverse
                     ? 'linear-gradient(180deg, transparent 0%, #F502FD 45%, #5A5CFF 85%, transparent 100%)'
                     : 'linear-gradient(180deg, transparent 0%, #02FEDC 45%, #5A5CFF 85%, transparent 100%)',
-                  opacity: 0.35,
+                  opacity: 0.38,
                   willChange: 'transform',
                 }}
                 initial={{ y: p.reverse ? '110vh' : '-200px' }}
