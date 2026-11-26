@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import * as XLSX from 'xlsx';
 import { MotionConfig, motion, AnimatePresence } from 'motion/react';
 import { Play, X } from 'lucide-react';
 
@@ -17,6 +16,7 @@ import { DataPreviewModal } from './components/DataPreviewModal';
 import { SingleValidation } from './components/SingleValidation';
 import { GlossyCard } from './components/ui/GlossyCard';
 import { MagneticButton } from './components/ui/MagneticButton';
+import { LandingPage } from './components/LandingPage';
 
 // Hooks & Types
 import { useHistory } from './hooks/useHistory';
@@ -28,10 +28,37 @@ import { MobileNav } from './components/MobileNav';
 import { useToast } from './components/Toast';
 
 type AppState = 'upload' | 'mapping' | 'processing' | 'results' | 'rules' | 'history';
+type RoutePath = '/' | '/dashboard';
+
+function getRouteFromLocation(): RoutePath {
+  if (typeof window === 'undefined') return '/';
+  return window.location.pathname.toLowerCase().startsWith('/dashboard') ? '/dashboard' : '/';
+}
 
 export default function App() {
+  const [route, setRoute] = useState<RoutePath>(() => getRouteFromLocation());
   const [appState, setAppState] = useState<AppState>('upload');
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      return localStorage.getItem('leadpure_theme') === 'light' ? 'light' : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  useEffect(() => {
+    const onPopState = () => setRoute(getRouteFromLocation());
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const navigate = useCallback((target: RoutePath) => {
+    if (getRouteFromLocation() !== target) {
+      window.history.pushState({}, '', target);
+    }
+    setRoute(target);
+    window.scrollTo({ top: 0 });
+  }, []);
 
   const applyThemeDom = (nextTheme: 'dark' | 'light') => {
     document.documentElement.setAttribute('data-theme', nextTheme);
@@ -39,6 +66,11 @@ export default function App() {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
+    }
+    try {
+      localStorage.setItem('leadpure_theme', nextTheme);
+    } catch {
+      // ignore storage quota restrictions
     }
   };
 
@@ -250,8 +282,17 @@ export default function App() {
 
   const dateSlug = () => new Date().toISOString().slice(0, 10);
 
+  /** Dynamically imports SheetJS only when the user exports a spreadsheet. */
+  const exportRowsToXlsx = async (rows: Record<string, unknown>[], sheetName: string, fileName: string) => {
+    const XLSX = await import('xlsx');
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    XLSX.writeFile(workbook, fileName);
+  };
+
   // Unified export matching the exact verdicts displayed on the page (arrived engine results ONLY)
-  const handleDownloadAll = () => {
+  const handleDownloadAll = async () => {
     const allArrived = [
       ...(processor.processedData || []),
       ...(processor.eliminatedData || []).filter((item: any) => !item.isTimedOutMissing)
@@ -263,14 +304,11 @@ export default function App() {
       return;
     }
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Verification Results');
-    XLSX.writeFile(workbook, `LeadPure_Results_${dateSlug()}.xlsx`);
+    await exportRowsToXlsx(exportData, 'Verification Results', `LeadPure_Results_${dateSlug()}.xlsx`);
     toast(`Exported ${exportData.length} verified records`, 'success');
   };
 
-  const handleDownloadValid = () => {
+  const handleDownloadValid = async () => {
     const exportData = (processor.processedData || [])
       .filter((item: any) => !item.isTimedOutMissing)
       .map(formatExportRow);
@@ -280,14 +318,11 @@ export default function App() {
       return;
     }
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'SAFE Leads');
-    XLSX.writeFile(workbook, `LeadPure_SAFE_${dateSlug()}.xlsx`);
+    await exportRowsToXlsx(exportData, 'SAFE Leads', `LeadPure_SAFE_${dateSlug()}.xlsx`);
     toast(`Exported ${exportData.length} SAFE records`, 'success');
   };
 
-  const handleDownloadEliminated = (tier: 'all' | 'risky' | 'invalid' | 'unknown' = 'all') => {
+  const handleDownloadEliminated = async (tier: 'all' | 'risky' | 'invalid' | 'unknown' = 'all') => {
     const arrivedEliminated = (processor.eliminatedData || []).filter((item: any) => !item.isTimedOutMissing);
     const filteredData = tier === 'all'
       ? arrivedEliminated
@@ -299,10 +334,7 @@ export default function App() {
       return;
     }
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Filtered Results');
-    XLSX.writeFile(workbook, `LeadPure_Filtered_${dateSlug()}.xlsx`);
+    await exportRowsToXlsx(exportData, 'Filtered Results', `LeadPure_Filtered_${dateSlug()}.xlsx`);
     toast(`Exported ${exportData.length} filtered records`, 'info');
   };
 
@@ -321,7 +353,7 @@ export default function App() {
     setAppState('results');
   };
 
-  const downloadHistoryItem = (item: HistoryItem) => {
+  const downloadHistoryItem = async (item: HistoryItem) => {
     const allArrived = [
       ...(item.processedData || []),
       ...(item.eliminatedData || []).filter((r: any) => !r.isTimedOutMissing)
@@ -333,10 +365,7 @@ export default function App() {
       return;
     }
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Verification Results');
-    XLSX.writeFile(workbook, `LeadPure_Results_${dateSlug()}.xlsx`);
+    await exportRowsToXlsx(exportData, 'Verification Results', `LeadPure_Results_${dateSlug()}.xlsx`);
     toast('Archived results exported', 'success');
   };
 
@@ -355,13 +384,25 @@ export default function App() {
     toast('Session reset', 'info');
   };
 
+  if (route === '/') {
+    return (
+      <MotionConfig reducedMotion="user">
+        <LandingPage
+          onOpenDashboard={() => navigate('/dashboard')}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+        />
+      </MotionConfig>
+    );
+  }
+
   return (
     <MotionConfig reducedMotion="user">
       <div className="flex min-h-[100dvh] lg:h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white" data-theme={theme}>
       <div className="mesh-background" />
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(90,92,255,0.05),transparent_50%)] pointer-events-none" />
 
-      <Sidebar currentTab={appState} setTab={setAppState} />
+      <Sidebar currentTab={appState} setTab={setAppState} onNavigateHome={() => navigate('/')} />
 
       <main className="flex-1 flex flex-col overflow-hidden pb-24 lg:pb-0 relative z-10 min-w-0">
         <Header
@@ -371,6 +412,7 @@ export default function App() {
           onReset={reset}
           theme={theme}
           onToggleTheme={toggleTheme}
+          onNavigateHome={() => navigate('/')}
         />
 
         <section className="flex-1 px-4 py-6 sm:p-8 md:p-10 overflow-y-auto flex flex-col gap-8 scrollbar-hide">
@@ -513,7 +555,7 @@ export default function App() {
           </div>
         </section>
 
-        <MobileNav currentTab={appState} setTab={setAppState} />
+        <MobileNav currentTab={appState} setTab={setAppState} onNavigateHome={() => navigate('/')} />
       </main>
 
       <AnimatePresence>

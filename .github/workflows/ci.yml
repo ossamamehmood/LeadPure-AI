@@ -28,6 +28,32 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Check Engine Syntax & Repo Guards
+        run: |
+          node --check engine/probe.mjs
+          node --input-type=module -e '
+            import fs from "node:fs";
+            import path from "node:path";
+            const skipDirs = new Set(["node_modules", ".git", "dist", ".vercel"]);
+            const skipExts = new Set([".png", ".jpg", ".jpeg", ".gif", ".ico", ".woff", ".woff2", ".webp", ".xlsx", ".pdf", ".zip"]);
+            const errs = [];
+            const v17Pattern = new RegExp("\\bv1" + "7\\b|1" + "7\\.0\\.0|AUDIT_V1" + "7", "i");
+            const walk = (d) => {
+              for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+                const p = path.join(d, e.name);
+                if (e.isDirectory()) { if (!skipDirs.has(e.name)) walk(p); continue; }
+                if (skipExts.has(path.extname(e.name).toLowerCase()) || e.name === "package-lock.json") continue;
+                const lines = fs.readFileSync(p, "utf8").split(/\r?\n/);
+                lines.forEach((l, i) => {
+                  if (l.includes("\u2014") || l.includes("\u2013")) errs.push("DASH:" + p + ":" + (i + 1));
+                  if (v17Pattern.test(l)) errs.push("RELEASE_GUARD:" + p + ":" + (i + 1));
+                });
+              }
+            };
+            walk(".");
+            if (errs.length) { console.error(errs.join("\n")); process.exit(1); }
+          '
+
       - name: Static Typecheck (TypeScript)
         run: npm run lint
 

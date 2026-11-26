@@ -279,33 +279,62 @@ export function SingleValidation() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3, ease: EDITORIAL_EASE }}
-                className="h-full min-h-[300px] flex flex-col items-center justify-center p-6 sm:p-8 bg-app-card/80 rounded-3xl border border-app-border text-center"
+                className="h-full min-h-[300px] flex flex-col items-center justify-center p-6 sm:p-8 bg-app-card/85 rounded-3xl gradient-border text-center relative overflow-hidden"
               >
                 <div className="relative mb-6">
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 2.2, repeat: Infinity, ease: 'linear' }}
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-brand-blue/20 border-t-brand-blue"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-brand-blue/25 border-t-[#02FEDC] border-r-[#F502FD]"
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <Zap className="w-6 h-6 text-brand-blue animate-pulse" />
+                    <div className="w-9 h-9 rounded-xl gradient-cta flex items-center justify-center text-white shadow-md">
+                      <Zap className="w-4.5 h-4.5 fill-white animate-pulse" />
+                    </div>
                   </div>
                 </div>
 
                 <h3 className="text-base sm:text-lg font-display font-bold text-app-text mb-1.5">
                   Checking inbox deliverability...
                 </h3>
-                <p className="text-xs text-brand-blue font-mono font-semibold mb-5 tabular-nums">
+                <p className="text-xs gradient-text font-mono font-bold mb-4 tabular-nums">
                   Elapsed: {formatTime(elapsedSeconds)}
                 </p>
+
+                {/* GPU animated live signal sweep */}
+                <div className="w-full max-w-xs h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden mb-5">
+                  <motion.div
+                    className="h-full w-1/2 rounded-full gradient-bg"
+                    initial={{ x: '-100%' }}
+                    animate={{ x: ['-100%', '220%'] }}
+                    transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+                </div>
+
                 {/* Technical: 1. Dispatch GH Actions runner -> 2. Port 25 RCPT probe -> 3. Catch-all probe */}
                 <div className="flex flex-wrap items-center justify-center gap-2 mb-5 text-[11px] font-medium">
-                  <span className="px-3 py-1 rounded-full bg-brand-blue/15 text-brand-blue border border-brand-blue/25">1. Checking Domain</span>
-                  <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">2. Contacting Mail Server</span>
-                  <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-white/10">3. Catch-All Check</span>
+                  <span className="px-3 py-1 rounded-full gradient-surface text-app-text border border-brand-blue/30">
+                    1. Checking Domain
+                  </span>
+                  <span className={cn(
+                    'px-3 py-1 rounded-full border transition-colors',
+                    elapsedSeconds >= 4
+                      ? 'gradient-surface text-app-text border-brand-blue/30'
+                      : 'bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10'
+                  )}>
+                    2. Contacting Mail Server
+                  </span>
+                  <span className={cn(
+                    'px-3 py-1 rounded-full border transition-colors',
+                    elapsedSeconds >= 10
+                      ? 'gradient-surface text-app-text border-brand-blue/30'
+                      : 'bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-slate-400 border-slate-200 dark:border-white/10'
+                  )}>
+                    3. Catch-All Check
+                  </span>
                 </div>
-                <div className="max-w-md mx-auto px-4 py-3 bg-brand-blue/[0.06] rounded-2xl border border-brand-blue/15">
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                <div className="max-w-md mx-auto px-4 py-3 gradient-surface rounded-2xl border border-brand-blue/20">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     Waiting for live mail server response. Verdicts come directly from the engine, never guessed.
                   </p>
                 </div>

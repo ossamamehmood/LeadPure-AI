@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Upload, Settings2, Clock, Database, Zap } from 'lucide-react';
+import { Upload, Settings2, Clock, Database, Zap, Home } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GlossyCard } from './ui/GlossyCard';
 import { TACTILE_SPRING } from './ui/MotionPrimitives';
@@ -8,9 +8,10 @@ import { TACTILE_SPRING } from './ui/MotionPrimitives';
 interface SidebarProps {
   currentTab: string;
   setTab: (tab: any) => void;
+  onNavigateHome?: () => void;
 }
 
-export function Sidebar({ currentTab, setTab }: SidebarProps) {
+export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
   const isUploadActive = ['upload', 'mapping', 'processing', 'results'].includes(currentTab);
 
   const navItems = [
@@ -21,14 +22,19 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
 
   return (
     <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/60 backdrop-blur-2xl hidden lg:flex shrink-0 z-50">
-      <div className="p-7 flex items-center gap-3.5 group cursor-pointer">
+      <button
+        type="button"
+        onClick={onNavigateHome}
+        title="Back to LeadPure Homepage"
+        className="p-7 flex items-center gap-3.5 group cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+      >
         <div className="w-9 h-9 rounded-xl gradient-cta flex items-center justify-center text-white shadow-[0_8px_20px_-4px_rgba(90,92,255,0.5),0_2px_12px_-2px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
           <Zap className="w-4.5 h-4.5 fill-white" />
         </div>
         <span className="text-app-text font-display font-bold text-2xl tracking-tight select-none">
           Lead<span className="gradient-text">Pure</span>
         </span>
-      </div>
+      </button>
 
       {/* Runner note: uses ephemeral GitHub Actions Port 25 workers behind the scenes */}
       <div className="px-6 mb-6">
@@ -49,6 +55,16 @@ export function Sidebar({ currentTab, setTab }: SidebarProps) {
       </div>
 
       <nav className="flex-1 px-4 space-y-2 mt-2" aria-label="Main navigation">
+        {onNavigateHome && (
+          <button
+            type="button"
+            onClick={onNavigateHome}
+            className="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-colors duration-200 font-semibold text-xs tracking-tight text-slate-600 dark:text-slate-400 hover:text-app-text hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+          >
+            <Home className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+            <span>Home Overview</span>
+          </button>
+        )}
         {navItems.map((item) => {
           const Icon = item.icon;
           return (

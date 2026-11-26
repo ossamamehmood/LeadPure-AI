@@ -37,7 +37,7 @@ jobs:
           ref: main
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Probe and publish results
         env:
           REQUEST_ID: ${{ inputs.request_id }}
@@ -59,7 +59,7 @@ jobs:
           ref: main
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Probe and publish results
         env:
           REQUEST_ID: ${{ inputs.request_id }}
@@ -81,7 +81,7 @@ jobs:
           ref: main
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Probe and publish results
         env:
           REQUEST_ID: ${{ inputs.request_id }}
@@ -101,7 +101,7 @@ jobs:
           ref: main
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Probe and publish results (Fallback)
         env:
           REQUEST_ID: ${{ inputs.request_id }}

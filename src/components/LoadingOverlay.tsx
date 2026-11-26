@@ -36,11 +36,11 @@ export function LoadingOverlay({
       className="fixed inset-0 bg-app-bg/95 backdrop-blur-xl z-50 flex flex-col items-center justify-center p-5 sm:p-8 text-center overflow-y-auto"
     >
       <div className="relative w-32 h-32 sm:w-44 sm:h-44 mb-8">
-        <div className="absolute inset-0 rounded-full border-2 border-app-border" />
-        <div className="absolute inset-0 rounded-full border-t-2 border-brand-blue/40 animate-spin" />
-        <div className="absolute inset-4 rounded-full border border-app-border border-b-2 border-b-brand-pink animate-[spin_3s_linear_infinite_reverse]" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <RefreshCw className="w-10 h-10 sm:w-14 sm:h-14 text-brand-blue animate-spin [animation-duration:4s] mb-1" />
+        <div className="absolute inset-0 rounded-full border border-app-border" />
+        <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[#02FEDC] border-r-[#5A5CFF] animate-spin" />
+        <div className="absolute inset-3.5 rounded-full border-2 border-transparent border-b-[#F502FD] border-l-[#5A5CFF] animate-[spin_2.6s_linear_infinite_reverse]" />
+        <div className="absolute inset-7 rounded-full gradient-surface border border-brand-blue/25 flex flex-col items-center justify-center shadow-lg">
+          <RefreshCw className="w-7 h-7 sm:w-9 sm:h-9 text-brand-blue animate-spin [animation-duration:4s] mb-1" />
           <span className="text-[10px] font-display font-bold gradient-text tracking-wide">LeadPure V14</span>
         </div>
       </div>
