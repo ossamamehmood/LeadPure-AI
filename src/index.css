@@ -200,6 +200,22 @@ body {
   box-shadow: var(--glossy-shadow);
 }
 
+/* Subtle futuristic architectural perspective grid masked gently at edges */
+.architectural-grid {
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 75% 60% at 50% 25%, #000 15%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 25%, #000 15%, transparent 80%);
+}
+
+[data-theme='light'] .architectural-grid {
+  background-image:
+    linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
