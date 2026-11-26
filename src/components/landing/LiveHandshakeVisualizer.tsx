@@ -7,7 +7,7 @@ import { EDITORIAL_EASE } from '../ui/MotionPrimitives';
 interface SampleContact {
   id: 'real' | 'catchall' | 'bounce' | 'busy';
   tab: string;
-  name: string;
+  label: string;
   email: string;
   outcome: 'Safe to Send' | 'Risky' | 'Will Bounce' | 'Unconfirmed';
   tone: 'emerald' | 'amber' | 'rose' | 'slate';
@@ -15,46 +15,47 @@ interface SampleContact {
   checks: [string, string, string];
 }
 
+// Strictly uses RFC 2606 .example domains and non-personal role labels
 const CONTACTS: SampleContact[] = [
   {
     id: 'real',
     tab: 'Active Inbox',
-    name: 'Hannah Brooks',
-    email: 'hannah@northstar.co',
+    label: 'Sales Team',
+    email: 'sales@company.example',
     outcome: 'Safe to Send',
     tone: 'emerald',
     summary: 'Real inbox confirmed directly without sending an email.',
-    checks: ['Spelling verified', 'Company mail active', 'Inbox accepted'],
+    checks: ['Format verified', 'Domain accepts mail', 'Inbox active'],
   },
   {
     id: 'catchall',
     tab: 'Catch-All',
-    name: 'Jordan Patel',
-    email: 'jordan@agency-hub.io',
+    label: 'Partner Desk',
+    email: 'partners@agency.example',
     outcome: 'Risky',
     tone: 'amber',
-    summary: 'Domain accepts any username, so replies are not guaranteed.',
-    checks: ['Spelling verified', 'Company mail active', 'Accepts any name'],
+    summary: 'Domain accepts any username entered, so delivery is uncertain.',
+    checks: ['Format verified', 'Domain accepts mail', 'Accepts any name'],
   },
   {
     id: 'bounce',
     tab: 'Dead Email',
-    name: 'Former Lead',
-    email: 'old.desk94@gmail.com',
+    label: 'Closed Mailbox',
+    email: 'former.desk@domain.example',
     outcome: 'Will Bounce',
     tone: 'rose',
     summary: 'Removed before sending so your sender score stays protected.',
-    checks: ['Spelling verified', 'Gmail host reached', 'Mailbox does not exist'],
+    checks: ['Format verified', 'Mail server reached', 'Inbox does not exist'],
   },
   {
     id: 'busy',
     tab: 'Busy Server',
-    name: 'Elena Vance',
-    email: 'elena@icloud.com',
+    label: 'General Desk',
+    email: 'contact@gateway.example',
     outcome: 'Unconfirmed',
     tone: 'slate',
     summary: 'Mail server asked us to wait. Marked honest Unknown instead of guessing.',
-    checks: ['Spelling verified', 'Mail server busy', 'Kept safe for review'],
+    checks: ['Format verified', 'Mail server busy', 'Kept aside for review'],
   },
 ];
 
@@ -76,22 +77,18 @@ export function LiveHandshakeVisualizer() {
   const toneMap = {
     emerald: {
       pill: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
-      glow: 'rgba(16, 185, 129, 0.28)',
       icon: Check,
     },
     amber: {
       pill: 'bg-amber-500/12 text-amber-700 dark:text-amber-300 border-amber-500/30',
-      glow: 'rgba(245, 158, 11, 0.25)',
       icon: AlertTriangle,
     },
     rose: {
       pill: 'bg-rose-500/12 text-rose-700 dark:text-rose-300 border-rose-500/30',
-      glow: 'rgba(244, 63, 94, 0.28)',
       icon: X,
     },
     slate: {
       pill: 'bg-slate-500/12 text-slate-700 dark:text-slate-300 border-slate-500/30',
-      glow: 'rgba(148, 163, 184, 0.22)',
       icon: HelpCircle,
     },
   }[current.tone];
@@ -120,7 +117,7 @@ export function LiveHandshakeVisualizer() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-app-border">
           <div className="flex items-center gap-2.5 text-xs font-medium text-slate-600 dark:text-slate-300">
             <Sparkles className="w-3.5 h-3.5 text-brand-blue" />
-            <span>Preview how LeadPure sorts a contact</span>
+            <span>Interactive example (demo data only)</span>
           </div>
 
           <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Example contacts">
@@ -164,8 +161,8 @@ export function LiveHandshakeVisualizer() {
                 transition={{ duration: 0.28, ease: EDITORIAL_EASE }}
                 className="p-4 sm:p-5 rounded-2xl bg-slate-50/90 dark:bg-white/[0.03] border border-app-border"
               >
-                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Your Contact</p>
-                <p className="text-sm font-display font-bold text-app-text mt-1">{current.name}</p>
+                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Sample Input</p>
+                <p className="text-sm font-display font-bold text-app-text mt-1">{current.label}</p>
                 <p className="text-xs font-mono text-slate-600 dark:text-slate-300 mt-0.5 truncate">{current.email}</p>
               </motion.div>
             </AnimatePresence>

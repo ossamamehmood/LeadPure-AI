@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { MagneticButton } from './ui/MagneticButton';
+import { BackgroundMotion } from './ui/BackgroundMotion';
 import { EDITORIAL_EASE } from './ui/MotionPrimitives';
 import { LiveHandshakeVisualizer } from './landing/LiveHandshakeVisualizer';
 import { ArchitecturePipeline } from './landing/ArchitecturePipeline';
@@ -109,9 +110,8 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
 
   return (
     <div className="min-h-[100dvh] bg-app-bg text-app-text font-sans relative selection:bg-brand-blue/30 selection:text-white overflow-x-clip">
-      {/* Subtle Futuristic Atmospheric Depth */}
-      <div className="mesh-background" />
-      <div aria-hidden="true" className="fixed inset-0 architectural-grid pointer-events-none z-0 opacity-75" />
+      {/* Futuristic Spatial Background Motion */}
+      <BackgroundMotion variant="hero" />
 
       {/* Minimal Floating Header */}
       <header className="sticky top-0 z-50 border-b border-app-border/70 bg-app-bg/75 backdrop-blur-2xl">

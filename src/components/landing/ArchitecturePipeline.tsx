@@ -11,12 +11,13 @@ interface SampleRow {
   tag: string;
 }
 
+// Strictly uses RFC 2606 .example domains (zero personal or real-world emails)
 const SAMPLE_LIST: SampleRow[] = [
-  { email: 'claire@brightwave.io', note: 'Active company inbox', bucket: 'safe', tag: 'Safe to Send' },
-  { email: 'sales99@gmial.com', note: 'Misspelled domain fixed', bucket: 'remove', tag: 'Bad Address' },
-  { email: 'dev@tempmail.org', note: 'Disposable burner inbox', bucket: 'remove', tag: 'Burner Email' },
-  { email: 'alex@partnerstudio.co', note: 'Accepts all usernames', bucket: 'risky', tag: 'Risky' },
-  { email: 'mark.evans@acmehealth.com', note: 'Confirmed live mailbox', bucket: 'safe', tag: 'Safe to Send' },
+  { email: 'hello@company.example', note: 'Active business inbox', bucket: 'safe', tag: 'Safe to Send' },
+  { email: 'sales@company.exmaple', note: 'Typo domain flagged', bucket: 'remove', tag: 'Bad Address' },
+  { email: 'signup@disposable.example', note: 'Temporary burner inbox', bucket: 'remove', tag: 'Burner Email' },
+  { email: 'team@agency.example', note: 'Accepts all usernames', bucket: 'risky', tag: 'Risky' },
+  { email: 'support@workspace.example', note: 'Confirmed active mailbox', bucket: 'safe', tag: 'Safe to Send' },
 ];
 
 export function ArchitecturePipeline() {

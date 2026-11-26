@@ -16,6 +16,7 @@ import { DataPreviewModal } from './components/DataPreviewModal';
 import { SingleValidation } from './components/SingleValidation';
 import { GlossyCard } from './components/ui/GlossyCard';
 import { MagneticButton } from './components/ui/MagneticButton';
+import { BackgroundMotion } from './components/ui/BackgroundMotion';
 import { LandingPage } from './components/LandingPage';
 
 // Hooks & Types
@@ -399,8 +400,7 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="flex min-h-[100dvh] lg:h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white" data-theme={theme}>
-      <div className="mesh-background" />
-      <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(90,92,255,0.05),transparent_50%)] pointer-events-none" />
+      <BackgroundMotion variant="ambient" />
 
       <Sidebar currentTab={appState} setTab={setAppState} onNavigateHome={() => navigate('/')} />
 
