@@ -73,7 +73,7 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
       {!shouldReduceMotion && (
         <>
           <motion.div
-            className="absolute -top-36 -left-24 w-[440px] h-[440px] sm:w-[640px] sm:h-[640px] rounded-full blur-3xl opacity-[0.13] dark:opacity-[0.17]"
+            className="absolute -top-36 -left-24 w-[440px] h-[440px] sm:w-[640px] sm:h-[640px] rounded-full blur-3xl opacity-[0.07] dark:opacity-[0.09]"
             style={{ background: 'radial-gradient(circle, #02FEDC 0%, transparent 70%)', willChange: 'transform' }}
             animate={{
               x: [0, 52, -22, 0],
@@ -84,7 +84,7 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
           />
 
           <motion.div
-            className="absolute top-1/4 -right-32 w-[480px] h-[480px] sm:w-[700px] sm:h-[700px] rounded-full blur-3xl opacity-[0.11] dark:opacity-[0.18]"
+            className="absolute top-1/4 -right-32 w-[480px] h-[480px] sm:w-[700px] sm:h-[700px] rounded-full blur-3xl opacity-[0.06] dark:opacity-[0.10]"
             style={{ background: 'radial-gradient(circle, #5A5CFF 0%, transparent 72%)', willChange: 'transform' }}
             animate={{
               x: [0, -56, 22, 0],
@@ -95,7 +95,7 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
           />
 
           <motion.div
-            className="absolute -bottom-36 left-1/3 w-[380px] h-[380px] sm:w-[580px] sm:h-[580px] rounded-full blur-3xl opacity-[0.10] dark:opacity-[0.15]"
+            className="absolute -bottom-36 left-1/3 w-[380px] h-[380px] sm:w-[580px] sm:h-[580px] rounded-full blur-3xl opacity-[0.05] dark:opacity-[0.07]"
             style={{ background: 'radial-gradient(circle, #F502FD 0%, transparent 70%)', willChange: 'transform' }}
             animate={{
               x: [0, 42, -36, 0],
@@ -110,12 +110,12 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
       {/* Futuristic Planetary Horizon Corona + Orbital Reticles + Signal Filaments */}
       {variant === 'hero' && (
         <>
-          {/* Curved luminous planetary horizon arc */}
+          {/* Curved subtle architectural horizon arc */}
           <motion.div
-            className="absolute left-1/2 top-[340px] sm:top-[380px] -translate-x-1/2 w-[1100px] sm:w-[1550px] h-[750px] rounded-[100%] border-t border-brand-blue/30 dark:border-white/15"
+            className="absolute left-1/2 top-[340px] sm:top-[380px] -translate-x-1/2 w-[1100px] sm:w-[1550px] h-[750px] rounded-[100%] border-t border-slate-400/20 dark:border-white/10"
             style={{
               background:
-                'radial-gradient(50% 35% at 50% 0%, rgba(90,92,255,0.14), rgba(2,254,220,0.05) 35%, transparent 70%)',
+                'radial-gradient(50% 30% at 50% 0%, rgba(90,92,255,0.08), transparent 68%)',
               willChange: 'transform, opacity',
             }}
             animate={shouldReduceMotion ? undefined : { scale: [1, 1.015, 1], opacity: [0.75, 1, 0.75] }}

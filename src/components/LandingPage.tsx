@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import {
-  Zap, ArrowRight, Check, Sun, Moon, Plus, Minus, ExternalLink, ShieldCheck, Activity, FileSpreadsheet
+  Zap, ArrowRight, Check, X, Sun, Moon, Plus, Minus, ExternalLink, ShieldCheck, Activity, FileSpreadsheet
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { MagneticButton } from './ui/MagneticButton';
@@ -17,48 +17,105 @@ interface LandingPageProps {
   onToggleTheme: (e: React.MouseEvent) => void;
 }
 
-const COMPARISON_ROWS = [
+interface MatrixCell {
+  ok: boolean;
+  note?: string;
+}
+
+const COMPARISON_ROWS: {
+  feature: string;
+  leadpure: MatrixCell;
+  zerobounce: MatrixCell;
+  emailable: MatrixCell;
+  hunter: MatrixCell;
+  reacher: MatrixCell;
+}[] = [
   {
-    feature: 'How you pay',
-    leadpure: 'No credit packages or monthly seat fees',
-    zerobounce: '100 free monthly, then paid credits or $99/mo plans',
-    emailable: '250 starter credits, then paid packs ($38 per 5,000)',
-    hunter: '50 credits/mo free, paid tiers $49 to $299/mo',
-    reacher: 'Free self-hosted code (needs VPS) or paid hosted plan',
+    feature: 'No monthly credit fees',
+    leadpure: { ok: true, note: 'Zero fees' },
+    zerobounce: { ok: false, note: '100/mo free' },
+    emailable: { ok: false, note: '250 trial' },
+    hunter: { ok: false, note: '50/mo free' },
+    reacher: { ok: false, note: 'VPS / Paid' },
   },
   {
-    feature: 'Setup required',
-    leadpure: 'Ready in browser dashboard, zero server upkeep',
-    zerobounce: 'Account signup + credit wallet',
-    emailable: 'Account signup + credit wallet',
-    hunter: 'Account signup + monthly quota',
-    reacher: 'Needs your own mail-sending server or a paid subscription',
+    feature: 'Zero server setup',
+    leadpure: { ok: true },
+    zerobounce: { ok: true },
+    emailable: { ok: true },
+    hunter: { ok: true },
+    reacher: { ok: false, note: 'Needs server' },
   },
   {
-    feature: 'Accept-All (Catch-All) Domains',
-    leadpure: 'Tested and cleanly separated as Risky',
-    zerobounce: 'Flagged + separate paid AI scoring add-on',
-    emailable: 'Flagged as Risky / Accept-All',
-    hunter: 'Flagged as Accept-All (still uses check credits)',
-    reacher: 'Detected in developer response',
+    feature: 'Finds Accept-All domains',
+    leadpure: { ok: true },
+    zerobounce: { ok: true },
+    emailable: { ok: true },
+    hunter: { ok: true },
+    reacher: { ok: true },
   },
   {
-    feature: 'Busy or Protected Mailboxes',
-    leadpure: 'Automatic wait & second check before marking Unknown',
-    zerobounce: 'Handled inside closed pipeline',
-    emailable: 'Refunds unresolved checks later',
-    hunter: 'Marks unconfirmed without clear trail',
-    reacher: 'Single backend configuration needed',
+    feature: 'Excel & CSV list export',
+    leadpure: { ok: true },
+    zerobounce: { ok: true },
+    emailable: { ok: true },
+    hunter: { ok: true },
+    reacher: { ok: false, note: 'API-first' },
   },
   {
-    feature: 'Spreadsheet Workflow',
-    leadpure: '5,000 rows parsed locally, deduplicated, one-click Excel export',
-    zerobounce: 'Cloud upload after login',
-    emailable: 'Cloud CSV upload with per-row deductions',
-    hunter: 'Bulk upload capped by plan tier',
-    reacher: 'Built primarily as an API for developers',
+    feature: 'Extra columns stay in browser',
+    leadpure: { ok: true },
+    zerobounce: { ok: false, note: 'Cloud upload' },
+    emailable: { ok: false, note: 'Cloud upload' },
+    hunter: { ok: false, note: 'Cloud upload' },
+    reacher: { ok: false, note: 'API payload' },
+  },
+  {
+    feature: 'Open source codebase',
+    leadpure: { ok: true },
+    zerobounce: { ok: false },
+    emailable: { ok: false },
+    hunter: { ok: false },
+    reacher: { ok: true },
   },
 ];
+
+function ComparisonCell({ cell, primary = false }: { cell: MatrixCell; primary?: boolean }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1 text-center">
+      {cell.ok ? (
+        <span
+          className={cn(
+            'w-6 h-6 rounded-full flex items-center justify-center border',
+            primary
+              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+              : 'bg-slate-100 dark:bg-white/[0.05] border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200'
+          )}
+          aria-label="Yes"
+        >
+          <Check className="w-3.5 h-3.5" />
+        </span>
+      ) : (
+        <span
+          className="w-6 h-6 rounded-full flex items-center justify-center bg-slate-100/60 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.07] text-slate-400 dark:text-slate-600"
+          aria-label="No"
+        >
+          <X className="w-3.5 h-3.5" />
+        </span>
+      )}
+      {cell.note && (
+        <span
+          className={cn(
+            'text-[11px] leading-tight',
+            primary ? 'font-semibold text-app-text' : 'font-normal text-slate-500 dark:text-slate-400'
+          )}
+        >
+          {cell.note}
+        </span>
+      )}
+    </div>
+  );
+}
 
 const FAQS = [
   {
@@ -219,9 +276,9 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, ease: EDITORIAL_EASE }}
-              className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full gradient-surface border border-brand-blue/25 text-xs font-medium text-app-text backdrop-blur-md"
+              className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/80 dark:bg-white/[0.04] border border-app-border text-xs font-medium text-slate-700 dark:text-slate-300 backdrop-blur-md"
             >
-              <span className="w-2 h-2 rounded-full gradient-bg animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>LeadPure V14 &middot; Zero credit charges</span>
             </motion.div>
 
@@ -287,7 +344,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               </span>
             </div>
             <div className="space-y-2">
-              <span className="text-xs font-mono font-bold gradient-text">01</span>
+              <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500">01</span>
               <h2 className="text-xl font-display font-bold text-app-text tracking-tight">No messages ever delivered</h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 LeadPure confirms mailbox availability quietly with the receiving mail host and disconnects before any email is sent.
@@ -305,7 +362,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
           >
             <VerdictMicroInstrument />
             <div className="space-y-2">
-              <span className="text-xs font-mono font-bold gradient-text">02</span>
+              <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500">02</span>
               <h2 className="text-xl font-display font-bold text-app-text tracking-tight">Honest labels, zero guesswork</h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 Catch-all domains stay marked Risky, dead boxes are blocked, and busy mail servers read Unknown instead of fake certainty.
@@ -327,7 +384,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
                   <FileSpreadsheet className="w-4 h-4 text-brand-blue" />
                   Batch Capacity
                 </span>
-                <span className="font-mono font-bold gradient-text tabular-nums">5,000 Rows</span>
+                <span className="font-mono font-bold text-app-text tabular-nums">5,000 Rows</span>
               </div>
               <div className="h-1.5 w-full rounded-full bg-slate-200/80 dark:bg-white/10 overflow-hidden">
                 <motion.div
@@ -340,7 +397,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
               </div>
             </div>
             <div className="space-y-2">
-              <span className="text-xs font-mono font-bold gradient-text">03</span>
+              <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-slate-500">03</span>
               <h2 className="text-xl font-display font-bold text-app-text tracking-tight">Built for full spreadsheets</h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                 Upload CSV or Excel sheets right in your browser, monitor live progress, resume any interrupted scan, and export cleanly.
@@ -354,19 +411,19 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
           <ArchitecturePipeline />
         </section>
 
-        {/* 4. PLAIN-ENGLISH COMPARISON TABLE */}
+        {/* 4. MINIMALIST TICK / CROSS COMPARISON MATRIX */}
         <section id="compare" className="space-y-10 scroll-mt-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="max-w-2xl space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] gradient-text">Side-By-Side</p>
+              <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Side-By-Side</p>
               <h2 className="text-3xl sm:text-4xl font-display font-bold text-app-text tracking-tight">
                 How LeadPure compares to popular email verifiers
               </h2>
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
-                A clear look at cost, ease of use, and honesty alongside{' '}
-                <a href="https://www.zerobounce.net/" target="_blank" rel="noreferrer" className="text-app-text underline decoration-brand-blue/50 hover:text-brand-blue">ZeroBounce</a>,{' '}
-                <a href="https://emailable.com/" target="_blank" rel="noreferrer" className="text-app-text underline decoration-brand-blue/50 hover:text-brand-blue">Emailable</a>,{' '}
-                <a href="https://hunter.io/email-verifier" target="_blank" rel="noreferrer" className="text-app-text underline decoration-brand-blue/50 hover:text-brand-blue">Hunter</a>, and Reacher.
+                Quick comparison alongside{' '}
+                <a href="https://www.zerobounce.net/" target="_blank" rel="noreferrer" className="text-app-text underline decoration-slate-400/50 hover:text-brand-blue">ZeroBounce</a>,{' '}
+                <a href="https://emailable.com/" target="_blank" rel="noreferrer" className="text-app-text underline decoration-slate-400/50 hover:text-brand-blue">Emailable</a>,{' '}
+                <a href="https://hunter.io/email-verifier" target="_blank" rel="noreferrer" className="text-app-text underline decoration-slate-400/50 hover:text-brand-blue">Hunter</a>, and Reacher.
               </p>
             </div>
             <MagneticButton onClick={onOpenDashboard} variant="primary" size="md" className="shrink-0 rounded-full">
@@ -375,47 +432,55 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
             </MagneticButton>
           </div>
 
-          <div className="rounded-3xl gradient-border bg-app-card/90 backdrop-blur-xl overflow-hidden shadow-xl">
+          <div className="rounded-3xl border border-app-border bg-app-card/90 backdrop-blur-xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[820px] text-left border-collapse">
+              <table className="w-full min-w-[740px] text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-app-border bg-slate-50/90 dark:bg-white/[0.03] text-xs font-display font-bold text-app-text">
-                    <th className="py-5 px-5 w-[16%] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">What Matters</th>
-                    <th className="py-5 px-5 w-[22%] gradient-surface border-x border-brand-blue/20">
-                      <span className="gradient-text text-sm font-bold">LeadPure V14</span>
+                  <tr className="border-b border-app-border bg-slate-50/80 dark:bg-white/[0.025] text-xs font-display font-bold text-app-text">
+                    <th className="py-5 px-6 w-[28%] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">Capability</th>
+                    <th className="py-5 px-4 w-[16%] text-center bg-slate-900/[0.03] dark:bg-white/[0.04] border-x border-app-border">
+                      <div className="inline-flex items-center gap-1.5 justify-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span className="text-sm font-bold text-app-text">LeadPure</span>
+                      </div>
                     </th>
-                    <th className="py-5 px-4 w-[15.5%]">
-                      <a href="https://www.zerobounce.net/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-brand-blue">
-                        ZeroBounce <ExternalLink className="w-3 h-3 opacity-50" />
+                    <th className="py-5 px-4 w-[14%] text-center">
+                      <a href="https://www.zerobounce.net/" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-1 hover:text-brand-blue">
+                        ZeroBounce <ExternalLink className="w-3 h-3 opacity-45" />
                       </a>
                     </th>
-                    <th className="py-5 px-4 w-[15.5%]">
-                      <a href="https://emailable.com/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-brand-blue">
-                        Emailable <ExternalLink className="w-3 h-3 opacity-50" />
+                    <th className="py-5 px-4 w-[14%] text-center">
+                      <a href="https://emailable.com/" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-1 hover:text-brand-blue">
+                        Emailable <ExternalLink className="w-3 h-3 opacity-45" />
                       </a>
                     </th>
-                    <th className="py-5 px-4 w-[15.5%]">
-                      <a href="https://hunter.io/email-verifier" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-brand-blue">
-                        Hunter <ExternalLink className="w-3 h-3 opacity-50" />
+                    <th className="py-5 px-4 w-[14%] text-center">
+                      <a href="https://hunter.io/email-verifier" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-1 hover:text-brand-blue">
+                        Hunter <ExternalLink className="w-3 h-3 opacity-45" />
                       </a>
                     </th>
-                    <th className="py-5 px-4 w-[15.5%]">Reacher</th>
+                    <th className="py-5 px-4 w-[14%] text-center">Reacher</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-app-border text-xs">
                   {COMPARISON_ROWS.map((row) => (
-                    <tr key={row.feature} className="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-                      <td className="py-4 px-5 font-semibold text-app-text align-top">{row.feature}</td>
-                      <td className="py-4 px-5 gradient-surface border-x border-brand-blue/20 font-semibold text-app-text align-top">
-                        <div className="flex items-start gap-2">
-                          <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                          <span>{row.leadpure}</span>
-                        </div>
+                    <tr key={row.feature} className="hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-colors">
+                      <td className="py-4 px-6 font-medium text-app-text align-middle">{row.feature}</td>
+                      <td className="py-4 px-4 bg-slate-900/[0.03] dark:bg-white/[0.04] border-x border-app-border align-middle">
+                        <ComparisonCell cell={row.leadpure} primary />
                       </td>
-                      <td className="py-4 px-4 text-slate-600 dark:text-slate-400 align-top">{row.zerobounce}</td>
-                      <td className="py-4 px-4 text-slate-600 dark:text-slate-400 align-top">{row.emailable}</td>
-                      <td className="py-4 px-4 text-slate-600 dark:text-slate-400 align-top">{row.hunter}</td>
-                      <td className="py-4 px-4 text-slate-600 dark:text-slate-400 align-top">{row.reacher}</td>
+                      <td className="py-4 px-4 align-middle">
+                        <ComparisonCell cell={row.zerobounce} />
+                      </td>
+                      <td className="py-4 px-4 align-middle">
+                        <ComparisonCell cell={row.emailable} />
+                      </td>
+                      <td className="py-4 px-4 align-middle">
+                        <ComparisonCell cell={row.hunter} />
+                      </td>
+                      <td className="py-4 px-4 align-middle">
+                        <ComparisonCell cell={row.reacher} />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -427,7 +492,7 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
         {/* 5. MINIMALIST EDITORIAL FAQ */}
         <section id="faq" className="grid grid-cols-1 lg:grid-cols-12 gap-10 scroll-mt-24">
           <div className="lg:col-span-5 space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] gradient-text">Common Questions</p>
+            <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Common Questions</p>
             <h2 className="text-3xl sm:text-4xl font-display font-bold text-app-text tracking-tight">
               Everything clearly explained.
             </h2>
@@ -473,13 +538,8 @@ export function LandingPage({ onOpenDashboard, theme, onToggleTheme }: LandingPa
           </div>
         </section>
 
-        {/* 6. SCULPTURAL HORIZON CTA */}
-        <section className="py-12 sm:py-20 text-center space-y-6 relative rounded-3xl sm:rounded-[40px] border border-app-border/70 bg-app-card/55 backdrop-blur-xl px-6 overflow-hidden">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 -top-24 h-48 opacity-45 blur-3xl"
-            style={{ background: 'linear-gradient(90deg, rgba(2,254,220,0.22), rgba(90,92,255,0.28), rgba(245,2,253,0.22))' }}
-          />
+        {/* 6. CALM MINIMALIST HORIZON CTA */}
+        <section className="py-12 sm:py-20 text-center space-y-6 relative rounded-3xl sm:rounded-[36px] border border-app-border bg-app-card/75 backdrop-blur-xl px-6 overflow-hidden">
           <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-app-text max-w-2xl mx-auto leading-[1.08] relative z-10">
             Clean your list. <span className="gradient-text">Protect your inbox.</span>
           </h2>

@@ -38,9 +38,9 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
 
       {/* Runner note: uses ephemeral GitHub Actions Port 25 workers behind the scenes */}
       <div className="px-6 mb-6">
-        <div className="p-3.5 rounded-2xl gradient-surface border border-brand-blue/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+        <div className="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-white/[0.03] border border-app-border">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               Verification Engine
             </span>
             <span className="relative flex h-2 w-2">
@@ -48,8 +48,8 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
             </span>
           </div>
-          <div className="text-xs font-bold font-mono text-slate-800 dark:text-slate-100 tracking-tight">
-            <span className="gradient-text font-bold">V14</span> &middot; LIVE &amp; READY
+          <div className="text-xs font-bold font-mono text-app-text tracking-tight">
+            V14 &middot; LIVE &amp; READY
           </div>
         </div>
       </div>
@@ -74,7 +74,7 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
               className={cn(
                 'w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-colors duration-200 font-semibold text-xs tracking-tight relative overflow-hidden group active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
                 item.active
-                  ? 'text-white'
+                  ? 'text-white dark:text-app-text'
                   : 'text-slate-600 dark:text-slate-400 hover:text-app-text hover:bg-black/[0.04] dark:hover:bg-white/[0.04]'
               )}
             >
@@ -82,10 +82,12 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
                 <motion.div
                   layoutId="nav-active-pill"
                   transition={TACTILE_SPRING}
-                  className="absolute inset-0 gradient-cta rounded-2xl shadow-[0_8px_24px_-6px_rgba(90,92,255,0.5),0_3px_12px_-3px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]"
-                />
+                  className="absolute inset-0 bg-slate-900 dark:bg-white/[0.08] border border-slate-900 dark:border-white/15 rounded-2xl shadow-sm"
+                >
+                  <span className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full gradient-bg" />
+                </motion.div>
               )}
-              <Icon className={cn('w-4 h-4 relative z-10 transition-transform duration-200 group-hover:scale-105', item.active ? 'text-white' : 'text-slate-500 dark:text-slate-400')} />
+              <Icon className={cn('w-4 h-4 relative z-10 transition-transform duration-200 group-hover:scale-105', item.active ? 'text-white dark:text-brand-cyan' : 'text-slate-500 dark:text-slate-400')} />
               <span className="relative z-10">{item.label}</span>
             </button>
           );

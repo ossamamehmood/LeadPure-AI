@@ -34,8 +34,8 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
         </button>
         <div className="h-5 w-px bg-app-border hidden md:block shrink-0" />
         <div className="hidden md:flex items-center text-[11px] font-semibold tracking-tight text-slate-600 dark:text-slate-400 min-w-0">
-          <span className="flex items-center gap-2 px-3 py-1 gradient-surface rounded-full border border-brand-blue/25 text-slate-700 dark:text-slate-200 truncate">
-            <span className="w-1.5 h-1.5 rounded-full gradient-bg shrink-0" />
+          <span className="flex items-center gap-2 px-3 py-1 bg-slate-100/80 dark:bg-white/[0.04] rounded-full border border-app-border text-slate-700 dark:text-slate-300 truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
             <span className="truncate">
               V14 Enterprise Release <span className="hidden xl:inline text-slate-500 dark:text-slate-400">(Own SMTP Engine 1.3.2)</span>
             </span>

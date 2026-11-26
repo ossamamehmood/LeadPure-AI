@@ -120,20 +120,20 @@ export function LiveHandshakeVisualizer() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Weightless Halo Glow Behind Hardware Stage */}
+      {/* Subtle neutral spatial depth glow */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -inset-6 sm:-inset-12 rounded-[52px] opacity-30 dark:opacity-45 blur-3xl transition-opacity duration-700"
+        className="pointer-events-none absolute -inset-6 sm:-inset-12 rounded-[52px] opacity-20 dark:opacity-25 blur-3xl transition-opacity duration-700"
         style={{
           background:
-            'radial-gradient(55% 65% at 18% 45%, rgba(2,254,220,0.20), transparent 70%), radial-gradient(55% 65% at 82% 55%, rgba(245,2,253,0.18), transparent 70%)',
+            'radial-gradient(60% 60% at 50% 45%, rgba(90,92,255,0.18), transparent 72%)',
         }}
       />
 
       {/* Spatial 3D Ceramic/Obsidian Hardware Console */}
       <motion.div
         style={shouldReduceMotion ? undefined : { rotateX, scale: stageScale }}
-        className="relative rounded-3xl sm:rounded-[34px] gradient-border p-4 sm:p-8 backdrop-blur-3xl shadow-[0_32px_100px_-28px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.16)]"
+        className="relative rounded-3xl sm:rounded-[34px] border border-slate-200/90 dark:border-white/[0.09] bg-white/95 dark:bg-[#0D1017]/92 p-4 sm:p-8 backdrop-blur-3xl shadow-[0_32px_90px_-30px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.12)]"
       >
         {/* Top Recessed Glass Window Chrome & Scenario Selector */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-app-border">
@@ -160,7 +160,7 @@ export function LiveHandshakeVisualizer() {
                 className={cn(
                   'relative px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
                   idx === activeIdx
-                    ? 'text-white'
+                    ? 'text-white dark:text-slate-950'
                     : 'text-slate-600 dark:text-slate-400 hover:text-app-text bg-slate-100/80 dark:bg-white/[0.04]'
                 )}
               >
@@ -168,7 +168,7 @@ export function LiveHandshakeVisualizer() {
                   <motion.span
                     layoutId="hero-stage-tab"
                     transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                    className="absolute inset-0 rounded-full gradient-cta"
+                    className="absolute inset-0 rounded-full bg-slate-900 dark:bg-white shadow-sm"
                   />
                 )}
                 <span className="relative z-10">{item.tab}</span>

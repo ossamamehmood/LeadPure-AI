@@ -30,7 +30,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
               <p className="text-slate-600 dark:text-slate-400 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
                 Real-Time Check
               </p>
-              <span className="px-2.5 py-0.5 gradient-surface text-indigo-700 dark:text-slate-100 text-[10px] rounded-full font-semibold tracking-wide border border-brand-blue/25 whitespace-nowrap shrink-0">
+              <span className="px-2.5 py-0.5 bg-slate-100 dark:bg-white/[0.05] text-slate-700 dark:text-slate-300 text-[10px] rounded-full font-semibold tracking-wide border border-app-border whitespace-nowrap shrink-0">
                 No Email Sent
               </span>
             </div>
@@ -48,7 +48,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
             <p className="text-slate-600 dark:text-slate-400 text-[11px] font-semibold uppercase tracking-wider mb-4">
               Bounce Protection
             </p>
-            <h3 className="text-xl sm:text-2xl font-display font-bold gradient-text tracking-tight">
+            <h3 className="text-xl sm:text-2xl font-display font-bold text-app-text tracking-tight">
               Catch-All &amp; Risk Guard
             </h3>
             <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-[13px] mt-2.5 leading-relaxed">
@@ -62,7 +62,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
             <p className="text-slate-600 dark:text-slate-400 text-[11px] font-semibold uppercase tracking-wider mb-4">
               Built For Teams
             </p>
-            <h3 className="text-xl sm:text-2xl font-display font-bold gradient-text tracking-tight">
+            <h3 className="text-xl sm:text-2xl font-display font-bold text-app-text tracking-tight">
               Up to 5,000 Leads
             </h3>
             <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-[13px] mt-2.5 leading-relaxed">
