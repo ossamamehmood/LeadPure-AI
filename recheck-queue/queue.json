@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-27T22:57:50.605Z",
+  "updatedAt": "2026-11-27T22:57:57.016Z",
   "items": [
     {
       "id": "lp_1795820081023_f549f5::ky.medicalaesthetics@icloud.com",
@@ -11,13 +11,17 @@
         {
           "requestId": "lp_1795820081023_f549f5",
           "chunkIndex": null
+        },
+        {
+          "requestId": "lp_1795820081087_ef1a08",
+          "chunkIndex": 0
         }
       ],
       "status": "pending",
       "attempts": 0,
       "maxAttempts": 2,
       "createdAt": "2026-11-27T22:57:50.605Z",
-      "updatedAt": "2026-11-27T22:57:50.605Z",
+      "updatedAt": "2026-11-27T22:57:57.016Z",
       "scheduledFor": [
         "2026-11-27T23:57:50.605Z",
         "2026-11-28T22:57:50.605Z"
@@ -28,6 +32,202 @@
       "resolvedAt": null,
       "resolvedVerdict": null,
       "lastReason": "450 4.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
+      "history": []
+    },
+    {
+      "id": "lp_1795820081087_ef1a08::hello@ossamamehmood.com",
+      "email": "hello@ossamamehmood.com",
+      "scanId": "lp_1795820081087_ef1a08",
+      "chunkIndex": 0,
+      "scans": [
+        {
+          "requestId": "lp_1795820081087_ef1a08",
+          "chunkIndex": 0
+        }
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "createdAt": "2026-11-27T22:57:57.016Z",
+      "updatedAt": "2026-11-27T22:57:57.016Z",
+      "scheduledFor": [
+        "2026-11-27T23:57:57.016Z",
+        "2026-11-28T22:57:57.016Z"
+      ],
+      "nextAttemptAt": "2026-11-27T23:57:57.016Z",
+      "dispatchedAt": null,
+      "pendingBatchId": null,
+      "resolvedAt": null,
+      "resolvedVerdict": null,
+      "lastReason": "helo_550",
+      "history": []
+    },
+    {
+      "id": "lp_1795820081087_ef1a08::nelly@azuremedspaboca.com",
+      "email": "nelly@azuremedspaboca.com",
+      "scanId": "lp_1795820081087_ef1a08",
+      "chunkIndex": 0,
+      "scans": [
+        {
+          "requestId": "lp_1795820081087_ef1a08",
+          "chunkIndex": 0
+        }
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "createdAt": "2026-11-27T22:57:57.016Z",
+      "updatedAt": "2026-11-27T22:57:57.016Z",
+      "scheduledFor": [
+        "2026-11-27T23:57:57.016Z",
+        "2026-11-28T22:57:57.016Z"
+      ],
+      "nextAttemptAt": "2026-11-27T23:57:57.016Z",
+      "dispatchedAt": null,
+      "pendingBatchId": null,
+      "resolvedAt": null,
+      "resolvedVerdict": null,
+      "lastReason": "550 5.7.1 Service unavailable; client [20.169.75.250] blocked using Proofpoint Dynamic Reputation (Visit https://ipcheck.proofpoint.com/ if you feel this is in error.). Please provide the following IP",
+      "history": []
+    },
+    {
+      "id": "lp_1795820081087_ef1a08::bluemednc@icloud.com",
+      "email": "bluemednc@icloud.com",
+      "scanId": "lp_1795820081087_ef1a08",
+      "chunkIndex": 0,
+      "scans": [
+        {
+          "requestId": "lp_1795820081087_ef1a08",
+          "chunkIndex": 0
+        }
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "createdAt": "2026-11-27T22:57:57.016Z",
+      "updatedAt": "2026-11-27T22:57:57.016Z",
+      "scheduledFor": [
+        "2026-11-27T23:57:57.016Z",
+        "2026-11-28T22:57:57.016Z"
+      ],
+      "nextAttemptAt": "2026-11-27T23:57:57.016Z",
+      "dispatchedAt": null,
+      "pendingBatchId": null,
+      "resolvedAt": null,
+      "resolvedVerdict": null,
+      "lastReason": "450 4.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
+      "history": []
+    },
+    {
+      "id": "lp_1795820081087_ef1a08::larissa@suedemedspa.com",
+      "email": "larissa@suedemedspa.com",
+      "scanId": "lp_1795820081087_ef1a08",
+      "chunkIndex": 0,
+      "scans": [
+        {
+          "requestId": "lp_1795820081087_ef1a08",
+          "chunkIndex": 0
+        }
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "createdAt": "2026-11-27T22:57:57.016Z",
+      "updatedAt": "2026-11-27T22:57:57.016Z",
+      "scheduledFor": [
+        "2026-11-27T23:57:57.016Z",
+        "2026-11-28T22:57:57.016Z"
+      ],
+      "nextAttemptAt": "2026-11-27T23:57:57.016Z",
+      "dispatchedAt": null,
+      "pendingBatchId": null,
+      "resolvedAt": null,
+      "resolvedVerdict": null,
+      "lastReason": "550 5.7.1 Service unavailable; client [20.169.75.250] blocked using Proofpoint Dynamic Reputation (Visit https://ipcheck.proofpoint.com/ if you feel this is in error.). Please provide the following IP",
+      "history": []
+    },
+    {
+      "id": "lp_1795820081087_ef1a08::mandy@edenhealthrx.com",
+      "email": "mandy@edenhealthrx.com",
+      "scanId": "lp_1795820081087_ef1a08",
+      "chunkIndex": 0,
+      "scans": [
+        {
+          "requestId": "lp_1795820081087_ef1a08",
+          "chunkIndex": 0
+        }
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "createdAt": "2026-11-27T22:57:57.016Z",
+      "updatedAt": "2026-11-27T22:57:57.016Z",
+      "scheduledFor": [
+        "2026-11-27T23:57:57.016Z",
+        "2026-11-28T22:57:57.016Z"
+      ],
+      "nextAttemptAt": "2026-11-27T23:57:57.016Z",
+      "dispatchedAt": null,
+      "pendingBatchId": null,
+      "resolvedAt": null,
+      "resolvedVerdict": null,
+      "lastReason": "550 5.7.1 Service unavailable; client [20.169.75.250] blocked using Proofpoint Dynamic Reputation (Visit https://ipcheck.proofpoint.com/ if you feel this is in error.). Please provide the following IP",
+      "history": []
+    },
+    {
+      "id": "lp_1795820081087_ef1a08::melanie@mermaidaesthetics.com",
+      "email": "melanie@mermaidaesthetics.com",
+      "scanId": "lp_1795820081087_ef1a08",
+      "chunkIndex": 0,
+      "scans": [
+        {
+          "requestId": "lp_1795820081087_ef1a08",
+          "chunkIndex": 0
+        }
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "createdAt": "2026-11-27T22:57:57.016Z",
+      "updatedAt": "2026-11-27T22:57:57.016Z",
+      "scheduledFor": [
+        "2026-11-27T23:57:57.016Z",
+        "2026-11-28T22:57:57.016Z"
+      ],
+      "nextAttemptAt": "2026-11-27T23:57:57.016Z",
+      "dispatchedAt": null,
+      "pendingBatchId": null,
+      "resolvedAt": null,
+      "resolvedVerdict": null,
+      "lastReason": "450 4.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
+      "history": []
+    },
+    {
+      "id": "lp_1795820081087_ef1a08::kelly@kellylynnaesthetics.com",
+      "email": "kelly@kellylynnaesthetics.com",
+      "scanId": "lp_1795820081087_ef1a08",
+      "chunkIndex": 0,
+      "scans": [
+        {
+          "requestId": "lp_1795820081087_ef1a08",
+          "chunkIndex": 0
+        }
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "createdAt": "2026-11-27T22:57:57.016Z",
+      "updatedAt": "2026-11-27T22:57:57.016Z",
+      "scheduledFor": [
+        "2026-11-27T23:57:57.016Z",
+        "2026-11-28T22:57:57.016Z"
+      ],
+      "nextAttemptAt": "2026-11-27T23:57:57.016Z",
+      "dispatchedAt": null,
+      "pendingBatchId": null,
+      "resolvedAt": null,
+      "resolvedVerdict": null,
+      "lastReason": "550 5.7.1 Service unavailable; client [20.169.75.250] blocked using Proofpoint Dynamic Reputation (Visit https://ipcheck.proofpoint.com/ if you feel this is in error.). Please provide the following IP",
       "history": []
     }
   ]
