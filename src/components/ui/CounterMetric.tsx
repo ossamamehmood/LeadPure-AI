@@ -9,24 +9,28 @@ interface CounterMetricProps {
 }
 
 /**
- * Tabular-numeral animated metric counter for KPI readouts.
+ * Tabular-numeral metric counter that glides cleanly from a close anchor
+ * without flashing misleading zeros during initial load.
  */
 export function CounterMetric({
   to,
   separator = '',
-  duration = 0.9,
+  duration = 0.48,
   className = '',
 }: CounterMetricProps) {
   const shouldReduceMotion = useReducedMotion();
-  const [display, setDisplay] = useState<string>(() => formatNumber(shouldReduceMotion ? to : 0, separator));
+  const startFrom = to > 100 ? Math.round(to * 0.9) : to;
+  const [display, setDisplay] = useState<string>(() =>
+    formatNumber(shouldReduceMotion ? to : startFrom, separator)
+  );
 
   useEffect(() => {
-    if (shouldReduceMotion) {
+    if (shouldReduceMotion || startFrom === to) {
       setDisplay(formatNumber(to, separator));
       return;
     }
 
-    const controls = animate(0, to, {
+    const controls = animate(startFrom, to, {
       duration,
       ease: [0.22, 1, 0.36, 1],
       onUpdate: (latest) => {
@@ -38,7 +42,7 @@ export function CounterMetric({
     });
 
     return () => controls.stop();
-  }, [to, separator, duration, shouldReduceMotion]);
+  }, [to, startFrom, separator, duration, shouldReduceMotion]);
 
   return <span className={`tabular-nums ${className}`}>{display}</span>;
 }

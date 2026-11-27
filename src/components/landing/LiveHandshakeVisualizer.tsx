@@ -158,7 +158,7 @@ export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHand
               className={cn(
                 'px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
                 idx === activeIdx
-                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-sm'
+                  ? 'bg-slate-900 !text-white dark:bg-white dark:!text-slate-950 shadow-sm'
                   : 'text-slate-600 dark:text-slate-300 hover:text-app-text bg-white/35 dark:bg-white/[0.04]'
               )}
             >

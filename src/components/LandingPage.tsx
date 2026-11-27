@@ -309,7 +309,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                       className={cn(
                         'px-2.5 py-1 rounded-full transition-colors cursor-pointer',
                         passStep === 'first'
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+                          ? 'bg-slate-900 !text-white dark:bg-white dark:!text-slate-950'
                           : 'text-slate-600 dark:text-slate-300'
                       )}
                     >
@@ -321,7 +321,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                       className={cn(
                         'px-2.5 py-1 rounded-full transition-colors cursor-pointer',
                         passStep === 'confirmed'
-                          ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+                          ? 'bg-slate-900 !text-white dark:bg-white dark:!text-slate-950'
                           : 'text-slate-600 dark:text-slate-300'
                       )}
                     >

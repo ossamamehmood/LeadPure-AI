@@ -65,7 +65,7 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
             onClick={() => setCleaned(false)}
             className={cn(
               'relative px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer',
-              !cleaned ? 'text-white dark:text-slate-950' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
+              !cleaned ? '!text-white dark:!text-slate-950' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
             )}
           >
             {!cleaned && (
@@ -83,7 +83,7 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
             onClick={() => setCleaned(true)}
             className={cn(
               'relative px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5',
-              cleaned ? 'text-white dark:text-slate-950' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
+              cleaned ? '!text-white dark:!text-slate-950' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
             )}
           >
             {cleaned && (
