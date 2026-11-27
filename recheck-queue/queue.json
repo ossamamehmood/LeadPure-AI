@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-27T22:59:38.847Z",
+  "updatedAt": "2026-11-27T23:16:51.403Z",
   "items": [
     {
       "id": "lp_1795820081023_f549f5::ky.medicalaesthetics@icloud.com",
@@ -19,13 +19,17 @@
         {
           "requestId": "lp_1795820190406_0d363c",
           "chunkIndex": 0
+        },
+        {
+          "requestId": "lp_1795821195647_42a41b",
+          "chunkIndex": 0
         }
       ],
       "status": "pending",
       "attempts": 0,
       "maxAttempts": 2,
       "createdAt": "2026-11-27T22:57:50.605Z",
-      "updatedAt": "2026-11-27T22:59:38.847Z",
+      "updatedAt": "2026-11-27T23:16:51.403Z",
       "scheduledFor": [
         "2026-11-27T23:57:50.605Z",
         "2026-11-28T22:57:50.605Z"
@@ -51,13 +55,17 @@
         {
           "requestId": "lp_1795820190406_0d363c",
           "chunkIndex": 0
+        },
+        {
+          "requestId": "lp_1795821195647_42a41b",
+          "chunkIndex": 0
         }
       ],
       "status": "pending",
       "attempts": 0,
       "maxAttempts": 2,
       "createdAt": "2026-11-27T22:57:57.016Z",
-      "updatedAt": "2026-11-27T22:59:38.847Z",
+      "updatedAt": "2026-11-27T23:16:51.403Z",
       "scheduledFor": [
         "2026-11-27T23:57:57.016Z",
         "2026-11-28T22:57:57.016Z"
@@ -107,13 +115,17 @@
         {
           "requestId": "lp_1795820081087_ef1a08",
           "chunkIndex": 0
+        },
+        {
+          "requestId": "lp_1795821195647_42a41b",
+          "chunkIndex": 0
         }
       ],
       "status": "pending",
       "attempts": 0,
       "maxAttempts": 2,
       "createdAt": "2026-11-27T22:57:57.016Z",
-      "updatedAt": "2026-11-27T22:57:57.016Z",
+      "updatedAt": "2026-11-27T23:16:51.403Z",
       "scheduledFor": [
         "2026-11-27T23:57:57.016Z",
         "2026-11-28T22:57:57.016Z"
@@ -191,13 +203,17 @@
         {
           "requestId": "lp_1795820081087_ef1a08",
           "chunkIndex": 0
+        },
+        {
+          "requestId": "lp_1795821195647_42a41b",
+          "chunkIndex": 0
         }
       ],
       "status": "pending",
       "attempts": 0,
       "maxAttempts": 2,
       "createdAt": "2026-11-27T22:57:57.016Z",
-      "updatedAt": "2026-11-27T22:57:57.016Z",
+      "updatedAt": "2026-11-27T23:16:51.403Z",
       "scheduledFor": [
         "2026-11-27T23:57:57.016Z",
         "2026-11-28T22:57:57.016Z"
@@ -236,6 +252,34 @@
       "resolvedAt": null,
       "resolvedVerdict": null,
       "lastReason": "550 5.7.1 Service unavailable; client [20.169.75.250] blocked using Proofpoint Dynamic Reputation (Visit https://ipcheck.proofpoint.com/ if you feel this is in error.). Please provide the following IP",
+      "history": []
+    },
+    {
+      "id": "lp_1795821195647_42a41b::gloria_keller@hotmail.com",
+      "email": "gloria_keller@hotmail.com",
+      "scanId": "lp_1795821195647_42a41b",
+      "chunkIndex": 0,
+      "scans": [
+        {
+          "requestId": "lp_1795821195647_42a41b",
+          "chunkIndex": 0
+        }
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "createdAt": "2026-11-27T23:16:51.403Z",
+      "updatedAt": "2026-11-27T23:16:51.403Z",
+      "scheduledFor": [
+        "2026-11-28T00:16:51.403Z",
+        "2026-11-28T23:16:51.403Z"
+      ],
+      "nextAttemptAt": "2026-11-28T00:16:51.403Z",
+      "dispatchedAt": null,
+      "pendingBatchId": null,
+      "resolvedAt": null,
+      "resolvedVerdict": null,
+      "lastReason": "mailfrom_550",
       "history": []
     }
   ]
