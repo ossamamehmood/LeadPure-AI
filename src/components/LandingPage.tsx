@@ -186,19 +186,19 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               </p>
             </div>
 
-            <h1 className="text-[2.15rem] sm:text-5xl lg:text-[3.55rem] font-display font-bold tracking-[-0.04em] leading-[1.06] text-app-text text-balance">
+            <h1 className="text-[1.85rem] sm:text-4xl lg:text-[2.95rem] xl:text-[3.2rem] font-display font-bold tracking-[-0.04em] leading-[1.08] text-app-text text-balance">
               <BlurText
                 text="Know every email is real"
                 trigger="load"
                 animateBy="words"
                 direction="bottom"
-                delay={40}
-                blur={6}
-                distance={14}
-                stepDuration={0.3}
+                delay={35}
+                blur={5}
+                distance={12}
+                stepDuration={0.28}
                 className="text-app-text"
               />
-              <span className="inline-block gradient-text mt-1">
+              <span className="inline-block sm:whitespace-nowrap gradient-text mt-1">
                 before you hit send.
               </span>
             </h1>
@@ -424,9 +424,15 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                   Fixes name capitalization, cities, and international phone formatting right in your browser before exporting.
                 </p>
               </div>
-              <div className="rounded-xl border border-app-border bg-slate-50/90 dark:bg-white/[0.025] px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs font-mono">
-                <span className="text-slate-400 line-through truncate">tariq hussain · 3128471928</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-semibold shrink-0">Tariq Hussain · +1 (312) 847-1928</span>
+              <div className="rounded-xl border border-app-border bg-slate-50/90 dark:bg-white/[0.025] px-3.5 py-2.5 space-y-1 text-xs font-mono">
+                <div className="flex items-center justify-between gap-2 text-slate-400">
+                  <span className="text-[10px] uppercase tracking-wider">Raw</span>
+                  <span className="line-through truncate">tariq hussain &middot; 3128471928</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-emerald-600 dark:text-emerald-400 font-semibold">
+                  <span className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">Clean</span>
+                  <span className="truncate">Tariq Hussain &middot; +1 (312) 847-1928</span>
+                </div>
               </div>
             </SpotlightCard>
 

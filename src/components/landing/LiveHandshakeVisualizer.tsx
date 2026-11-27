@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Check, AlertTriangle, X, HelpCircle, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { EDITORIAL_EASE } from '../ui/MotionPrimitives';
@@ -90,13 +90,15 @@ interface LiveHandshakeVisualizerProps {
 export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHandshakeVisualizerProps) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (paused || shouldReduceMotion) return;
     const timer = setInterval(() => {
+      setHasInteracted(true);
       setActiveIdx((prev) => (prev + 1) % CONTACTS.length);
-    }, 5000);
+    }, 5200);
     return () => clearInterval(timer);
   }, [paused, shouldReduceMotion]);
 
@@ -105,22 +107,18 @@ export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHand
   const toneMap = {
     emerald: {
       pill: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
-      dot: 'bg-emerald-500',
       icon: Check,
     },
     amber: {
       pill: 'bg-amber-500/12 text-amber-700 dark:text-amber-300 border-amber-500/30',
-      dot: 'bg-amber-500',
       icon: AlertTriangle,
     },
     rose: {
       pill: 'bg-rose-500/12 text-rose-700 dark:text-rose-300 border-rose-500/30',
-      dot: 'bg-rose-500',
       icon: X,
     },
     slate: {
       pill: 'bg-slate-500/12 text-slate-700 dark:text-slate-300 border-slate-500/30',
-      dot: 'bg-slate-400',
       icon: HelpCircle,
     },
   }[current.tone];
@@ -161,27 +159,20 @@ export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHand
               type="button"
               role="tab"
               aria-selected={idx === activeIdx}
-              onClick={() => { setActiveIdx(idx); setPaused(true); }}
+              onClick={() => { setActiveIdx(idx); setPaused(true); setHasInteracted(true); }}
               className={cn(
-                'relative px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
+                'px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
                 idx === activeIdx
-                  ? 'text-white dark:text-slate-950'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-app-text bg-slate-100/80 dark:bg-white/[0.04]'
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-app-text bg-slate-100/85 dark:bg-white/[0.05]'
               )}
             >
-              {idx === activeIdx && (
-                <motion.span
-                  layoutId="inspector-tab-active"
-                  transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                  className="absolute inset-0 rounded-full bg-slate-900 dark:bg-white"
-                />
-              )}
-              <span className="relative z-10">{item.tab}</span>
+              {item.tab}
             </button>
           ))}
         </div>
 
-        {/* Target address header + verdict badge */}
+        {/* Target address header + always-visible verdict badge */}
         <div className="p-5 sm:p-6 space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-50/90 dark:bg-white/[0.03] border border-app-border">
             <div className="min-w-0">
@@ -189,34 +180,36 @@ export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHand
                 {current.label}
               </p>
               <div className="text-sm sm:text-base font-mono font-semibold text-app-text mt-0.5 truncate">
-                <DecryptedText
-                  key={current.id}
-                  text={current.email}
-                  animateOn="view"
-                  speed={26}
-                  maxIterations={7}
-                  sequential
-                  revealDirection="start"
-                />
+                {hasInteracted ? (
+                  <DecryptedText
+                    key={current.id}
+                    text={current.email}
+                    animateOn="view"
+                    speed={16}
+                    maxIterations={3}
+                    sequential
+                    revealDirection="start"
+                    characters="abcdefghijklmnopqrstuvwxyz0123456789.-_@"
+                  />
+                ) : (
+                  <span>{current.email}</span>
+                )}
               </div>
             </div>
 
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={`verdict-${current.id}`}
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.94 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.94 }}
-                transition={{ duration: 0.2, ease: EDITORIAL_EASE }}
-                className={cn(
-                  'px-3 py-1 rounded-full border text-xs font-bold inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center',
-                  toneMap.pill
-                )}
-              >
-                <OutcomeIcon className="w-3.5 h-3.5" />
-                <span>{current.outcome}</span>
-              </motion.span>
-            </AnimatePresence>
+            <motion.span
+              key={`verdict-${current.id}`}
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0.4, y: 2 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.18, ease: EDITORIAL_EASE }}
+              className={cn(
+                'px-3 py-1 rounded-full border text-xs font-bold inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center',
+                toneMap.pill
+              )}
+            >
+              <OutcomeIcon className="w-3.5 h-3.5" />
+              <span>{current.outcome}</span>
+            </motion.span>
           </div>
 
           {/* Hairline sequential check ledger */}

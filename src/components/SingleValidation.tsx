@@ -185,7 +185,7 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
                 {/* Double-bezel input housing */}
                 <div className="p-1 rounded-2xl bg-slate-100/80 dark:bg-white/[0.03] border border-app-border">
                   <div className="relative group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-blue transition-colors" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-blue transition-colors" />
                     <input
                       id="single-email-input"
                       type="email"
@@ -193,7 +193,7 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="user@company.com"
                       aria-label="Email address to verify"
-                      className="w-full bg-white dark:bg-[#0B0D13] border border-slate-200 dark:border-white/10 rounded-xl h-13 sm:h-14 pl-11 pr-11 text-sm font-medium text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-all"
+                      className="w-full bg-white dark:bg-[#0B0D13] border border-slate-200 dark:border-white/10 rounded-xl h-13 sm:h-14 pl-10 pr-9 text-sm font-medium text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-all"
                     />
                     {email.length > 0 && !isVerifying && (
                       <button
