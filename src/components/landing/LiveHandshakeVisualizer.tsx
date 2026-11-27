@@ -157,7 +157,7 @@ export function LiveHandshakeVisualizer({ onNavigate }: LiveHandshakeVisualizerP
                     'relative px-3 py-1.5 rounded-full text-xs font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
                     idx === activeIdx
                       ? 'text-white dark:text-slate-950'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-app-text bg-white/55 dark:bg-white/[0.04]'
+                      : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white bg-slate-200/75 dark:bg-white/[0.06] border border-slate-300/60 dark:border-white/[0.06]'
                   )}
                 >
                   {idx === activeIdx && (

@@ -47,13 +47,17 @@ const FRAGMENT_SHADER = `
 
     vec3 silk = cyan * bandA * 0.65 + blue * bandB * 0.85 + pink * bandC * 0.55;
 
-    // Soft elliptical radial horizon falloff so edges melt seamlessly into canvas
-    float radial = smoothstep(1.18, 0.12, length(vec2(p.x * 0.78, p.y * 1.05)));
-    float alpha = clamp((bandA * 0.36 + bandB * 0.42 + bandC * 0.28) * radial, 0.0, 0.78);
+    // Smooth edge-zero vignette so glow always reaches alpha=0 well inside canvas bounds
+    float edgeMask = smoothstep(1.0, 0.70, abs(p.x)) * smoothstep(1.0, 0.72, abs(p.y));
+    float radial = smoothstep(0.98, 0.10, length(vec2(p.x * 0.92, p.y * 1.08))) * edgeMask;
+    float alpha = clamp((bandA * 0.34 + bandB * 0.38 + bandC * 0.24) * radial, 0.0, 0.72);
+
+    // Subtle dark readability veil near center text zone so white/cyan display type stays ultra-sharp
+    float centerSoft = mix(0.68, 1.0, smoothstep(0.0, 0.72, length(p * vec2(0.85, 1.15))));
 
     // Calibrate luminosity cleanly between deep Dark void and crisp Light porcelain
-    vec3 finalCol = mix(silk, mix(vec3(0.92, 0.95, 1.0), silk, 0.55), uLight);
-    float finalAlpha = alpha * mix(0.68, 0.44, uLight);
+    vec3 finalCol = mix(silk * centerSoft, mix(vec3(0.92, 0.95, 1.0), silk, 0.48), uLight);
+    float finalAlpha = alpha * mix(0.64, 0.40, uLight);
 
     gl_FragColor = vec4(finalCol, finalAlpha);
   }

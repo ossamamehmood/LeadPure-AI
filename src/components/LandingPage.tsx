@@ -206,11 +206,11 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
   return (
     <div className="space-y-24 sm:space-y-32">
       {/* 1. ARCHITECTURAL HERO + GLSL SILK AURORA BACKDROP + UNIFIED PROOF COMMAND DECK */}
-      <section className="relative pt-2 sm:pt-4 space-y-10 sm:space-y-12">
-        {/* Flowing GLSL Iridescent Silk Aurora behind Hero lockup */}
+      <section className="relative pt-1 sm:pt-2 space-y-7 sm:space-y-9">
+        {/* Flowing GLSL Iridescent Silk Aurora behind Hero lockup (wide full-bleed fade) */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-24 sm:-top-32 inset-x-0 h-[440px] sm:h-[540px] -z-10 overflow-hidden"
+          className="pointer-events-none absolute -top-24 sm:-top-28 inset-x-[-14vw] h-[440px] sm:h-[520px] -z-10 overflow-hidden"
         >
           <Suspense fallback={null}>
             <HeroSpatial3D theme={theme} className="w-full h-full" />
@@ -218,7 +218,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
         </div>
 
         {/* Crisp Centered Typography & Confidence Hook */}
-        <div className="max-w-3xl mx-auto text-center space-y-5 relative z-10">
+        <div className="max-w-3xl mx-auto text-center space-y-4 relative z-10">
           <motion.div
             initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -229,7 +229,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
             <span>Real-Time Email Protection &middot; Zero Emails Sent</span>
           </motion.div>
 
-          <h1 className="text-[2.25rem] sm:text-6xl lg:text-[4.35rem] font-display font-bold tracking-[-0.04em] leading-[1.05] text-app-text">
+          <h1 className="text-[2.2rem] sm:text-5xl lg:text-[3.95rem] font-display font-bold tracking-[-0.04em] leading-[1.04] text-app-text">
             <KineticHeadlineLine words={['Know', 'every', 'email', 'is', 'real']} delayBase={0.04} />
             <br className="hidden sm:block" />{' '}
             <KineticHeadlineLine words={['before', 'you', 'hit', 'send.']} delayBase={0.2} gradient />
@@ -239,9 +239,9 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
             initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.52, delay: 0.32, ease: EDITORIAL_EASE }}
-            className="text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl mx-auto font-normal"
+            className="text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto font-normal"
           >
-            Verify single contacts in seconds or clean up to 5,000-row spreadsheets locally before sending so campaigns stay out of spam folders.
+            Verify single contacts in seconds or clean up to 5,000-row spreadsheets locally so your campaigns reach real inboxes.
           </motion.p>
 
           <motion.div
