@@ -1,0 +1,42 @@
+[
+  {
+    "input": "zzqx98765nonexistent@gmail.com",
+    "is_reachable": "invalid",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "zzqx98765nonexistent@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "zzqx98765nonexistent"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 6a1803df08f44-921349a9de6si291250816d6.10 - gsmtp",
+      "rcpt_enhanced": "5.1.1",
+      "confirm_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser af79cd13be357-949bb43fc82si2890699885a.301 - gsmtp",
+      "rcpt_code": 550,
+      "confirmed_two_identities": true
+    }
+  }
+]
