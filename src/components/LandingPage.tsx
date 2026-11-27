@@ -10,7 +10,6 @@ import {
   ExternalLink,
   ShieldCheck,
   SlidersHorizontal,
-  FileSpreadsheet,
   Layers,
   MailCheck,
 } from 'lucide-react';
@@ -69,7 +68,7 @@ const COMPARISON_ROWS: {
   },
   {
     feature: 'Double-checks strict rejections',
-    leadpure: { ok: true, note: 'Verified twice' },
+    leadpure: { ok: true },
     zerobounce: { ok: false },
     emailable: { ok: false },
     hunter: { ok: false },
@@ -174,9 +173,38 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
 
   return (
     <div className="space-y-24 sm:space-y-28">
-      {/* 1. ASYMMETRIC PRODUCT-FIRST HERO + LIVE VERIFICATION INSPECTOR */}
+      {/* 1. ASYMMETRIC PRODUCT-FIRST HERO + MINIMSAM BACKGROUND LETTERS + INSPECTOR */}
       <section className="relative pt-2 sm:pt-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+        {/* Minimsam-inspired monumental kinetic background typography (subtly masked behind Hero) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute -top-6 sm:-top-10 -inset-x-[12vw] -z-10 overflow-hidden"
+          style={{
+            maskImage: 'linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%)',
+          }}
+        >
+          <div className="space-y-1 sm:space-y-2 text-[4.5rem] sm:text-[7.5rem] lg:text-[9.5rem] font-display font-black uppercase tracking-[-0.04em] leading-[0.88] whitespace-nowrap text-slate-900/[0.045] dark:text-white/[0.045]">
+            <motion.div
+              className="flex w-max"
+              animate={shouldReduceMotion ? undefined : { x: ['0%', '-50%'] }}
+              transition={shouldReduceMotion ? undefined : { duration: 42, repeat: Infinity, ease: 'linear' }}
+            >
+              <span>LEADPURE ENGINE &middot; ZERO BOUNCE HYGIENE &middot;&nbsp;</span>
+              <span>LEADPURE ENGINE &middot; ZERO BOUNCE HYGIENE &middot;&nbsp;</span>
+            </motion.div>
+            <motion.div
+              className="flex w-max"
+              animate={shouldReduceMotion ? undefined : { x: ['-50%', '0%'] }}
+              transition={shouldReduceMotion ? undefined : { duration: 48, repeat: Infinity, ease: 'linear' }}
+            >
+              <span>ACTIVE INBOXES &middot; CATCH-ALL SHIELD &middot; BULK CLEANER &middot;&nbsp;</span>
+              <span>ACTIVE INBOXES &middot; CATCH-ALL SHIELD &middot; BULK CLEANER &middot;&nbsp;</span>
+            </motion.div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center relative z-10">
           {/* Left Editorial Column + Interactive Quick Check Bar */}
           <div className="lg:col-span-6 space-y-6">
             <div className="flex items-center gap-3">
@@ -235,29 +263,18 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                 </ClickSpark>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 px-1">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span>Try:</span>
-                  {['sales@company.example', 'partners@agency.example'].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setHeroEmail(preset)}
-                      className="px-2 py-0.5 rounded-md font-mono text-[11px] bg-slate-200/70 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 hover:text-brand-blue transition-colors cursor-pointer"
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onOpenDashboard()}
-                  className="inline-flex items-center gap-1.5 font-semibold text-app-text hover:text-brand-blue transition-colors cursor-pointer"
-                >
-                  <FileSpreadsheet className="w-3.5 h-3.5 text-brand-blue" />
-                  <span>Open Bulk Cleaner</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </button>
+              <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 px-1">
+                <span>Try:</span>
+                {['sales@company.example', 'partners@agency.example'].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setHeroEmail(preset)}
+                    className="px-2 py-0.5 rounded-md font-mono text-[11px] bg-slate-200/70 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 hover:text-brand-blue transition-colors cursor-pointer"
+                  >
+                    {preset}
+                  </button>
+                ))}
               </div>
             </form>
 
@@ -523,7 +540,15 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
           </ClickSpark>
         </div>
 
-        <div className="liquid-glass rounded-3xl overflow-hidden">
+        <SpotlightCard
+          theme={theme}
+          spotlightColor={theme === 'dark' ? '#5A5CFF' : '#4F46E5'}
+          intensity={theme === 'dark' ? 0.12 : 0.06}
+          borderGlow={0.7}
+          grain={0.02}
+          spotlightSize={360}
+          className="spotlight-glass !p-0 rounded-3xl border border-app-border overflow-hidden"
+        >
           <div className="overflow-x-auto">
             <table className="w-full min-w-[740px] text-left border-collapse">
               <thead>
@@ -579,7 +604,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               </tbody>
             </table>
           </div>
-        </div>
+        </SpotlightCard>
       </section>
 
       {/* 5. MINIMALIST LIQUID-GLASS FAQ */}

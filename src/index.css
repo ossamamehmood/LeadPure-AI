@@ -376,22 +376,22 @@ body {
 }
 
 .spotlight-glass {
-  --spotlight-card-surface: rgba(13, 16, 24, 0.80);
-  --spotlight-card-border: rgba(255, 255, 255, 0.11);
+  --spotlight-card-surface: rgba(13, 16, 24, 0.68);
+  --spotlight-card-border: rgba(255, 255, 255, 0.12);
   --spotlight-card-shadow:
     0 22px 48px -18px rgba(0, 0, 0, 0.72),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  backdrop-filter: blur(24px) saturate(160%);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.14);
+  -webkit-backdrop-filter: blur(26px) saturate(175%);
+  backdrop-filter: blur(26px) saturate(175%);
 }
 
 [data-theme='light'] .spotlight-glass {
-  --spotlight-card-surface: rgba(255, 255, 255, 0.78);
-  --spotlight-card-border: rgba(15, 23, 42, 0.09);
+  --spotlight-card-surface: rgba(255, 255, 255, 0.66);
+  --spotlight-card-border: rgba(255, 255, 255, 0.88);
   --spotlight-card-shadow:
     0 18px 40px -18px rgba(15, 23, 42, 0.12),
-    0 4px 16px -6px rgba(90, 92, 255, 0.08),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+    0 4px 16px -6px rgba(90, 92, 255, 0.10),
+    inset 0 1.5px 1px 0 rgba(255, 255, 255, 1);
   -webkit-backdrop-filter: blur(26px) saturate(185%) brightness(1.03);
   backdrop-filter: blur(26px) saturate(185%) brightness(1.03);
 }

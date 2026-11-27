@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Upload, Settings2, Clock, Database, Zap, Home, Menu, ChevronRight } from 'lucide-react';
+import { Upload, Settings2, Clock, Database, Zap, Home, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GlossyCard } from './ui/GlossyCard';
 import { TACTILE_SPRING } from './ui/MotionPrimitives';
@@ -15,11 +15,13 @@ const SIDEBAR_STORAGE_KEY = 'leadpure_sidebar_collapsed';
 
 export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
   const shouldReduceMotion = useReducedMotion();
+  // Default to compact collapsed icon rail so workspace inputs & tables get full breathing room
   const [collapsed, setCollapsed] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true';
+      const saved = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+      return saved === null ? true : saved === 'true';
     } catch {
-      return false;
+      return true;
     }
   });
 
@@ -50,11 +52,11 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
       transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 360, damping: 32 }}
       className="border-r border-app-border hidden lg:flex flex-col bg-app-bg/65 backdrop-blur-2xl shrink-0 z-50 relative select-none"
     >
-      {/* Top Header: Brand Lockup + Three-Line Rail Toggle */}
+      {/* Top Brand Lockup (clean without hamburger lines; bottom chevron handles expand/collapse) */}
       <div
         className={cn(
           'flex items-center shrink-0 transition-all',
-          collapsed ? 'flex-col gap-3 px-3 pt-5 pb-4' : 'justify-between px-6 pt-6 pb-5'
+          collapsed ? 'justify-center px-3 pt-6 pb-4' : 'px-6 pt-6 pb-5'
         )}
       >
         <button
@@ -74,20 +76,6 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
               Lead<span className="gradient-text">Pure</span>
             </span>
           )}
-        </button>
-
-        <button
-          type="button"
-          onClick={toggleCollapsed}
-          aria-expanded={!collapsed}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className={cn(
-            'w-9 h-9 rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] hover:bg-white dark:hover:bg-white/[0.10] hover:border-brand-blue/40 text-slate-600 dark:text-slate-300 hover:text-app-text transition-all flex items-center justify-center cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue shrink-0',
-            collapsed && 'shadow-sm'
-          )}
-        >
-          <Menu className="w-4 h-4" />
         </button>
       </div>
 
@@ -185,7 +173,7 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
         })}
       </nav>
 
-      {/* Bottom Status Section */}
+      {/* Bottom Status & Orbitas-style Chevron Toggle */}
       {collapsed ? (
         <div className="py-5 px-2 border-t border-app-border flex flex-col items-center gap-3">
           <div
@@ -197,15 +185,16 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
           <button
             type="button"
             onClick={toggleCollapsed}
-            aria-label="Expand sidebar panel"
+            aria-expanded={false}
+            aria-label="Expand sidebar"
             title="Expand sidebar"
-            className="w-8 h-8 rounded-full border border-app-border hover:border-brand-blue/40 bg-white/50 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.08] text-slate-500 dark:text-slate-400 hover:text-app-text flex items-center justify-center transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+            className="w-9 h-9 rounded-full border border-app-border hover:border-brand-blue/40 bg-white/50 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.08] text-slate-500 dark:text-slate-400 hover:text-app-text flex items-center justify-center transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       ) : (
-        <div className="p-6 border-t border-app-border">
+        <div className="p-5 border-t border-app-border space-y-3">
           <GlossyCard className="p-4 rounded-2xl border border-app-border">
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider mb-2.5">
               Engine Release
@@ -220,6 +209,18 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
               </div>
             </div>
           </GlossyCard>
+
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-expanded={true}
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
+            className="w-full h-9 rounded-full border border-app-border hover:border-brand-blue/40 bg-white/50 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.08] text-slate-600 dark:text-slate-300 hover:text-app-text flex items-center justify-center gap-2 text-xs font-medium transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Collapse sidebar</span>
+          </button>
         </div>
       )}
     </motion.aside>
