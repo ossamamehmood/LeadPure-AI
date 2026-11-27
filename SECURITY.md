@@ -1,37 +1,43 @@
-# Security Policy: LeadPure AI V14
+# Security Policy
 
-## Data Flow & Privacy Architecture
-
-LeadPure AI is designed as a stateless verification orchestrator with minimal data retention:
-
-1. **Client-Side Spreadsheet Parsing:** Uploaded CSV and Excel (`.xlsx` / `.xls`) files are parsed locally inside the user's browser via `src/workers/parseLeads.worker.ts`. Unselected spreadsheet columns and phone numbers are never persisted on a backend database.
-2. **Ephemeral SMTP Runners:** Live DNS/MX and Port-25 SMTP checks execute inside isolated, short-lived GitHub Actions Ubuntu containers (`engine/probe.mjs` v1.3.2) triggered via `.github/workflows/leadpure-check.yml`.
-3. **Command-Injection Protection:** User-supplied email strings and request IDs are validated by `api/check.ts` before dispatch and passed into workflow scripts strictly through GitHub Actions `env:` variables, never interpolated directly into shell command strings.
-4. **Automatic 7-Day Result Pruning:** Per-request manifest and chunk result files (`results/<requestId>/manifest.json` and `chunk-<n>.json`) on the `results` branch are automatically deleted once older than **7 days** by the weekly `.github/workflows/cleanup-results.yml` workflow.
+> [!NOTE]
+> LeadPure is engineered as a stateless verification orchestrator with browser-local spreadsheet parsing and minimal retention. No uploaded contact lists, names, or phone numbers are ever stored in a persistent database.
 
 ---
 
-## Secret & Token Hygiene
+## Data Flow & Isolation Architecture
 
-- Orchestration requires a GitHub Personal Access Token configured as a server-side environment variable (`LEADPURE_GH_TOKEN`, with `REACHER_GH_TOKEN` accepted as a legacy fallback).
-- Secrets remain strictly within Vercel Serverless Functions (`/api/check`) and GitHub Actions encrypted secrets; they are never bundled into `dist/` or exposed to browser code.
-- If rotating tokens, revoke old tokens in GitHub Developer Settings first, then update `LEADPURE_GH_TOKEN` in Vercel Environment Variables and redeploy.
-
----
-
-## Supported Versions
-
-| Version | Status | Notes |
+| Boundary | Security Guarantee | Implementation |
 | :--- | :--- | :--- |
-| **14.x** | Active Support | Own SMTP Engine `1.3.2`, chunked `/api/check`, 7-day auto-cleanup |
-| **&lt;= 13.x** | End of Life | Upgrade to `14.x`; `/api/validate-batch` is retired (`HTTP 410`) |
+| **Local Spreadsheet Parsing** | Excel and CSV files parse strictly in the browser Web Worker (`src/workers/xlsxWorker.ts`). Extra columns (names, phones, notes, companies) never leave the browser. | Client Web Worker + `localStorage` scan recovery |
+| **Input & Path Validation** | User emails and `requestId` values are validated server-side in `api/check.ts` (`/^[a-zA-Z0-9_-]+$/` + `<= 5,000` item cap) and injected cleanly via `env:` bindings in `.github/workflows/leadpure-check.yml`. | Zero shell string interpolation |
+| **Ephemeral SMTP Execution** | Live DNS/MX lookups and Port-25 checks run via `engine/probe.mjs` inside isolated, short-lived GitHub Actions Ubuntu containers and never deliver mail. | Stateless container execution |
+| **Automatic 7-Day Pruning** | Temporary verification output files on the isolated `results` branch (`results/<requestId>/`) are purged automatically once older than **7 days**. | `.github/workflows/cleanup-results.yml` |
+| **HTTP & Transport Headers** | Enforces HSTS preload (`max-age=31536000`), `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy`, and strict `Permissions-Policy`. | `vercel.json` |
+
+---
+
+## Credential & Token Hygiene
+
+- Backend workflow orchestration reads `LEADPURE_GH_TOKEN` (with `REACHER_GH_TOKEN` as legacy fallback) strictly inside Vercel Serverless Functions (`api/check.ts`).
+- Secrets are never bundled into `dist/`, exposed to browser bundles, or committed to Git history.
+- When rotating credentials: revoke old tokens in GitHub Developer Settings, update `LEADPURE_GH_TOKEN` in Vercel Environment Variables, and redeploy.
+
+---
+
+## Supported Scope
+
+| Release Track | Security Status | Notes |
+| :--- | :---: | :--- |
+| **Current Production (`main`)** | Active | Zero-dependency `engine/probe.mjs`, chunked `/api/check`, security headers, weekly 7-day result pruning |
+| **Legacy Endpoints (`/api/validate-batch`)** | Retired (`410`) | Permanently returns `HTTP 410 Gone` |
 
 ---
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in LeadPure AI (such as input-handling issues, accidental secret exposure, or API validation bypasses):
+If you discover a potential vulnerability in LeadPure (input handling, workflow dispatch safety, SSRF/path edge cases, or credential exposure):
 
-1. **Do not** open a public issue with exploit steps or live credentials.
-2. Report privately via [GitHub Security Advisories](https://github.com/ossamamehmood/LeadPure-AI/security/advisories/new) on `ossamamehmood/LeadPure-AI`.
-3. Include reproduction steps, affected files or endpoints, and potential impact. Valid reports are acknowledged promptly and patched on `main`.
+1. **Do not** open a public GitHub issue containing reproduction payloads or sensitive data.
+2. Submit a private report via [GitHub Security Advisories](https://github.com/ossamamehmood/LeadPure-AI/security/advisories/new).
+3. Include clear reproduction steps, affected file paths or endpoints, and estimated impact. Confirmed issues are patched promptly on `main`.

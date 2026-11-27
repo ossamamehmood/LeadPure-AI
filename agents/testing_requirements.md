@@ -1,20 +1,16 @@
-# Testing Requirements
+# Testing & Quality Gate Requirements
 
-To achieve the "Final Success Criteria," all major updates must pass this testing suite.
+Every change to `main` must clear all static guards, verification assertions, deterministic tests, and production bundle checks (`ci.yml`).
 
-## 1. Deterministic Stability Test
-- **Input**: A standard test file with 500+ leads.
-- **Requirement**: Process the file 20 times across different environments.
-- **Success**: Identical lead counts and classifications on every run.
+---
 
-## 2. Integrity Test
-- **Requirement**: Zero row loss. The sum of `Cleaned Leads` + `Filtered Leads` must exactly match the `Total Input`.
-- **Requirement**: Duplicate identities must be suppressed 100% of the time.
+## Required Checks
 
-## 3. Infrastructure Safety Test
-- **Requirement**: No SMTP socket leaks.
-- **Requirement**: No Vercel deployment timeouts for standard batches (40 leads per batch).
-
-## 4. Output Verification
-- **Requirement**: Final CSV must contain only E.164 formatted phone numbers.
-- **Requirement**: All names must be in Proper Title Case.
+| Check | Command | Acceptance Criteria |
+| :--- | :--- | :--- |
+| **Engine Syntax & CI Guards** | `node --check engine/probe.mjs` | Zero syntax errors, zero `\u2013` / `\u2014` dashes, zero banned release strings (`ci.yml`). |
+| **TypeScript Verification** | `npm run lint` | Zero `tsc --noEmit` compilation or type errors. |
+| **Verification Suite** | `npm test` | **27/27** syntax, disposable, role, DNS MX, and end-to-end probe assertions pass. |
+| **Determinism Check** | `npm run test-engine` | **10/10** consecutive iterations return identical deterministic validation states. |
+| **Production Build** | `npm run build` | Clean Vite 8 production bundle with split chunks and zero asset errors. |
+| **Live Browser QA** | `https://leadpureai.vercel.app/` | Zero console errors, zero horizontal overflow across `1440px` desktop & `360px` mobile, verified Dark/Light contrast & interactive workspace flow. |

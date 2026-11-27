@@ -1,17 +1,23 @@
-# Known Issues & Forbidden Regressions
+# Historical Issues & Regression Guardrails
 
-This document tracks historical bugs and environmental limitations to prevent regression.
+> [!IMPORTANT]
+> Prevent reintroducing previously resolved engine, security, or UI regressions.
 
-## Historical Regressions (Do Not Repeat)
-- **Permissive Fallback**: Reverting to "Unknown = Valid" logic to artificially inflate lead counts. This is strictly forbidden.
-- **Unstable Async**: Using `Promise.all` without chunking/throttling, leading to Vercel socket exhaustion.
-- **Missing `cn` Imports**: Causing runtime UI crashes on individual email scans.
+---
 
-## Environmental Limitations
-- **Vercel SMTP Timeouts**: Serverless functions have a 10s hard limit. High-latency mail servers may trigger timeouts.
-- **Inconsistent DNS Resolution**: Some ISP-level DNS caching can cause slight delays in MX resolution.
-- **Concurrency Caps**: Excessive concurrent SMTP probes can trigger provider-level IP throttling.
+## Forbidden Patterns
 
-## Pending Improvements
-- Implementation of a more granular `debug-results.csv`.
-- Optimization of the greylisting retry window.
+| Anti-Pattern | Risk | Required Guardrail |
+| :--- | :--- | :--- |
+| **Optimistic `UNKNOWN -> SAFE` fallback** | Inflates deliverable count with unverified or blocked addresses that hard-bounce in production. | Keep stalled/timeout hosts cleanly as `UNKNOWN` and catch-all/greylist hosts as `RISKY`. |
+| **Unbounded `Promise.all` or unchunked dispatch** | Exceeds GitHub `workflow_dispatch` 65,535-char cap and causes socket/runner stalls. | Enforce `<= 5,000` email cap and **100-email chunks** (max 3 concurrent workflows). |
+| **Shell interpolation of inputs** | Creates command-injection vectors inside GitHub Actions bash steps. | Pass `REQUEST_ID`, `CHUNK_INDEX`, and `EMAILS_INPUT` strictly via `env:` variables with regex validation. |
+| **`transition-all` / wrapper-blocked spacing** | Causes sticky/jittery animations and broken card padding/gaps (`LiquidSpotlightCard`). | Use explicit CSS transition properties and `contentClassName` on spotlight/glass wrappers. |
+| **Unicode em/en-dashes & stale release strings** | Breaks CI static repo guards (`ci.yml`) or leaks dead version labels into public UI. | Keep copy plain and run static CI guards before committing. |
+
+---
+
+## Environmental Realities
+
+- **Serverless Port-25 Egress Blocking**: Vercel Serverless Functions cannot open direct TCP Port-25 sockets; orchestration dispatches to ephemeral GitHub Actions Ubuntu Port-25 runners (`leadpure-check.yml`) with Azure/AWS node preflight checks.
+- **Accept-All & Temporary Greylisting**: Target corporate firewalls frequently return ambiguous signals; 2-pass confirmation and 30s greylist retries recover strict temporary blocks while labeling persistent accept-all hosts honestly as `RISKY`.

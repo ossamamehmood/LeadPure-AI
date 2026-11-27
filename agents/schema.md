@@ -1,51 +1,34 @@
-# Data Schema & Validation Enums
+# Verification Result Schema
 
-This document defines the standardized data structures for the LeadPure AI validation engine to ensure consistency across the Network, Processor, and UI layers.
+Standardized verdict structure shared across `engine/probe.mjs`, `api/check.ts`, UI dashboards, and `.xlsx` exports.
 
 ---
 
-## Standardized Validation Object
-Every validation result MUST adhere to this structure.
+## Result Fields
 
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `email` | `string` | The normalized email identity. |
-| `status` | `enum` | The top-level classification (SAFE, RISKY, INVALID, UNKNOWN). |
-| `sub_status` | `string` | Human-readable specific reason for the result. |
-| `failure_code` | `string` | Standardized error code (ERR_XXX) for programmatic handling. |
-| `smtp_code` | `number \| null` | The last recorded SMTP response code (e.g., 250, 550). |
-| `mx_ip` | `string \| null` | The resolved IP address of the primary MX server. |
-| `is_catchall` | `boolean` | Whether the domain accepts all incoming identities. |
-| `timestamp` | `string` | ISO 8601 timestamp of the validation event. |
+| `email` | `string` | Normalized contact address (`trimmed`, lowercase domain). |
+| `status` | `'SAFE' \| 'RISKY' \| 'INVALID' \| 'UNKNOWN'` | Honest top-level deliverability bucket. |
+| `sub_status` | `string` | Machine-readable cause (`mailbox_not_found`, `catch_all`, `disposable`, `greylisted`, etc.). |
+| `failure_code` | `string` | Standardized diagnostic identifier (`ERR_001` through `ERR_009`). |
+| `smtp_code` | `number \| null` | Final SMTP server reply code (e.g., `250`, `451`, `550`). |
+| `mx_ip` | `string \| null` | Resolved primary Mail Exchange host or IP address. |
+| `is_catchall` | `boolean` | Whether the domain accepts randomized nonexistent local parts. |
+| `timestamp` | `string` | ISO-8601 completion timestamp. |
 
 ---
 
-## Status Enum (The Four Pillars)
-These are the only permitted top-level classifications.
+## Failure Code Reference
 
-- **`SAFE`**: Verified deliverable non-catch-all mailbox.
-- **`RISKY`**: Accept-all (catch-all) or role-flagged domain signal.
-- **`INVALID`**: Confirmed non-deliverable mailbox, syntax error, disposable domain, or missing MX.
-- **`UNKNOWN`**: Greylist, policy refusal, or network timeout prevented a definitive answer.
-
----
-
-## Failure Code Mapping
-Used to track the exact point of failure within the 10-layer protocol.
-
-| Code | Layer | Description |
+| Code | Layer | Meaning |
 | :--- | :--- | :--- |
-| **`ERR_001`** | **Syntax** | RFC 5321/5322 Malformation. |
-| **`ERR_002`** | **DNS/MX** | No valid MX records or DNS resolution failure. |
-| **`ERR_003`** | **SMTP** | Socket handshake failure (e.g., 550 Mailbox Not Found). |
-| **`ERR_004`** | **DEA** | Disposable/Temporary email provider detected. |
-| **`ERR_005`** | **Catch-All** | Domain accepts all addresses (Policy Suppression). |
-| **`ERR_006`** | **Role** | Role-based identity suppression (`info@`, `admin@`). |
-| **`ERR_007`** | **Greylist** | Target server is delaying acceptance (Temporary Fail). |
-| **`ERR_008`** | **Throttle** | Validation stopped to prevent provider-level IP ban. |
-| **`ERR_009`** | **Timeout** | Internal engine timeout reached before completion. |
-
----
-
-## Integration Law
-The **QA Agent** must verify that all export files (`Cleaned` and `Filtered`) map their internal `verificationStatus` correctly to these enums. Any drift in naming conventions (e.g., using `rejected` instead of `INVALID`) must be corrected at the processing layer.
+| **`ERR_001`** | Syntax | Malformed RFC 5321/5322 email structure. |
+| **`ERR_002`** | DNS / MX | Missing domain or null-MX / dead DNS resolution. |
+| **`ERR_003`** | SMTP | Mailbox rejected cleanly during SMTP probe (`550`). |
+| **`ERR_004`** | Disposable | Known temporary/burner email service domain. |
+| **`ERR_005`** | Catch-All | Accept-all configuration flagged honestly as `RISKY`. |
+| **`ERR_006`** | Role | Generic alias (`support@`, `billing@`, `info@`) excluded when role filter enabled. |
+| **`ERR_007`** | Greylist | Server asked to pause/retry temporarily (`4xx`). |
+| **`ERR_008`** | Throttle | Provider rate guard triggered to preserve clean probe reputation. |
+| **`ERR_009`** | Timeout | Connection or Port-25 egress blocked across retry attempts (`UNKNOWN`). |

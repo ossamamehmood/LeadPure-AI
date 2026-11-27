@@ -1,46 +1,38 @@
-# LeadPure AI: System Architecture Blueprint
+# System Architecture Blueprint
 
-## System Boundaries & Data Flow
-LeadPure AI follows a strict, deterministic unidirectional data flow to ensure validation integrity.
+> [!NOTE]
+> LeadPure follows a unidirectional, stateless pipeline combining browser-local parsing with ephemeral Port-25 execution.
+
+---
+
+## Data Flow
 
 ```mermaid
 graph TD
-    A[Frontend: Next.js/Vercel] --> B[Upload Processor]
-    B --> C[Normalization Engine]
-    C --> D[Validation Pipeline]
-    
-    subgraph "The Intelligence Kernel"
-    D --> D1[RFC Syntax Validator]
-    D1 --> D2[DNS/MX Infrastructure Checker]
-    D2 --> D3[SMTP Elite Engine]
-    D3 --> D4[Catch-All Detector]
-    D4 --> D5[Disposable Email Filter]
+    A["Frontend UI (React 19 + Vite 8 + Tailwind v4)"] --> B["Local Upload & Web Worker (src/workers/xlsxWorker.ts)"]
+    B --> C["Local Contact Formatter (Title Case + E.164 Phone)"]
+    C --> D["Vercel Serverless Orchestrator (api/check.ts)"]
+
+    subgraph "Verification Kernel (engine/probe.mjs)"
+        D --> D1["RFC 5321/5322 Syntax & Typo Check"]
+        D1 --> D2["DNS MX & RFC 7505 Null-MX Lookup"]
+        D2 --> D3["Disposable & Role Filters"]
+        D3 --> D4["Port-25 SMTP Handshake + 2-Pass Retry"]
+        D4 --> D5["Catch-All & Forwarding Guard"]
     end
-    
-    D5 --> E[Classification Engine]
-    E --> F[Export Engine]
-    F --> G[Clean Lead CSV]
-    E --> H[Debug Logs + Debug CSV]
+
+    D5 --> E["Manifest & Chunk Store (results branch)"]
+    E --> F["GET /api/check Poller + useLeadProcessor"]
+    F --> G["Results Dashboard + LeadPure_Results_<YYYY-MM-DD>.xlsx"]
 ```
 
-## Core Components
+---
 
-### 1. Frontend (Next.js/React)
-- Stateless UI for lead ingestion and real-time scanning.
-- Responsible for state management and progress orchestration.
+## Core Modules
 
-### 2. Validation Engine (Node.js)
-- The core logic that executes the 10-layer protocol.
-- Orchestrates async batches to the backend API.
-
-### 3. SMTP & DNS Layer (Vercel Serverless)
-- Low-level network operations for MX resolution and socket handshaking.
-- Designed for high-frequency, short-duration probes.
-
-### 4. Logging & Audit System
-- Real-time event streaming for UI feedback.
-- Persistent debug reporting for forensic analysis of eliminated leads.
-
-## Deployment Structure
-- **Vercel**: Hosts both the frontend and the serverless API handlers.
-- **GitHub**: Source of truth for deterministic builds and version locking.
+| Layer | Technology | Responsibility |
+| :--- | :--- | :--- |
+| **Frontend Workspace** | React 19, Vite 8, Motion | Route-split SPA (`/` marketing, `/dashboard` workspace, `/deliverability`, `/pricing`, `/privacy`, `/terms`). |
+| **Spreadsheet Worker** | `src/workers/xlsxWorker.ts` | Non-blocking `.xlsx` / `.csv` / `.xls` parsing up to **5,000 rows** locally in browser memory. |
+| **API Orchestrator** | `api/check.ts` (Vercel Serverless) | Sanitizes payloads, chunks lists (`100` rows/chunk, max 3 concurrent runs), and reads `results` manifests. |
+| **SMTP Probe Runner** | `engine/probe.mjs` on GitHub Actions | Pure Node.js Port-25 verifier with Azure/AWS Port-25 preflight gate and `results` commit publisher. |

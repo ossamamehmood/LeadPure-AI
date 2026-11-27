@@ -1,31 +1,45 @@
-# LeadPure SMTP Verification Backend Service
+# Optional SMTP Verification Daemon (`backend/`)
 
-This backend service provides dedicated **outbound TCP Port 25** SMTP mailbox probing and catch-all detection for **LeadPure AI**.
-
-Because serverless platforms (e.g., Vercel, AWS Lambda) strictly block outbound TCP connections on Port 25, this service runs on any host with Port 25 enabled (such as a small VPS, DigitalOcean Droplet, Hetzner Cloud, AWS EC2 with unthrottled port 25, or Fly.io).
-
----
-
-## Capabilities
-
-1. **RFC 5321 SMTP Handshake**: Connects to the domain's primary MX server, issues `EHLO leadpure.ai`, `MAIL FROM:<verify@leadpure.ai>`, and `RCPT TO:<target>`.
-2. **Catch-All Detection**: For every domain, probes a randomized 16-character nonexistent local part (`leadpure_catchall_<hex>@<domain>`). If the server accepts it (250 OK), the domain is flagged as **Catch-All** and capped at `RISKY`.
-3. **Provider Anti-Spam Protection Parsing**: Accurately recognizes provider blocks (e.g., Microsoft Hotmail/Outlook S3150 / 550 5.7.1) and returns `UNKNOWN`, never upgrading inconclusive or blocked probes to `SAFE`.
-4. **Reacher API Compatibility**: Implements `POST /v0/check_email` matching the open-source Reacher (`reacherhq/check-if-email-exists`) JSON schema.
+> [!NOTE]
+> **Production LeadPure runs verification out of the box** via `engine/probe.mjs` on ephemeral GitHub Actions Port-25 runners with zero VPS required. Use this standalone `backend/` daemon only if you want to self-host a dedicated TCP Port-25 node.
 
 ---
 
-## Quick Start (Deploying on a VPS)
+## Overview
 
-### Option 1: Docker (Recommended)
+Cloud serverless hosts (such as Vercel Serverless Functions and AWS Lambda) block outbound TCP Port 25 by default. This lightweight Node.js / Express daemon exposes a direct Port-25 verification endpoint designed for VPS hosts with open Port-25 egress.
+
+### Capabilities
+
+| Feature | Behavior |
+| :--- | :--- |
+| **RFC 5321 Socket Probe** | Resolves MX via DNS (`8.8.8.8` / `1.1.1.1`) and runs `EHLO leadpure.ai` -> `MAIL FROM:<verify@leadpure.ai>` -> `RCPT TO:<target>` without delivering messages. |
+| **Catch-All Detection** | Tests a randomized 16-character local part on the target domain and caps accept-all domains honestly at `RISKY`. |
+| **Provider Block Awareness** | Maps policy blocks cleanly to `UNKNOWN` rather than falsely promoting blocked connections to `SAFE`. |
+| **Standard JSON Schema** | Implements `POST /v0/check_email` compatible with standalone SMTP worker deployments. |
+
+---
+
+## Deployment Options
+
+<details>
+<summary><strong>Option 1: Docker (Recommended)</strong></summary>
 
 ```bash
 cd backend
 docker build -t leadpure-smtp-backend .
-docker run -d -p 8080:8080 --name leadpure-smtp-verifier --restart always leadpure-smtp-backend
+docker run -d \
+  -p 8080:8080 \
+  --name leadpure-smtp-verifier \
+  --restart always \
+  -e SMTP_BACKEND_API_KEY="your-secret-api-token" \
+  leadpure-smtp-backend
 ```
 
-### Option 2: Node.js Directly
+</details>
+
+<details>
+<summary><strong>Option 2: Node.js Directly</strong></summary>
 
 ```bash
 cd backend
@@ -33,34 +47,13 @@ npm install
 npm start
 ```
 
----
-
-## Connecting to LeadPure AI (Vercel Frontend)
-
-Once your backend service is running at `http://<YOUR_VPS_IP>:8080`:
-
-1. In your Vercel project settings (or local `.env`), add:
-   ```env
-   SMTP_BACKEND_URL="http://<YOUR_VPS_IP>:8080"
-   ```
-2. (Optional) Set an API key if you want to restrict access:
-   ```env
-   SMTP_BACKEND_API_KEY="your-secret-api-token"
-   ```
-
-LeadPure AI will automatically route mailbox deliverability checks to this service!
+</details>
 
 ---
 
-## Alternative: Self-Hosting Reacher Backend
+## Configuration
 
-Because LeadPure AI supports the standard Reacher API format, you can also run the official Reacher Docker container:
-
-```bash
-docker run -d -p 8080:8080 --name reacher reacherhq/backend:latest
-```
-
-And set:
-```env
-SMTP_BACKEND_URL="http://<YOUR_VPS_IP>:8080"
-```
+| Variable | Required | Description |
+| :--- | :---: | :--- |
+| `PORT` | Optional | Listener port (defaults to `8080`). |
+| `SMTP_BACKEND_API_KEY` | Recommended | Bearer / API secret token to protect the daemon (`AUTH_TOKEN` also supported). |

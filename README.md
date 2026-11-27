@@ -1,163 +1,189 @@
 <div align="center">
   <a href="https://leadpureai.vercel.app/">
-    <img src=".github/LeadPure_AI.gif" alt="LeadPure AI V14 Enterprise Release" width="100%" />
+    <img src="public/og-image.png" alt="LeadPure - Verify every inbox before you hit send." width="100%" />
   </a>
 
-  <br /><br />
+  <br />
 
-  <h1>LeadPure AI: Precision SMTP Verification Engine</h1>
+  <h1>LeadPure</h1>
   <p>
-    <strong>Serverless single &amp; chunked-bulk email verification powered by Own SMTP Engine 1.3.2.</strong><br />
-    Zero external verification SaaS APIs. Zero fabricated confidence scores. Honest verdicts straight from live Port-25 handshakes.
+    <strong>Real-time inbox verification and browser-local spreadsheet cleaning before you hit send.</strong><br />
+    Zero per-credit SaaS fees. Zero emails sent to your contacts. Honest deliverability verdicts straight from live checks.
   </p>
 
   <p>
-    <a href="https://leadpureai.vercel.app/"><img src="https://img.shields.io/badge/Live_App-leadpureai.vercel.app-02FEDC?style=for-the-badge&logo=vercel&logoColor=000000" alt="Live App" /></a>
-    <img src="https://img.shields.io/badge/Release-V14_Enterprise-5A5CFF?style=for-the-badge" alt="V14 Enterprise Release" />
-    <img src="https://img.shields.io/badge/SMTP_Engine-v1.3.2-10B981?style=for-the-badge" alt="SMTP Engine 1.3.2" />
-    <img src="https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js 22" />
-    <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=000000" alt="React 19" />
+    <a href="https://leadpureai.vercel.app/">
+      <img src="https://img.shields.io/badge/Live_App-leadpureai.vercel.app-02FEDC?style=for-the-badge&logo=vercel&logoColor=07080F" alt="Live App" />
+    </a>
+    <a href="https://github.com/ossamamehmood/LeadPure-AI/actions/workflows/ci.yml">
+      <img src="https://img.shields.io/github/actions/workflow/status/ossamamehmood/LeadPure-AI/ci.yml?branch=main&style=for-the-badge&label=CI&color=5A5CFF" alt="CI Status" />
+    </a>
+    <img src="https://img.shields.io/badge/React-19-0EA5E9?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
+    <img src="https://img.shields.io/badge/Node.js-22.x-10B981?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js 22" />
+    <img src="https://img.shields.io/badge/Engine-Zero_Dependencies-F502FD?style=for-the-badge" alt="Zero-Dependency SMTP Engine" />
+  </p>
+
+  <p>
+    <a href="https://leadpureai.vercel.app/">Overview</a> &bull;
+    <a href="https://leadpureai.vercel.app/dashboard">Open Workspace</a> &bull;
+    <a href="https://leadpureai.vercel.app/deliverability">Deliverability Guide</a> &bull;
+    <a href="https://leadpureai.vercel.app/pricing">Plans</a> &bull;
+    <a href="./SECURITY.md">Security</a>
   </p>
 </div>
 
 ---
 
-## Overview
+> [!NOTE]
+> LeadPure never uses invented confidence numbers or unrealistic *"0% bounce"* promises. Every verdict (`SAFE`, `RISKY`, `INVALID`, `UNKNOWN`) comes directly from live DNS, MX, catch-all, and mail server responses without ever delivering a message to your contact.
 
-**LeadPure AI V14** validates email addresses at scale using a custom zero-dependency Node.js SMTP probe (`engine/probe.mjs` v1.3.2) running on ephemeral GitHub Actions Port-25 runners, orchestrated by a React 19 + Vercel Serverless web app.
+## Why LeadPure
 
-Instead of relying on proprietary third-party verification APIs or returning optimistic fallback guesses when a mail server stalls, every check executes a multi-stage DNS + live SMTP conversation (`EHLO` -> `MAIL FROM` -> `RCPT TO`) with explicit catch-all, greylist, and forwarding-provider detection.
+Most verifiers charge per-credit recurring fees, store full uploaded spreadsheets on external servers, or mark uncertain corporate firewalls as dead on the first reply. LeadPure solves both the engine and workspace layers cleanly:
 
-### Key Capabilities
-
-| Capability | Details |
+| Capability | How LeadPure Works |
 | :--- | :--- |
-| **Own SMTP Engine `1.3.2`** | Pure Node.js (`net`, `dns`, `tls`) Port-25 verifier with 2-pass retry on dropped connections, 30s greylist wait & retry, and catch-all probing. |
-| **Forwarding Provider Aware** | Recognizes `ImprovMX`, `ForwardEmail`, and `Cloudflare Email Routing` MX patterns so valid aliases are not falsely rejected. |
-| **5,000-Lead Chunked Scale** | Client-side Web Worker parses spreadsheets without freezing the UI, splits lists into **100-email chunks** (max **3** concurrent Actions runs), and runs **4 parallel workers** per runner. |
-| **Resumable Manifest Polling** | Tracks jobs via `results/<requestId>/manifest.json` + `chunk-<n>.json` with `5s -> 15s` polling backoff (20-minute cap) and `localStorage` scan resume (`leadpure_last_scan_v14`). |
-| **Honest Verdict Reporting** | No arbitrary percentage scores or *"0% bounce"* promises. Summary cards display exact counts plus the run's **Definitive Rate** (`(SAFE + RISKY + INVALID) / arrived`). |
-| **Exact `.xlsx` Export** | Downloads `LeadPure_Results_<YYYY-MM-DD>.xlsx` containing strictly the arrived verdicts (`All`, `SAFE Only`, or `Filtered` view). |
+| **Live Mailbox Verification** | Zero-dependency Node.js probe (`engine/probe.mjs`) runs `EHLO` -> `MAIL FROM` -> `RCPT TO` on ephemeral GitHub Actions Port-25 runners without sending mail. |
+| **2-Pass Rejection Safeguard** | Re-checks dropped connections and initial strict replies from a secondary route (plus 30s greylist wait retries) so valid buyers are not discarded. |
+| **Honest Risk Isolation** | Detects catch-all domains, disposable mailboxes, role accounts (`info@`, `support@`), and forwarding providers (`ImprovMX`, `ForwardEmail`, `Cloudflare Email Routing`). |
+| **Browser-Local Privacy & Hygiene** | Spreadsheets up to **5,000 rows** parse in a local Web Worker (`src/workers/xlsxWorker.ts`). Names, phones, and custom columns stay strictly in your browser (`Title Case` + E.164 phone cleanup). |
+| **Chunked Execution & Resume** | Automatically splits bulk scans into **100-email chunks** (max 3 concurrent runs, 4 workers per runner) with `5s -> 15s` polling backoff and `localStorage` resume recovery. |
+| **Clean Excel Exports** | Exports `LeadPure_Results_<YYYY-MM-DD>.xlsx` across `All`, `Safe`, or `Filtered` views directly from verified results. |
 
 ---
 
-## Architecture
+## System Architecture
 
 ```mermaid
 flowchart LR
-    U["Browser UI (React 19 + Web Worker)"] -->|"1. Single check or 100-email chunks"| API["Vercel Serverless (/api/check)"]
-    API -->|"2. Dispatch workflow + init manifest.json"| GHA["GitHub Actions Port-25 Runner"]
-    GHA -->|"3. 4 parallel workers run engine/probe.mjs v1.3.2"| SMTP["Target MX / Port 25 + Port 587"]
-    SMTP -->|"4. SMTP 250 / 4xx / 5xx + Catch-All"| GHA
-    GHA -->|"5. Write chunk-<n>.json & update manifest.json"| RES["GitHub 'results' Branch"]
+    U["Browser Workspace (React 19 + Vite 8 + Web Worker)"] -->|"1. Single check or 100-email chunks"| API["Vercel Serverless (/api/check)"]
+    API -->|"2. Dispatch workflow + init manifest.json"| GHA["GitHub Actions Runner (.github/workflows/leadpure-check.yml)"]
+    GHA -->|"3. Run engine/probe.mjs via engine/run-ci-probe.sh"| SMTP["Target MX Host (Port 25 / 587)"]
+    SMTP -->|"4. 250 / 4xx / 5xx + Catch-All Probe"| GHA
+    GHA -->|"5. Write manifest.json & chunk-<n>.json"| RES["Stateless 'results' Branch"]
     U -->|"6. Poll GET /api/check (5s -> 15s backoff)"| RES
-    U -->|"7. Live table + LeadPure_Results_<date>.xlsx"| OUT["Verified Export"]
+    U -->|"7. Normalized LeadPure_Results_<date>.xlsx"| OUT["Verified Export"]
 ```
+
+> [!IMPORTANT]
+> The `results` branch is an intentional, automated temporary store written by `engine/run-ci-probe.sh` and skipped by Vercel deployments (`vercel.json`: `deploymentEnabled.results = false`). Temporary result artifacts older than **7 days** are automatically purged weekly by `.github/workflows/cleanup-results.yml`.
 
 ---
 
 ## Honest Verdict Taxonomy
 
-Verdicts remain 100% consistent across the UI table, summary cards, and exported `.xlsx` spreadsheets:
+Verdicts remain 100% consistent across the Instant Checker UI, Bulk Workspace, summary metrics, and downloaded `.xlsx` spreadsheets:
 
-| Verdict | Badge | Meaning | Recommended Action |
+| Verdict | Tone | Signal | Recommended Action |
 | :--- | :--- | :--- | :--- |
-| **SAFE** | Green | MX resolves, SMTP `RCPT TO` accepted (`250`), mailbox verified active, and domain is not a catch-all. | Ready for outreach |
-| **RISKY** | Amber | Catch-all domain, temporary greylist / soft limit, role address, disposable domain, or forwarding provider where final inbox existence cannot be proven. | Segment or send cautiously |
-| **INVALID** | Red | Syntax invalid, domain/MX does not exist (`NXDOMAIN`), or target MX explicitly rejected the mailbox (`550` / user unknown). | Suppress / remove from list |
-| **UNKNOWN** | Grey | Transient network block, Port-25 timeout across retries, or unfinished chunk timed out before final engine response. | Re-run when target MX clears |
+| **SAFE** | Green | Active MX records, mailbox accepted (`250`), non-disposable, non-catch-all. | Safe for primary campaigns |
+| **RISKY** | Amber | Catch-all domain, temporary greylist, role account, or forwarding provider where inbox ownership cannot be isolated. | Segment or review separately |
+| **INVALID** | Rose | Syntax error, missing domain/MX (`NXDOMAIN`), disposable provider, or explicit `550` user unknown rejection. | Suppress before sending |
+| **UNKNOWN** | Slate | Port-25 transient block, rate limit, or timeout after retry passes without a decisive answer. | Hold and re-verify later |
 
 ---
 
 ## API Reference
 
-> **Note:** Legacy `/api/validate-batch` is deprecated (`HTTP 410`). All single and bulk orchestration goes through `/api/check`.
-
-### Dispatch Check (`POST /api/check`)
+> [!NOTE]
+> Legacy `/api/validate-batch` is retired (`HTTP 410 Gone`). Both single-email verification and chunked bulk spreadsheets use `/api/check`.
 
 <details>
-<summary><strong>Single Email Payload</strong></summary>
+<summary><strong>POST /api/check - Single &amp; Bulk Verification Dispatch</strong></summary>
+
+Single address check:
 
 ```json
 {
-  "email": "founder@example.com"
+  "email": "sales@company.example"
 }
 ```
 
-</details>
-
-<details>
-<summary><strong>Bulk List Payload (auto-split into 100-email chunks)</strong></summary>
+Bulk batch check (auto-split cleanly into 100-email chunks, up to 5,000 leads per upload):
 
 ```json
 {
   "emails": [
-    "alice@example.com",
-    "bob@example.com"
+    "alex@company.example",
+    "partners@agency.example"
   ]
 }
 ```
 
 </details>
 
-### Poll Status & Results (`GET /api/check?requestId=...`)
+<details>
+<summary><strong>GET /api/check?requestId=... - Manifest &amp; Chunk Polling</strong></summary>
 
-Returns manifest status, completed chunks, arrived row verdicts, and metadata read strictly from the `results` branch (`results/<requestId>/manifest.json` & `chunk-<n>.json`).
+Returns manifest progress, finished chunks, and per-email verification metadata strictly from the isolated `results` branch (`results/<requestId>/manifest.json` and `chunk-<n>.json`).
+
+</details>
 
 ---
 
-## Setup & Deployment
+## Local Setup & Deployment
 
 ### Environment Variables
 
-Set the following variables on Vercel (and `.env` for local backend dev):
+Configure the following variables on Vercel (or in `.env` for local `tsx server.ts` development):
 
 | Variable | Required | Description |
-| :--- | :--- | :--- |
-| `LEADPURE_GH_TOKEN` | Yes | GitHub Classic PAT with `repo` and `workflow` scopes to trigger Port-25 runners and read `results` branch (`REACHER_GH_TOKEN` supported as fallback). |
-| `LEADPURE_REPO_OWNER` | Optional | GitHub repository owner override (defaults to `ossamamehmood`). |
-| `LEADPURE_REPO_NAME` | Optional | GitHub repository name override (defaults to `LeadPure-AI`). |
+| :--- | :---: | :--- |
+| `LEADPURE_GH_TOKEN` | Yes | GitHub Classic PAT with `repo` and `workflow` scopes to dispatch Port-25 jobs and read the `results` branch (`REACHER_GH_TOKEN` supported as legacy fallback). |
+| `LEADPURE_REPO_OWNER` | Optional | GitHub owner override (defaults to `ossamamehmood`). |
+| `LEADPURE_REPO_NAME` | Optional | GitHub repository override (defaults to `LeadPure-AI`). |
 
-### Local Development
+### Development Commands
 
 ```bash
 # Install dependencies
 npm install
 
-# Run local Express + Vite dev server
+# Start Vite frontend + Express dev backend locally
 npm run dev
 
-# Type-check, run engine test suite, and build production bundle
+# Static checks, engine verification tests, determinism check & production build
 npm run lint
 npm test
+npm run test-engine
 npm run build
 ```
 
 ---
 
-## Repository Structure
+## Repository Layout
 
 ```text
 LeadPure-AI/
 ├── api/
-│   ├── check.ts                 # Single & chunked bulk orchestration + manifest reader
-│   └── validate-batch.ts        # Deprecated HTTP 410 stub
+│   ├── check.ts                   # Single & chunked bulk orchestration + manifest reader
+│   └── validate-batch.ts          # Retired HTTP 410 stub
 ├── engine/
-│   └── probe.mjs                # Own SMTP Engine v1.3.2 (zero external deps)
+│   ├── probe.mjs                  # Zero-dependency Node.js SMTP / DNS / catch-all engine
+│   └── run-ci-probe.sh            # GitHub Actions runner entrypoint & results publisher
 ├── src/
-│   ├── components/              # Responsive Dark/Light UI components (React 19)
-│   ├── lib/                     # Rules engine, client helpers, XLSX export
-│   └── workers/                 # Non-blocking Web Worker spreadsheet parser
-├── scripts/
-│   └── run-ci-probe.sh          # GitHub Actions runner entrypoint
-└── .github/workflows/
-    ├── leadpure-check.yml       # Port-25 verification workflow (max 3 concurrent runs)
-    └── cleanup-results.yml      # Weekly Sunday cron pruning results/ older than 7 days
+│   ├── components/                # Responsive Dark/Light UI, landing pages, workspace & liquid glass
+│   ├── hooks/                     # Bulk scan queue, backoff polling, history persistence
+│   ├── lib/                       # Syntax/disposable/role rules & .xlsx exporter
+│   ├── utils/                     # Local contact normalization (Title Case, E.164 phone)
+│   └── workers/xlsxWorker.ts      # Off-main-thread Excel/CSV parser (up to 5,000 rows)
+├── backend/                       # Optional self-hosted Port-25 Docker/Express daemon
+├── public/                        # robots.txt, sitemap.xml, llms.txt, site.webmanifest, OG & PWA icons
+├── agents/                        # Engineering rules, architecture notes & audit protocols
+├── vercel.json                    # Security headers, cache rules & SPA rewrites
+└── .github/
+    ├── dependabot.yml             # Dependency update schedule
+    └── workflows/
+        ├── ci.yml                 # Lint, static guards, test suite & Vite build
+        ├── leadpure-check.yml     # Port-25 workflow dispatcher with Port-25 gate & retries
+        └── cleanup-results.yml    # Weekly Sunday cron pruning results > 7 days
 ```
 
 ---
 
-## Security & Automated Cleanup
+## Security, Privacy & Support
 
-- **Weekly Result Pruning:** `.github/workflows/cleanup-results.yml` automatically deletes `results/<requestId>/` folders older than **7 days** (plus supports manual cleanup via `workflow_dispatch`).
-- **Full Security Details:** See [SECURITY.md](SECURITY.md) for data flow, ephemeral runner isolation, and vulnerability disclosure guidelines.
+- **Security Policy:** See [SECURITY.md](./SECURITY.md) for data-flow boundaries, input sanitization, HSTS/security headers, and private disclosure steps.
+- **Audit Ledger:** See [AUDIT_V14.md](./AUDIT_V14.md) for historical defect resolution and determinism verification records.
+- **Optional Dedicated SMTP Node:** See [backend/README.md](./backend/README.md) if hosting your own Port-25 Docker service instead of GitHub Actions runners.
+- **Support Development:** [Patreon](https://www.patreon.com/c/ossamamehmood) &bull; Built by [Ossama Mahmood](https://ossamamehmood.com)

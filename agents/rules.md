@@ -1,20 +1,21 @@
-# System Rules (The Constitution)
+# Engineering Constitution (`rules.md`)
 
-These are the non-negotiable engineering laws of LeadPure AI. All modifications must adhere to these constraints.
+> [!IMPORTANT]
+> Non-negotiable verification and quality constraints enforced across all LeadPure code changes.
 
-## Hard Prohibitions
-- **Never** classify `UNKNOWN` as `VALID`.
-- **Never** silently skip rows or identities.
-- **Never** use probabilistic "AI guessing" to determine deliverability.
-- **Never** fallback to permissive validation logic.
-- **Never** modify the Frontend UI without explicit authorization.
+---
 
-## Deterministic Mandates
-- **Law of Identity**: The same input MUST generate the same output across all environments.
-- **Law of Completion**: All async operations must fully resolve before an export is generated.
-- **Law of Visibility**: Every validation failure must produce a specific log and reason.
+## Verification Rules
 
-## Validation Logic Constraints
-- **SMTP Timeout Policy**: An SMTP timeout is NOT a success; it must be treated as `RISKY/INVALID`.
-- **Catch-All Policy**: Catch-all domains are `INVALID` in strict mode. No exceptions.
-- **Syntax Priority**: RFC syntax errors must trigger immediate rejection before network costs are incurred.
+- **Never** classify `UNKNOWN` or transient timeouts as `SAFE`.
+- **Never** fabricate heuristic scores or mislead users with *"0% bounce"* promises.
+- **Never** silently drop spreadsheet rows without a visible bucket count or reconciliation reason.
+- **Never** interpolate raw user inputs (`requestId`, `emails`) directly into shell commands or file paths without strict validation.
+- **Always** treat catch-all domains honestly as `RISKY` (and exclude/segment them from primary `SAFE` exports).
+- **Always** validate RFC syntax and disposable/role status before dispatching network Port-25 probes.
+
+## Engineering & UI Discipline
+
+- Keep extra contact columns (names, phone numbers, companies, notes) strictly in the browser Web Worker and memory (`src/workers/xlsxWorker.ts`).
+- Respect `prefers-reduced-motion`, visible keyboard focus rings, color contrast (`>= 4.5:1`), and clean `360px` mobile responsiveness.
+- Maintain zero em/en-dashes (`\u2013` / `\u2014`) across repository text files per CI rules.

@@ -1,74 +1,25 @@
-# LeadPure AI: Master Goal Protocol & System Objectives
+# Master Engineering Objectives
 
-> **Official Mission Scope, Engineering Direction & Production Success Criteria.**
-> **Version:** 13.0.0 Enterprise Stability Protocol
-> **Document Type:** goal.md
-
----
-
-## Executive Summary
-LeadPure AI is engineered to be a deterministic, enterprise-grade validation platform. Its primary objective is to aggressively suppress bounce rates and protect outbound infrastructure by acting as a defensive filtering layer between raw lead data and campaign systems.
+> [!NOTE]
+> LeadPure is engineered for honest, deterministic deliverability verification that protects outbound sender reputation without guessing.
 
 ---
 
-## Primary Mission: "Deterministic Excellence"
-The core mission is to build a validation engine that produces **identical, highly accurate results** across all environments. The system must eliminate the inconsistencies (drifting lead counts) found in earlier versions.
+## Core Principles
+
+| Principle | Commitment |
+| :--- | :--- |
+| **Deterministic Classification** | Identical inputs under identical server states produce identical statuses, counts, and `.xlsx` exports across runs. |
+| **Strict-by-Design Labeling** | Only confirmed non-catch-all active mailboxes become `SAFE`. Unconfirmed timeouts (`UNKNOWN`) or accept-all domains (`RISKY`) are never promoted to `SAFE`. |
+| **Zero Synthetic Scores** | Never fabricate artificial percentages or promise unreachable *"0% bounce"* guarantees. Surface real counts and honest explanations. |
+| **Browser-Local Privacy** | Contact names, phone numbers (E.164), and extra spreadsheet columns stay strictly on the user device during cleanup. |
 
 ---
 
-## Deterministic Processing Protocol
-LeadPure AI must behave as a deterministic validation engine. The SAME input file must ALWAYS generate:
-*   Identical lead counts
-*   Identical classifications
-*   Identical exports
-*   Identical checksums
+## System Checklist
 
-No probabilistic logic, unstable async execution, race conditions, or environment-specific behaviors are permitted. This is the **"law"** of the architecture.
-
----
-
-## Deployment Parity Requirement
-All environments must behave identically:
-*   Localhost / Development
-*   GitHub Deployment
-*   Vercel Production
-
-No runtime environment should introduce classification drift or processing inconsistencies. Determinism must be maintained across all infrastructure layers.
-
----
-
-## Validation Philosophy: "Strict-by-Design"
-LeadPure AI intentionally sacrifices lead quantity in favor of **deliverability quality.**
-*   **Bounce Suppression**: Eliminate any lead with even a marginal risk of bouncing.
-*   **Quality Matrix**: An email is only SAFE if it passes every layer (Syntax, DNS, MX, SMTP, Catch-All, Disposable).
-*   **Aggressive Filtering**: If a lead is `Unknown`, `Risky`, or `Catch-All`, it is **filtered**.
-
----
-
-## System Objective Checklist
-1.  **Email Validation**: RFC compliance and structural integrity.
-2.  **Infrastructure Verification**: Real-time MX and DNS health checks.
-3.  **SMTP Intelligence**: Direct mailbox verification via socket handshaking.
-4.  **Deliverability Auditing**: Catch-all and provider-specific behavior analysis.
-5.  **Data Integrity**: E.164 phone formatting, Title Case normalization, and dual-identity deduplication.
-
----
-
-## Performance & Security Standards
-*   **Accuracy Over Speed**: No optimization should ever compromise validation correctness.
-*   **Stateless Processing**: Minimal retention with automatic cleanup of result branches.
-*   **Logging & Audit**: Support for full forensic debugging via `debug-results.csv`.
-
----
-
-## Final Success Criteria
-LeadPure AI is considered production-complete when:
-*   [ ] The same Excel file produces identical valid/eliminated counts everywhere.
-*   [ ] 100% of rows are accounted for (no missing data).
-*   [ ] SMTP verification behaves deterministically without network-induced drift.
-*   [ ] Vercel deployment is stable and handles concurrent batching without failure.
-*   [ ] **Bounce probability is successfully suppressed to a "Practical 0%".**
-
----
-**Priority Order:**
-**Accuracy → Consistency → Reliability → Speed**
+1. **Syntax & Normalization**: RFC 5321/5322 validation, whitespace cleanup, and safe domain typo suggestions.
+2. **Domain & MX Verification**: Live DNS resolution, RFC 7505 null-MX detection, and provider identification.
+3. **Mailbox & Catch-All Probing**: Direct Port-25 `RCPT TO` probe (zero email sent), 2-pass retry on dropped connections, 30s greylist wait retry, and randomized catch-all check.
+4. **Spreadsheet Hygiene**: `Title Case` normalization, international phone formatting (`libphonenumber-js`), duplicate filtering, and `.xlsx` export.
+5. **Production SEO & UX**: Fast LCP/INP route-split Vite bundle, WCAG 2.2 keyboard/contrast accessibility, and complete structured metadata.
