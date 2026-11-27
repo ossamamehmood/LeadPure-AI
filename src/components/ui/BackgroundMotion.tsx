@@ -20,17 +20,13 @@ interface CanvasParticle {
   vy: number;
   radius: number;
   alpha: number;
-  color: string;
 }
 
-const PARTICLE_COLORS = ['#02FEDC', '#5A5CFF', '#F502FD', '#94A3B8'];
-
 /**
- * Spatial background motion engine:
- * - Architectural 64px dot grid + calibrated horizon mesh
- * - Scroll-linked neon gradient ribbon that sweeps and refracts behind `.liquid-glass` cards
- * - GPU ambient micro-particle `<canvas>` loop with reduced-motion & visibility guards
- * - Interactive pointer-following atmospheric aura
+ * Grounded architectural motion canvas:
+ * - Masked 64px coordinate matrix + subtle anodized grain
+ * - Ultra-restrained single hairline optical trace driven smoothly by scroll progress
+ * - Subtle pointer-following slate/indigo specular sheen (zero smoky neon fog)
  */
 export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
   const shouldReduceMotion = useReducedMotion();
@@ -38,17 +34,15 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
 
   const pointerX = useMotionValue(-999);
   const pointerY = useMotionValue(-999);
-  const smoothX = useSpring(pointerX, { stiffness: 65, damping: 24, mass: 0.6 });
-  const smoothY = useSpring(pointerY, { stiffness: 65, damping: 24, mass: 0.6 });
+  const smoothX = useSpring(pointerX, { stiffness: 75, damping: 28, mass: 0.55 });
+  const smoothY = useSpring(pointerY, { stiffness: 75, damping: 28, mass: 0.55 });
 
-  const cursorSpotlight = useMotionTemplate`radial-gradient(620px circle at ${smoothX}px ${smoothY}px, rgba(90, 92, 255, 0.13), rgba(2, 254, 220, 0.05) 38%, transparent 72%)`;
+  const cursorSpotlight = useMotionTemplate`radial-gradient(520px circle at ${smoothX}px ${smoothY}px, rgba(90, 92, 255, 0.065), transparent 72%)`;
 
   const { scrollYProgress } = useScroll();
-  const smoothScroll = useSpring(scrollYProgress, { stiffness: 70, damping: 24, restDelta: 0.001 });
-  const primaryPathLength = useTransform(smoothScroll, [0, 1], [0.14, 0.96]);
-  const secondaryPathLength = useTransform(smoothScroll, [0, 1], [0.05, 0.88]);
-  const ribbonY = useTransform(smoothScroll, [0, 1], ['2%', '-24%']);
-  const ribbonRotate = useTransform(smoothScroll, [0, 1], [0, 14]);
+  const smoothScroll = useSpring(scrollYProgress, { stiffness: 80, damping: 26, restDelta: 0.001 });
+  const hairlineLength = useTransform(smoothScroll, [0, 1], [0.18, 0.98]);
+  const horizonOffset = useTransform(smoothScroll, [0, 1], ['0%', '-10%']);
 
   useEffect(() => {
     if (shouldReduceMotion || variant !== 'hero') return;
@@ -82,22 +76,24 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
     };
     resize();
 
-    const count = variant === 'hero' ? 42 : 24;
+    const count = variant === 'hero' ? 18 : 10;
     const particles: CanvasParticle[] = Array.from({ length: count }, (_, i) => ({
-      x: ((i * 197) % Math.max(width, 320)),
-      y: ((i * 251) % Math.max(height, 320)),
-      vx: ((i % 7) - 3) * 0.09,
-      vy: -0.14 - (i % 5) * 0.05,
-      radius: 1 + (i % 3) * 0.6,
-      alpha: 0.25 + (i % 4) * 0.12,
-      color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
+      x: ((i * 211) % Math.max(width, 320)),
+      y: ((i * 277) % Math.max(height, 320)),
+      vx: ((i % 5) - 2) * 0.06,
+      vy: -0.08 - (i % 4) * 0.03,
+      radius: 0.9 + (i % 2) * 0.45,
+      alpha: 0.14 + (i % 3) * 0.06,
     }));
 
     const renderFrame = () => {
       rafId = requestAnimationFrame(renderFrame);
       if (document.hidden) return;
 
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
       ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = isLight ? '#4F46E5' : '#CBD5E1';
+
       for (const p of particles) {
         p.x += p.vx;
         p.y += p.vy;
@@ -110,7 +106,6 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
         if (p.x > width + 12) p.x = -12;
 
         ctx.globalAlpha = p.alpha;
-        ctx.fillStyle = p.color;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
         ctx.fill();
@@ -128,108 +123,62 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-      {/* Base calibrated atmospheric horizon mesh */}
+      {/* Grounded top-lit horizon surface */}
       <div className="mesh-background" />
 
-      {/* Precision masked 64px architectural dot matrix */}
-      <div className="absolute inset-0 architectural-grid opacity-85" />
+      {/* Precision masked 64px architectural coordinate grid */}
+      <div className="absolute inset-0 architectural-grid opacity-80" />
 
-      {/* Scroll-Linked Neon Signature Ribbon (refracts vibrantly behind `.liquid-glass` panels in Dark & Light modes) */}
+      {/* Restrained optical vector hairline linked subtly to scroll */}
       {variant === 'hero' && (
         <motion.div
-          className="fixed -inset-x-[12vw] -top-[18vh] h-[140vh] w-[124vw] opacity-[0.40] dark:opacity-[0.58]"
-          style={
-            shouldReduceMotion
-              ? undefined
-              : {
-                  y: ribbonY,
-                  rotate: ribbonRotate,
-                  willChange: 'transform',
-                }
-          }
+          className="fixed inset-x-0 -top-10 h-[92vh] w-full opacity-[0.26] dark:opacity-[0.22]"
+          style={shouldReduceMotion ? undefined : { y: horizonOffset, willChange: 'transform' }}
         >
           <svg
-            viewBox="0 0 1440 1024"
+            viewBox="0 0 1440 760"
             fill="none"
             preserveAspectRatio="xMidYMid slice"
             className="w-full h-full"
           >
             <defs>
-              <linearGradient id="leadpureScrollRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#02FEDC" />
-                <stop offset="48%" stopColor="#5A5CFF" />
-                <stop offset="100%" stopColor="#F502FD" />
-              </linearGradient>
-              <linearGradient id="leadpureScrollRibbonAlt" x1="100%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#F502FD" stopOpacity="0.65" />
-                <stop offset="52%" stopColor="#5A5CFF" stopOpacity="0.7" />
-                <stop offset="100%" stopColor="#02FEDC" stopOpacity="0.6" />
+              <linearGradient id="leadpureHairlineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#02FEDC" stopOpacity="0" />
+                <stop offset="28%" stopColor="#02FEDC" stopOpacity="0.65" />
+                <stop offset="60%" stopColor="#5A5CFF" stopOpacity="0.8" />
+                <stop offset="88%" stopColor="#F502FD" stopOpacity="0.55" />
+                <stop offset="100%" stopColor="#F502FD" stopOpacity="0" />
               </linearGradient>
             </defs>
 
             <motion.path
-              d="M -340 940 C 180 760, 420 260, 840 360 C 1220 450, 1460 120, 1820 210"
-              stroke="url(#leadpureScrollRibbon)"
-              strokeWidth={145}
+              d="M -60 610 C 310 520, 620 260, 1020 300 C 1220 320, 1360 190, 1520 150"
+              stroke="url(#leadpureHairlineGrad)"
+              strokeWidth={1.75}
               strokeLinecap="round"
-              style={shouldReduceMotion ? { pathLength: 0.7 } : { pathLength: primaryPathLength }}
-            />
-
-            <motion.path
-              d="M 1800 940 C 1280 820, 1020 440, 620 560 C 260 670, 20 280, -320 140"
-              stroke="url(#leadpureScrollRibbonAlt)"
-              strokeWidth={100}
-              strokeLinecap="round"
-              style={shouldReduceMotion ? { pathLength: 0.5 } : { pathLength: secondaryPathLength }}
+              style={shouldReduceMotion ? { pathLength: 0.75 } : { pathLength: hairlineLength }}
             />
           </svg>
         </motion.div>
       )}
 
-      {/* Drifting bokeh & telemetry particle `<canvas>` */}
+      {/* Minimal atmospheric micro-dust canvas */}
       {!shouldReduceMotion && (
         <canvas
           ref={canvasRef}
-          className="fixed inset-0 w-full h-full opacity-55 dark:opacity-75 pointer-events-none"
+          className="fixed inset-0 w-full h-full opacity-50 pointer-events-none"
         />
       )}
 
-      {/* Ultra-fine matte film surface preventing gradient banding */}
+      {/* Subtle anodized surface texture breaks flat digital bands */}
       <div className="absolute inset-0 matte-grain" />
 
-      {/* Interactive pointer-reactive light aura */}
+      {/* Controlled pointer surface sheen */}
       {!shouldReduceMotion && variant === 'hero' && (
         <motion.div
-          className="absolute inset-0 opacity-85 dark:opacity-100"
+          className="absolute inset-0 opacity-80"
           style={{ background: cursorSpotlight }}
         />
-      )}
-
-      {/* Soft peripheral depth glow spheres (provide colorful light for Light & Dark glass refraction) */}
-      {!shouldReduceMotion && (
-        <>
-          <motion.div
-            className="absolute -top-36 -left-24 w-[440px] h-[440px] sm:w-[640px] sm:h-[640px] rounded-full blur-3xl opacity-[0.16] dark:opacity-[0.09]"
-            style={{ background: 'radial-gradient(circle, #02FEDC 0%, transparent 70%)', willChange: 'transform' }}
-            animate={{
-              x: [0, 48, -22, 0],
-              y: [0, 30, 18, 0],
-              scale: [1, 1.07, 0.96, 1],
-            }}
-            transition={{ duration: 24, repeat: Infinity, ease: 'easeInOut' }}
-          />
-
-          <motion.div
-            className="absolute -bottom-36 -right-24 w-[420px] h-[420px] sm:w-[620px] sm:h-[620px] rounded-full blur-3xl opacity-[0.13] dark:opacity-[0.08]"
-            style={{ background: 'radial-gradient(circle, #F502FD 0%, transparent 70%)', willChange: 'transform' }}
-            animate={{
-              x: [0, -48, 22, 0],
-              y: [0, -30, 22, 0],
-              scale: [1, 0.96, 1.06, 1],
-            }}
-            transition={{ duration: 28, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </>
       )}
     </div>
   );

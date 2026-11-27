@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Search, ShieldCheck, ShieldAlert, Zap, Activity, Globe, Info, HelpCircle, ArrowRight } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -7,12 +7,24 @@ import { MagneticButton } from './ui/MagneticButton';
 import { StaggerGroup, StaggerItem, EDITORIAL_EASE } from './ui/MotionPrimitives';
 import { ProcessedContact } from '../types';
 
-export function SingleValidation() {
-  const [email, setEmail] = useState('');
+interface SingleValidationProps {
+  initialEmail?: string;
+  onConsumeInitialEmail?: () => void;
+}
+
+export function SingleValidation({ initialEmail, onConsumeInitialEmail }: SingleValidationProps = {}) {
+  const [email, setEmail] = useState(initialEmail || '');
   const [isVerifying, setIsVerifying] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [result, setResult] = useState<Partial<ProcessedContact> | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialEmail && initialEmail.trim()) {
+      setEmail(initialEmail.trim());
+      onConsumeInitialEmail?.();
+    }
+  }, [initialEmail, onConsumeInitialEmail]);
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);

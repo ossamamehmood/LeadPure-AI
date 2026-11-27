@@ -50,6 +50,7 @@ function getRouteFromLocation(): AppRoutePath {
 export default function App() {
   const [route, setRoute] = useState<AppRoutePath>(() => getRouteFromLocation());
   const [appState, setAppState] = useState<AppState>('upload');
+  const [prefillEmail, setPrefillEmail] = useState<string>('');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
       return localStorage.getItem('leadpure_theme') === 'light' ? 'light' : 'dark';
@@ -408,7 +409,13 @@ export default function App() {
         >
           {route === '/' && (
             <LandingPage
-              onOpenDashboard={() => navigate('/dashboard')}
+              onOpenDashboard={(email?: string) => {
+                if (typeof email === 'string' && email.trim()) {
+                  setPrefillEmail(email.trim());
+                }
+                setAppState('upload');
+                navigate('/dashboard');
+              }}
               onNavigate={navigate}
               theme={theme}
             />
@@ -486,7 +493,10 @@ export default function App() {
                     </GlossyCard>
                   )}
 
-                  <SingleValidation />
+                  <SingleValidation
+                    initialEmail={prefillEmail}
+                    onConsumeInitialEmail={() => setPrefillEmail('')}
+                  />
                   <LeadUpload onDrop={onDrop} />
                 </motion.div>
               )}
