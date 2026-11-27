@@ -24,8 +24,8 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
             <span className="font-display font-bold gradient-text">LeadPure</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span>Real-Time Engine Active</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+            <span>Engine 1.3.2 Active</span>
           </div>
         </div>
 
