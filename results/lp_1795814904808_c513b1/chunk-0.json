@@ -1,0 +1,3574 @@
+[
+  {
+    "input": "savannah.rogers89@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "savannah.rogers89@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "savannah.rogers89"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 5614622812f47-57a312348cbsi33062601b6e.12 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "adriane@vitacellmedicalspa.com",
+    "is_reachable": "invalid",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "smtp.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "adriane@vitacellmedicalspa.com",
+      "domain": "vitacellmedicalspa.com",
+      "is_valid_syntax": true,
+      "username": "adriane"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 586e51a60fabf-4bc62f36792si37644383fac.312 - gsmtp",
+      "rcpt_enhanced": "5.1.1",
+      "confirm_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 006d021491bc7-71b8715a048si10613312eaf.83 - gsmtp",
+      "rcpt_code": 550,
+      "confirmed_two_identities": true
+    }
+  },
+  {
+    "input": "katie@studio-esthetics.com",
+    "is_reachable": "risky",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": true,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "katie@studio-esthetics.com",
+      "domain": "studio-esthetics.com",
+      "is_valid_syntax": true,
+      "username": "katie"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 5614622812f47-57a3496b42csi33456587b6e.50 - gsmtp"
+    }
+  },
+  {
+    "input": "hello@ossamamehmood.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": true
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx1.improvmx.com",
+        "mx2.improvmx.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "hello@ossamamehmood.com",
+      "domain": "ossamamehmood.com",
+      "is_valid_syntax": true,
+      "username": "hello"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "forwarding_provider": true,
+      "connect_error": "mailfrom_503"
+    }
+  },
+  {
+    "input": "ky.medicalaesthetics@icloud.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx01.mail.icloud.com",
+        "mx02.mail.icloud.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "ky.medicalaesthetics@icloud.com",
+      "domain": "icloud.com",
+      "is_valid_syntax": true,
+      "username": "ky.medicalaesthetics"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "450 4.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
+      "greylisted_or_temp": 450
+    }
+  },
+  {
+    "input": "bellanacosta1@gmail.com",
+    "is_reachable": "invalid",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "bellanacosta1@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "bellanacosta1"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 5614622812f47-57a34259b70si33480812b6e.41 - gsmtp",
+      "rcpt_enhanced": "5.1.1",
+      "confirm_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 586e51a60fabf-4bc5fb9dc90si37705338fac.91 - gsmtp",
+      "rcpt_code": 550,
+      "confirmed_two_identities": true
+    }
+  },
+  {
+    "input": "alla@ourskinspace.com",
+    "is_reachable": "risky",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mail.ourskinspace.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": true,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "alla@ourskinspace.com",
+      "domain": "ourskinspace.com",
+      "is_valid_syntax": true,
+      "username": "alla"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 Accepted"
+    }
+  },
+  {
+    "input": "julie@beautybarnaesthetics.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "julie@beautybarnaesthetics.com",
+      "domain": "beautybarnaesthetics.com",
+      "is_valid_syntax": true,
+      "username": "julie"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-8636af4a493si17109473a34.141 - gsmtp"
+    }
+  },
+  {
+    "input": "gloria_keller@hotmail.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "hotmail-com.olc.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "gloria_keller@hotmail.com",
+      "domain": "hotmail.com",
+      "is_valid_syntax": true,
+      "username": "gloria_keller"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "connect_error": "mailfrom_550"
+    }
+  },
+  {
+    "input": "ann@eastonadvancedaesthetics.com",
+    "is_reachable": "invalid",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "ann@eastonadvancedaesthetics.com",
+      "domain": "eastonadvancedaesthetics.com",
+      "is_valid_syntax": true,
+      "username": "ann"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 5614622812f47-57a34259b11si33262174b6e.25 - gsmtp",
+      "rcpt_enhanced": "5.1.1",
+      "confirm_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 586e51a60fabf-4bc5fc97b27si41820966fac.85 - gsmtp",
+      "rcpt_code": 550,
+      "confirmed_two_identities": true
+    }
+  },
+  {
+    "input": "11.11medaesthetics@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "11.11medaesthetics@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "11.11medaesthetics"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc5b8826casi38373918fac.34 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "kristin@ccaestheticboutique.com",
+    "is_reachable": "risky",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "smtp.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": true,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "kristin@ccaestheticboutique.com",
+      "domain": "ccaestheticboutique.com",
+      "is_valid_syntax": true,
+      "username": "kristin"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc61271816si37934297fac.185 - gsmtp"
+    }
+  },
+  {
+    "input": "nelly@azuremedspaboca.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx1-us1.ppe-hosted.com",
+        "mx2-us1.ppe-hosted.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "nelly@azuremedspaboca.com",
+      "domain": "azuremedspaboca.com",
+      "is_valid_syntax": true,
+      "username": "nelly"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.7.1 Service unavailable; client [52.173.219.195] blocked using Proofpoint Dynamic Reputation (Visit https://ipcheck.proofpoint.com/ if you feel this is in error.). Please provide the following I",
+      "rcpt_enhanced": "5.7.1",
+      "policy_rejection": {
+        "code": 550,
+        "enhanced": "5.7.1"
+      }
+    }
+  },
+  {
+    "input": "kristina@beautifulmedspa.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "SMTP.GOOGLE.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "kristina@beautifulmedspa.com",
+      "domain": "beautifulmedspa.com",
+      "is_valid_syntax": true,
+      "username": "kristina"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168c2e5csi40065386a34.39 - gsmtp"
+    }
+  },
+  {
+    "input": "zzqx98765nonexistent@gmail.com",
+    "is_reachable": "invalid",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "zzqx98765nonexistent@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "zzqx98765nonexistent"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 586e51a60fabf-4bc6195cdd0si40418949fac.203 - gsmtp",
+      "rcpt_enhanced": "5.1.1",
+      "confirm_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 586e51a60fabf-4bc61c5da6asi42784325fac.214 - gsmtp",
+      "rcpt_code": 550,
+      "confirmed_two_identities": true
+    }
+  },
+  {
+    "input": "88aestheticandwellness@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "88aestheticandwellness@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "88aestheticandwellness"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc6352c3d1si37338600fac.352 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "aaw.plattecity@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "aaw.plattecity@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "aaw.plattecity"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-8635a161f71si23164107a34.138 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "addiroseaesthetics@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "addiroseaesthetics@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "addiroseaesthetics"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc61664f1asi40606914fac.201 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "aleah@aloramedical.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mail.aloramedical.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "aleah@aloramedical.com",
+      "domain": "aloramedical.com",
+      "is_valid_syntax": true,
+      "username": "aleah"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 Accepted"
+    }
+  },
+  {
+    "input": "alugo@renewedhwllc.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "renewedhwllc-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "alugo@renewedhwllc.com",
+      "domain": "renewedhwllc.com",
+      "is_valid_syntax": true,
+      "username": "alugo"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "anewyoullctn@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "anewyoullctn@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "anewyoullctn"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168c2ee2si42859402a34.25 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "ariel@luxebeautycompanyny.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "ariel@luxebeautycompanyny.com",
+      "domain": "luxebeautycompanyny.com",
+      "is_valid_syntax": true,
+      "username": "ariel"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc62d2fb4esi39427405fac.300 - gsmtp"
+    }
+  },
+  {
+    "input": "bellevisagemedspa@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "bellevisagemedspa@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "bellevisagemedspa"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-8636bf7c509si16654060a34.9 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "bleumedspaaz@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "bleumedspaaz@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "bleumedspaaz"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 006d021491bc7-71b38257658si36541938eaf.37 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "bluemednc@icloud.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx02.mail.icloud.com",
+        "mx01.mail.icloud.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "bluemednc@icloud.com",
+      "domain": "icloud.com",
+      "is_valid_syntax": true,
+      "username": "bluemednc"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "450 4.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
+      "greylisted_or_temp": 450
+    }
+  },
+  {
+    "input": "bridgecarehealthnetwork@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "bridgecarehealthnetwork@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "bridgecarehealthnetwork"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 006d021491bc7-71b82fcb4dasi11965938eaf.76 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "carrie@ccmedspawellness.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "carrie@ccmedspawellness.com",
+      "domain": "ccmedspawellness.com",
+      "is_valid_syntax": true,
+      "username": "carrie"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc5fc97c2asi36666009fac.48 - gsmtp"
+    }
+  },
+  {
+    "input": "chandrawellnesscenter1@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "chandrawellnesscenter1@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "chandrawellnesscenter1"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc61e5915esi40744297fac.240 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "chase@express-medicalcare.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "expressmedicalcare-com01i.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "chase@express-medicalcare.com",
+      "domain": "express-medicalcare.com",
+      "is_valid_syntax": true,
+      "username": "chase"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "cksaveface@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "cksaveface@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "cksaveface"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-86316916f39si40249217a34.132 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "constance@thesecretboutiquemedspa.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "thesecretboutiquemedspa-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "constance@thesecretboutiquemedspa.com",
+      "domain": "thesecretboutiquemedspa.com",
+      "is_valid_syntax": true,
+      "username": "constance"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "creativeaestheticsmt@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "creativeaestheticsmt@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "creativeaestheticsmt"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168e37d8si39836940a34.77 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "elevatedhealthtexas@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "elevatedhealthtexas@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "elevatedhealthtexas"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 006d021491bc7-71b3827bb4dsi35017885eaf.50 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "embersunmedspa@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "embersunmedspa@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "embersunmedspa"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168f9c2bsi39789976a34.92 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "esthetiquebeautymedspa@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "esthetiquebeautymedspa@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "esthetiquebeautymedspa"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4d125532a61si4044582fac.370 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "heraesthetics.np@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "heraesthetics.np@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "heraesthetics.np"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc5fea6e84si38867086fac.68 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "kelly@thewellnessspot618.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "kelly@thewellnessspot618.com",
+      "domain": "thewellnessspot618.com",
+      "is_valid_syntax": true,
+      "username": "kelly"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc6254790esi41055568fac.266 - gsmtp"
+    }
+  },
+  {
+    "input": "kirsten.svennungsen@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "kirsten.svennungsen@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "kirsten.svennungsen"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168c2e72si42981678a34.45 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "larissa@suedemedspa.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx3-usg2.ppe-hosted.com",
+        "mx1-usg2.ppe-hosted.com",
+        "mx2-usg2.ppe-hosted.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "larissa@suedemedspa.com",
+      "domain": "suedemedspa.com",
+      "is_valid_syntax": true,
+      "username": "larissa"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.7.1 Service unavailable; client [52.173.219.195] blocked using Proofpoint Dynamic Reputation (Visit https://ipcheck.proofpoint.com/ if you feel this is in error.). Please provide the following I",
+      "rcpt_enhanced": "5.7.1",
+      "policy_rejection": {
+        "code": 550,
+        "enhanced": "5.7.1"
+      }
+    }
+  },
+  {
+    "input": "lucy@llmspa.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "llmspa-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "lucy@llmspa.com",
+      "domain": "llmspa.com",
+      "is_valid_syntax": true,
+      "username": "lucy"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "mandie@truenorthaestheticsco.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "truenorthaestheticsco-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "mandie@truenorthaestheticsco.com",
+      "domain": "truenorthaestheticsco.com",
+      "is_valid_syntax": true,
+      "username": "mandie"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "msbellevieaesthetics@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "msbellevieaesthetics@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "msbellevieaesthetics"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168c2d63si39345868a34.26 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "nakita@joincloudmed.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "joincloudmed-com.mail.protection.outlook.com",
+        "mxa.mailgun.org",
+        "mxb.mailgun.org"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "nakita@joincloudmed.com",
+      "domain": "joincloudmed.com",
+      "is_valid_syntax": true,
+      "username": "nakita"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "naomi@panaceahealthhaven.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "panaceahealthhaven-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "naomi@panaceahealthhaven.com",
+      "domain": "panaceahealthhaven.com",
+      "is_valid_syntax": true,
+      "username": "naomi"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "newimagehardinvalley@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "newimagehardinvalley@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "newimagehardinvalley"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168e05d9si39694051a34.65 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "perfectlyyoumedspa@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "perfectlyyoumedspa@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "perfectlyyoumedspa"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc6312ae7bsi37615630fac.321 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "sapphireonthomas@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "sapphireonthomas@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "sapphireonthomas"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc62933ff8si40316327fac.281 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "sara@poppi.bio",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "sara@poppi.bio",
+      "domain": "poppi.bio",
+      "is_valid_syntax": true,
+      "username": "sara"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 006d021491bc7-71b3829549csi37248550eaf.55 - gsmtp"
+    }
+  },
+  {
+    "input": "skinovationesthetics2024@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "skinovationesthetics2024@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "skinovationesthetics2024"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 006d021491bc7-71b38296f20si34771891eaf.57 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "smaloneyfnp@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "smaloneyfnp@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "smaloneyfnp"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 5614622812f47-57a3425a262si33136809b6e.24 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "thetoxstudioaesthetics@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "thetoxstudioaesthetics@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "thetoxstudioaesthetics"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc5b977579si41445883fac.35 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "timelessaestheticsmidland@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "timelessaestheticsmidland@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "timelessaestheticsmidland"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bd2b2bbfedsi38532554fac.189 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "tonya@paragonmedispa.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "paragonmedispa-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "tonya@paragonmedispa.com",
+      "domain": "paragonmedispa.com",
+      "is_valid_syntax": true,
+      "username": "tonya"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "agelessmedicalinfo@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "agelessmedicalinfo@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "agelessmedicalinfo"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-8635de38b6fsi21002923a34.0 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "paradiseaestheticspa@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "paradiseaestheticspa@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "paradiseaestheticspa"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168f83fasi43267681a34.88 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "smplwy@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "smplwy@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "smplwy"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4cd11f5ce3asi10752941fac.235 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "abqnanobrows@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "abqnanobrows@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "abqnanobrows"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168de880si42804966a34.51 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "anewyou716@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "anewyou716@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "anewyou716"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc62541aefsi41348348fac.271 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "themedspa.onbroadway@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "themedspa.onbroadway@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "themedspa.onbroadway"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 5614622812f47-57a34e5ce54si33194693b6e.64 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "monet.aesthetics.wellness@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "monet.aesthetics.wellness@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "monet.aesthetics.wellness"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bdf5b13575si34872288fac.258 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "renewyou.medicalaesthetics@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "renewyou.medicalaesthetics@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "renewyou.medicalaesthetics"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 006d021491bc7-71b381f336dsi34374144eaf.19 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "mariposahealthspa@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "mariposahealthspa@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "mariposahealthspa"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863169003f0si42109530a34.107 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "amber.rosenoff@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "amber.rosenoff@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "amber.rosenoff"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc62539ee3si40766085fac.262 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "dotmedex@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "dotmedex@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "dotmedex"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc61c5da6asi42785714fac.214 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "lisarux4@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "lisarux4@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "lisarux4"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc62d30298si41223353fac.301 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "woodsestheticsks@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "woodsestheticsks@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "woodsestheticsks"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4c95368d7e1si18057847fac.78 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "fabfaces231@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "fabfaces231@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "fabfaces231"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-8638a86a379si7766663a34.2 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "elizabeth@absoluteaestheticsllc.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "smtp.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "elizabeth@absoluteaestheticsllc.com",
+      "domain": "absoluteaestheticsllc.com",
+      "is_valid_syntax": true,
+      "username": "elizabeth"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc6214b570si40337381fac.248 - gsmtp"
+    }
+  },
+  {
+    "input": "gracefullycrnp@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "gracefullycrnp@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "gracefullycrnp"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bd0a878108si40090249fac.305 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "rhijaesthetics@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "rhijaesthetics@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "rhijaesthetics"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc6214b570si40337423fac.248 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "effulgentmedical@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "effulgentmedical@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "effulgentmedical"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 006d021491bc7-71b3829586dsi35088502eaf.54 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "reforgems@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "reforgems@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "reforgems"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc6313ea7esi37310485fac.320 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "elitemedicalathens@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "elitemedicalathens@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "elitemedicalathens"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc62945371si40800353fac.290 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "lorisoleyaesthetics@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "lorisoleyaesthetics@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "lorisoleyaesthetics"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc610810a7si41350936fac.158 - gsmtp",
+      "freemail": true
+    }
+  },
+  {
+    "input": "christy@lumaesthetics.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "lumaesthetics-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "christy@lumaesthetics.com",
+      "domain": "lumaesthetics.com",
+      "is_valid_syntax": true,
+      "username": "christy"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "mandy@edenhealthrx.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx2-usg2.ppe-hosted.com",
+        "mx3-usg2.ppe-hosted.com",
+        "mx1-usg2.ppe-hosted.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "mandy@edenhealthrx.com",
+      "domain": "edenhealthrx.com",
+      "is_valid_syntax": true,
+      "username": "mandy"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.7.1 Service unavailable; client [52.173.219.195] blocked using Proofpoint Dynamic Reputation (Visit https://ipcheck.proofpoint.com/ if you feel this is in error.). Please provide the following I",
+      "rcpt_enhanced": "5.7.1",
+      "policy_rejection": {
+        "code": 550,
+        "enhanced": "5.7.1"
+      }
+    }
+  },
+  {
+    "input": "sofia@conejovalleymedspa.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "sofia@conejovalleymedspa.com",
+      "domain": "conejovalleymedspa.com",
+      "is_valid_syntax": true,
+      "username": "sofia"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc6293fa80si36883160fac.285 - gsmtp"
+    }
+  },
+  {
+    "input": "howard@leonhardtventures.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "leonhardtventures-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "howard@leonhardtventures.com",
+      "domain": "leonhardtventures.com",
+      "is_valid_syntax": true,
+      "username": "howard"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "tbliss@granitepointeeyecare.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "mx1-us1.ppe-hosted.com",
+        "alt4.aspmx.l.google.com",
+        "mx2-us1.ppe-hosted.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "tbliss@granitepointeeyecare.com",
+      "domain": "granitepointeeyecare.com",
+      "is_valid_syntax": true,
+      "username": "tbliss"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 006d021491bc7-71b382ec31bsi35150207eaf.74 - gsmtp"
+    }
+  },
+  {
+    "input": "dawn@pureradiancemedspas.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "pureradiancemedspas-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "dawn@pureradiancemedspas.com",
+      "domain": "pureradiancemedspas.com",
+      "is_valid_syntax": true,
+      "username": "dawn"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "chloe@skinchalet.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "chloe@skinchalet.com",
+      "domain": "skinchalet.com",
+      "is_valid_syntax": true,
+      "username": "chloe"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168c2bbbsi42591560a34.46 - gsmtp"
+    }
+  },
+  {
+    "input": "melanie@mermaidaesthetics.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx1.hostinger.com",
+        "mx2.hostinger.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "melanie@mermaidaesthetics.com",
+      "domain": "mermaidaesthetics.com",
+      "is_valid_syntax": true,
+      "username": "melanie"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "450 4.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
+      "greylisted_or_temp": 450
+    }
+  },
+  {
+    "input": "caroline@thefortlauderdalemedspa.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx1.privateemail.com",
+        "mx2.privateemail.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "caroline@thefortlauderdalemedspa.com",
+      "domain": "thefortlauderdalemedspa.com",
+      "is_valid_syntax": true,
+      "username": "caroline"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "554 5.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
+      "rcpt_enhanced": "5.1.8",
+      "confirm_reply": "250 2.1.5 Ok",
+      "identity_disagreement": {
+        "a_code": 554,
+        "b_code": 250
+      }
+    }
+  },
+  {
+    "input": "carneisha@pyramidalaesthetics.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "carneisha@pyramidalaesthetics.com",
+      "domain": "pyramidalaesthetics.com",
+      "is_valid_syntax": true,
+      "username": "carneisha"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 5614622812f47-57a353580ffsi33159966b6e.77 - gsmtp"
+    }
+  },
+  {
+    "input": "brian@bensonaesthetics.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "aspmx2.googlemail.com",
+        "aspmx3.googlemail.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "brian@bensonaesthetics.com",
+      "domain": "bensonaesthetics.com",
+      "is_valid_syntax": true,
+      "username": "brian"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168f9e79si40073320a34.99 - gsmtp"
+    }
+  },
+  {
+    "input": "christy@thelaserloungespa.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "christy@thelaserloungespa.com",
+      "domain": "thelaserloungespa.com",
+      "is_valid_syntax": true,
+      "username": "christy"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc5fc98c3csi41984542fac.58 - gsmtp"
+    }
+  },
+  {
+    "input": "alison@injectionsandco.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "injectionsandco-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "alison@injectionsandco.com",
+      "domain": "injectionsandco.com",
+      "is_valid_syntax": true,
+      "username": "alison"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "rdoyle@bevelup.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "bevelup-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "rdoyle@bevelup.com",
+      "domain": "bevelup.com",
+      "is_valid_syntax": true,
+      "username": "rdoyle"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "asikora@sikoramed.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "sikoramed-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "asikora@sikoramed.com",
+      "domain": "sikoramed.com",
+      "is_valid_syntax": true,
+      "username": "asikora"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "elaine@elainelemoswellness.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx.zoho.eu",
+        "mx2.zoho.eu",
+        "mx3.zoho.eu"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "elaine@elainelemoswellness.com",
+      "domain": "elainelemoswellness.com",
+      "is_valid_syntax": true,
+      "username": "elaine"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient <elaine@elainelemoswellness.com> OK"
+    }
+  },
+  {
+    "input": "rebekah@renewmedspaga.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "rebekah@renewmedspaga.com",
+      "domain": "renewmedspaga.com",
+      "is_valid_syntax": true,
+      "username": "rebekah"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 006d021491bc7-71b382f6007si35058333eaf.78 - gsmtp"
+    }
+  },
+  {
+    "input": "deb@dkmaesthetics.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "dkmaesthetics-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "deb@dkmaesthetics.com",
+      "domain": "dkmaesthetics.com",
+      "is_valid_syntax": true,
+      "username": "deb"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "mogden@rejuvenatehealthspaif.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "mogden@rejuvenatehealthspaif.com",
+      "domain": "rejuvenatehealthspaif.com",
+      "is_valid_syntax": true,
+      "username": "mogden"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 586e51a60fabf-4bc61074410si37681182fac.151 - gsmtp"
+    }
+  },
+  {
+    "input": "jennie@nampaobgyn.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "nampaobgyn-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "jennie@nampaobgyn.com",
+      "domain": "nampaobgyn.com",
+      "is_valid_syntax": true,
+      "username": "jennie"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "keely@mintaestheticsandskin.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "keely@mintaestheticsandskin.com",
+      "domain": "mintaestheticsandskin.com",
+      "is_valid_syntax": true,
+      "username": "keely"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-86316914de9si40247331a34.111 - gsmtp"
+    }
+  },
+  {
+    "input": "derek@redavfinedaesthetics.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "redavfinedaesthetics-com.mail.protection.outlook.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "derek@redavfinedaesthetics.com",
+      "domain": "redavfinedaesthetics.com",
+      "is_valid_syntax": true,
+      "username": "derek"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 Recipient OK"
+    }
+  },
+  {
+    "input": "katherine@facelabnky.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "katherine@facelabnky.com",
+      "domain": "facelabnky.com",
+      "is_valid_syntax": true,
+      "username": "katherine"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168c2ef8si39560256a34.40 - gsmtp"
+    }
+  },
+  {
+    "input": "kersten@seamewellness.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "kersten@seamewellness.com",
+      "domain": "seamewellness.com",
+      "is_valid_syntax": true,
+      "username": "kersten"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-863168f7c3bsi39379421a34.86 - gsmtp"
+    }
+  },
+  {
+    "input": "kelly@kellylynnaesthetics.com",
+    "is_reachable": "unknown",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "mx1-us1.ppe-hosted.com",
+        "mx2-us1.ppe-hosted.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "kelly@kellylynnaesthetics.com",
+      "domain": "kellylynnaesthetics.com",
+      "is_valid_syntax": true,
+      "username": "kelly"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.7.1 Service unavailable; client [52.173.219.195] blocked using Proofpoint Dynamic Reputation (Visit https://ipcheck.proofpoint.com/ if you feel this is in error.). Please provide the following I",
+      "rcpt_enhanced": "5.7.1",
+      "policy_rejection": {
+        "code": 550,
+        "enhanced": "5.7.1"
+      }
+    }
+  },
+  {
+    "input": "drrich@famfocuseye.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "aspmx.l.google.com",
+        "alt1.aspmx.l.google.com",
+        "alt2.aspmx.l.google.com",
+        "alt4.aspmx.l.google.com",
+        "alt3.aspmx.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "drrich@famfocuseye.com",
+      "domain": "famfocuseye.com",
+      "is_valid_syntax": true,
+      "username": "drrich"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 006d021491bc7-71b382ebda7si35226698eaf.75 - gsmtp"
+    }
+  }
+]
