@@ -12,9 +12,6 @@ import {
   SlidersHorizontal,
   Layers,
   MailCheck,
-  Users,
-  TrendingDown,
-  RefreshCw,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { MagneticButton } from './ui/MagneticButton';
@@ -26,7 +23,6 @@ import { SparkBurstButton } from './ui/SparkBurstButton';
 import { LiveHandshakeVisualizer } from './landing/LiveHandshakeVisualizer';
 import { ArchitecturePipeline } from './landing/ArchitecturePipeline';
 import { AppRoutePath } from './Footer';
-import { GlassOrb } from './ui/GlassOrb';
 
 interface LandingPageProps {
   onOpenDashboard: (email?: string) => void;
@@ -176,62 +172,32 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
 
   return (
     <div className="space-y-24 sm:space-y-28">
-      {/* 1. MONUMENTAL HERO -- Glass Orb + Large Type + Proof Strip */}
-      <section className="relative pt-6 sm:pt-10 pb-4 overflow-hidden">
-        {/* Full-width centered content */}
-        <div className="relative z-10 flex flex-col items-center text-center gap-8">
+      {/* 1. ASYMMETRIC PRODUCT-FIRST HERO + LIVE VERIFICATION INSPECTOR */}
+      <section className="relative pt-2 sm:pt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center relative z-10">
+          {/* Left Editorial Column + Interactive Quick Check Bar */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="flex items-center gap-3">
+              <span className="h-[1px] w-7 bg-brand-blue/70" aria-hidden="true" />
+              <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400">
+                Email Hygiene &amp; Deliverability
+              </p>
+            </div>
 
-          {/* Category pill */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.5, ease: EDITORIAL_EASE }}
-            className="flex items-center gap-2.5 px-4 py-1.5 rounded-full liquid-glass border border-white/50 dark:border-white/[0.12]"
-          >
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-70" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-            </span>
-            <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-300">
-              Real-Time Email Verification
-            </p>
-          </motion.div>
-
-          {/* Giant 2-line headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.18, duration: 0.65, ease: EDITORIAL_EASE }}
-            className="text-[2.4rem] sm:text-6xl lg:text-7xl xl:text-[5.2rem] font-display font-bold tracking-[-0.04em] leading-[1.04] text-app-text max-w-5xl"
-          >
-            <span className="block whitespace-nowrap">
+            <h1 className="text-[1.85rem] sm:text-4xl lg:text-[2.95rem] xl:text-[3.2rem] font-display font-bold tracking-[-0.04em] leading-[1.08] text-app-text text-balance">
               <KineticText text="Know every email is real" className="text-app-text" />
-            </span>
-            <span className="block gradient-text whitespace-nowrap mt-1">
-              before you hit send.
-            </span>
-          </motion.h1>
+              <span className="inline-block sm:whitespace-nowrap gradient-text mt-1">
+                before you hit send.
+              </span>
+            </h1>
 
-          {/* Sub-copy */}
-          <motion.p
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.28, duration: 0.55, ease: EDITORIAL_EASE }}
-            className="text-base sm:text-lg lg:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-[52ch]"
-          >
-            Verify single leads instantly or clean spreadsheets of up to 5,000 contacts
-            inside your browser. Zero subscriptions. Zero uploads.
-          </motion.p>
+            <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-[54ch]">
+              Verify single leads right away or clean spreadsheets of up to 5,000 contacts inside your browser so your campaigns reach active inboxes.
+            </p>
 
-          {/* CTA row */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.36, duration: 0.5, ease: EDITORIAL_EASE }}
-            className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-lg"
-          >
-            <form onSubmit={handleQuickLaunch} className="flex-1 w-full">
-              <div className="liquid-glass rounded-2xl p-1.5 flex items-center gap-2">
+            {/* Quick-Check Form */}
+            <form onSubmit={handleQuickLaunch} className="space-y-3 max-w-xl">
+              <div className="liquid-glass rounded-2xl p-1.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="relative flex-1 min-w-0">
                   <MailCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
@@ -240,142 +206,65 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                     onChange={(e) => setHeroEmail(e.target.value)}
                     placeholder="alex@company.example"
                     aria-label="Enter an email address to verify"
-                    className="w-full h-12 pl-10 pr-3 rounded-xl bg-white/55 dark:bg-white/[0.04] border border-white/70 dark:border-white/10 text-sm font-medium text-app-text placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-all"
+                    className="w-full h-12 sm:h-13 pl-10 pr-3 rounded-xl bg-white/55 dark:bg-white/[0.04] border border-white/70 dark:border-white/10 text-sm font-medium text-app-text placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-all"
                   />
                 </div>
-                <SparkBurstButton className="shrink-0">
-                  <MagneticButton type="submit" variant="primary" size="lg" className="px-5 !min-h-[44px] rounded-xl text-sm">
-                    <span>Verify</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                <SparkBurstButton className="w-full sm:w-auto shrink-0">
+                  <MagneticButton type="submit" variant="primary" size="lg" className="w-full sm:w-auto px-6 !min-h-[48px] sm:!min-h-[52px] rounded-xl">
+                    <span>Verify Email</span>
+                    <ArrowRight className="w-4 h-4" />
                   </MagneticButton>
                 </SparkBurstButton>
               </div>
-            </form>
-            <SparkBurstButton>
-              <MagneticButton
-                type="button"
-                variant="ghost"
-                size="lg"
-                onClick={() => onOpenDashboard()}
-                className="shrink-0 px-5 !min-h-[52px] rounded-2xl text-sm font-semibold liquid-glass border border-white/50 dark:border-white/[0.12]"
-              >
-                Open Bulk Cleaner
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </MagneticButton>
-            </SparkBurstButton>
-          </motion.div>
 
-          {/* Try presets */}
-          <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 -mt-4">
-            <span>Try:</span>
-            {['sales@company.example', 'partners@agency.example'].map((preset) => (
-              <button
-                key={preset}
-                type="button"
-                onClick={() => setHeroEmail(preset)}
-                className="px-2 py-0.5 rounded-md font-mono text-[11px] bg-white/45 dark:bg-white/[0.06] border border-white/60 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-brand-blue transition-colors cursor-pointer"
-              >
-                {preset}
-              </button>
-            ))}
+              <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 px-1">
+                <span>Try:</span>
+                {['sales@company.example', 'partners@agency.example'].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setHeroEmail(preset)}
+                    className="px-2 py-0.5 rounded-md font-mono text-[11px] bg-white/45 dark:bg-white/[0.06] border border-white/60 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-brand-blue transition-colors cursor-pointer"
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+            </form>
+
+            {/* Proof Metrics Strip */}
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-5 border-t border-app-border max-w-lg">
+              <div>
+                <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums">
+                  &lt; <CounterMetric to={1} duration={0.75} />%
+                </p>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Target bounces
+                </p>
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums">
+                  <CounterMetric to={5000} separator="," duration={1.05} />
+                </p>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Rows per sheet
+                </p>
+              </div>
+              <div>
+                <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums">
+                  <CounterMetric to={2} duration={0.7} />x
+                </p>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Rejection recheck
+                </p>
+              </div>
+            </div>
           </div>
 
-          {/* 3D Glass Orb -- centrepiece hero visual */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.88 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.42, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            className="relative flex items-center justify-center select-none"
-            style={{ willChange: 'transform' }}
-          >
-            {/* Coloured bleed light behind the orb */}
-            <div
-              className="absolute inset-0 rounded-full blur-[80px] opacity-50 dark:opacity-40 pointer-events-none"
-              style={{
-                background: 'radial-gradient(circle, rgba(90,92,255,0.55) 0%, rgba(2,254,220,0.28) 45%, rgba(245,2,253,0.18) 70%, transparent 100%)',
-              }}
-            />
-            <GlassOrb size={360} className="relative z-10 drop-shadow-[0_40px_80px_rgba(90,92,255,0.45)]" />
-
-            {/* Floating proof badge -- top-right */}
-            <motion.div
-              initial={{ opacity: 0, x: 16, y: -16 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
-              transition={{ delay: 0.72, duration: 0.5, ease: EDITORIAL_EASE }}
-              className="absolute top-8 -right-4 sm:-right-10 liquid-glass rounded-2xl px-4 py-3 flex flex-col gap-0.5 shadow-xl"
-            >
-              <span className="text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">Bounce rate</span>
-              <span className="text-2xl font-display font-bold text-app-text tabular-nums">
-                &lt;<CounterMetric to={1} duration={0.9} />%
-              </span>
-            </motion.div>
-
-            {/* Floating proof badge -- bottom-left */}
-            <motion.div
-              initial={{ opacity: 0, x: -16, y: 16 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.5, ease: EDITORIAL_EASE }}
-              className="absolute bottom-8 -left-4 sm:-left-10 liquid-glass rounded-2xl px-4 py-3 flex flex-col gap-0.5 shadow-xl"
-            >
-              <span className="text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">Contacts / sheet</span>
-              <span className="text-2xl font-display font-bold text-app-text tabular-nums">
-                <CounterMetric to={5000} separator="," duration={1.1} />
-              </span>
-            </motion.div>
-
-            {/* Floating badge -- bottom-right */}
-            <motion.div
-              initial={{ opacity: 0, x: 12, y: 16 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
-              transition={{ delay: 0.88, duration: 0.5, ease: EDITORIAL_EASE }}
-              className="absolute bottom-4 -right-2 sm:-right-8 liquid-glass rounded-2xl px-4 py-3 flex items-center gap-2.5 shadow-xl"
-            >
-              <span className="w-7 h-7 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <ShieldCheck className="w-3.5 h-3.5" />
-              </span>
-              <div>
-                <span className="text-[10px] font-mono font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 block">Double-checked</span>
-                <span className="text-sm font-bold text-app-text"><CounterMetric to={2} duration={0.7} />x retry</span>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Proof strip -- 3 large stats across full width */}
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.6, ease: EDITORIAL_EASE }}
-            className="w-full max-w-3xl grid grid-cols-3 gap-6 pt-8 border-t border-app-border"
-          >
-            {[
-              { icon: TrendingDown, label: 'Bounce rate target', value: '<1%', color: 'text-emerald-500' },
-              { icon: Users, label: 'Contacts per upload', value: '5,000', color: 'text-brand-blue' },
-              { icon: RefreshCw, label: 'Rejection recheck', value: '2x', color: 'gradient-text' },
-            ].map(({ icon: Icon, label, value, color }) => (
-              <div key={label} className="flex flex-col items-center gap-1 text-center">
-                <Icon className={cn('w-5 h-5 mb-1 opacity-70', color !== 'gradient-text' ? color : 'text-brand-blue')} />
-                <p className={cn('text-3xl sm:text-4xl font-display font-bold tabular-nums', color === 'gradient-text' ? 'gradient-text' : color)}>
-                  {value}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 1b. LIVE VERIFICATION INSPECTOR (below hero) */}
-      <section id="live-demo" className="scroll-mt-24">
-        <div className="text-center mb-8 space-y-2">
-          <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-            Live Demo
-          </p>
-          <h2 className="text-2xl sm:text-4xl font-display font-bold text-app-text tracking-tight">
-            Watch it verify in real time.
-          </h2>
-        </div>
-        <div className="max-w-2xl mx-auto">
-          <LiveHandshakeVisualizer onNavigate={onNavigate} theme={theme} />
+          {/* Right Minimalist Glass Inspection Trace */}
+          <div id="live-demo" className="lg:col-span-6 scroll-mt-24">
+            <LiveHandshakeVisualizer onNavigate={onNavigate} theme={theme} />
+          </div>
         </div>
       </section>
 
