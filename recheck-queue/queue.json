@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "updatedAt": "2026-11-27T22:57:50.605Z",
+  "items": [
+    {
+      "id": "lp_1795820081023_f549f5::ky.medicalaesthetics@icloud.com",
+      "email": "ky.medicalaesthetics@icloud.com",
+      "scanId": "lp_1795820081023_f549f5",
+      "chunkIndex": null,
+      "scans": [
+        {
+          "requestId": "lp_1795820081023_f549f5",
+          "chunkIndex": null
+        }
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "maxAttempts": 2,
+      "createdAt": "2026-11-27T22:57:50.605Z",
+      "updatedAt": "2026-11-27T22:57:50.605Z",
+      "scheduledFor": [
+        "2026-11-27T23:57:50.605Z",
+        "2026-11-28T22:57:50.605Z"
+      ],
+      "nextAttemptAt": "2026-11-27T23:57:50.605Z",
+      "dispatchedAt": null,
+      "pendingBatchId": null,
+      "resolvedAt": null,
+      "resolvedVerdict": null,
+      "lastReason": "450 4.1.8 <verify@leadpure.ai>: Sender address rejected: Domain not found",
+      "history": []
+    }
+  ]
+}
