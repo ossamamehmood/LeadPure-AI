@@ -1,7 +1,5 @@
 <div align="center">
-  <a href="https://leadpureai.vercel.app/">
-    <img src="public/og-image.png" alt="LeadPure - Verify every inbox before you hit send." width="100%" />
-  </a>
+    <img src=".github/LeadPure.gif" alt="LeadPure - Verify every inbox before you hit send." width="100%" />
 
   <br />
 
