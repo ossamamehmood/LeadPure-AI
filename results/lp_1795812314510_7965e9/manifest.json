@@ -4,8 +4,11 @@
   "totalEmails": 16,
   "chunkSize": 100,
   "chunkCount": 1,
-  "completedChunks": [],
+  "completedChunks": [
+    0
+  ],
   "chunksDone": 0,
-  "status": "pending",
-  "createdAt": "2026-11-27T20:45:14.510Z"
+  "status": "completed",
+  "createdAt": "2026-11-27T20:45:14.510Z",
+  "completedAt": "2026-11-27T20:46:01.461Z"
 }
