@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { Upload, Settings2, Clock, Database, Zap, Home } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
+import { Upload, Settings2, Clock, Database, Zap, Home, Menu, ChevronRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GlossyCard } from './ui/GlossyCard';
 import { TACTILE_SPRING } from './ui/MotionPrimitives';
@@ -11,66 +11,152 @@ interface SidebarProps {
   onNavigateHome?: () => void;
 }
 
+const SIDEBAR_STORAGE_KEY = 'leadpure_sidebar_collapsed';
+
 export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
+  const shouldReduceMotion = useReducedMotion();
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, [collapsed]);
+
+  const toggleCollapsed = () => setCollapsed((prev) => !prev);
   const isUploadActive = ['upload', 'mapping', 'processing', 'results'].includes(currentTab);
 
   const navItems = [
+    ...(onNavigateHome
+      ? [{ id: 'home', label: 'Home Overview', icon: Home, active: false }]
+      : []),
     { id: 'upload', label: 'Upload & Verify', icon: Upload, active: isUploadActive },
     { id: 'rules', label: 'Verification Rules', icon: Settings2, active: currentTab === 'rules' },
     { id: 'history', label: 'Scan History', icon: Clock, active: currentTab === 'history' },
   ];
 
   return (
-    <aside className="w-72 border-r border-app-border flex flex-col bg-app-bg/60 backdrop-blur-2xl hidden lg:flex shrink-0 z-50">
-      <button
-        type="button"
-        onClick={onNavigateHome}
-        title="Back to LeadPure Homepage"
-        className="p-7 flex items-center gap-3.5 group cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+    <motion.aside
+      initial={false}
+      animate={{ width: collapsed ? 84 : 280 }}
+      transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 360, damping: 32 }}
+      className="border-r border-app-border hidden lg:flex flex-col bg-app-bg/65 backdrop-blur-2xl shrink-0 z-50 relative select-none"
+    >
+      {/* Top Header: Brand Lockup + Three-Line Rail Toggle */}
+      <div
+        className={cn(
+          'flex items-center shrink-0 transition-all',
+          collapsed ? 'flex-col gap-3 px-3 pt-5 pb-4' : 'justify-between px-6 pt-6 pb-5'
+        )}
       >
-        <div className="w-9 h-9 rounded-xl gradient-cta flex items-center justify-center text-white shadow-[0_8px_20px_-4px_rgba(90,92,255,0.5),0_2px_12px_-2px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
-          <Zap className="w-4.5 h-4.5 fill-white" />
-        </div>
-        <span className="text-app-text font-display font-bold text-2xl tracking-tight select-none">
-          Lead<span className="gradient-text">Pure</span>
-        </span>
-      </button>
+        <button
+          type="button"
+          onClick={onNavigateHome}
+          title="Back to LeadPure Homepage"
+          className={cn(
+            'flex items-center group cursor-pointer text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-xl',
+            collapsed ? 'justify-center' : 'gap-3 min-w-0'
+          )}
+        >
+          <div className="w-9 h-9 rounded-xl gradient-cta flex items-center justify-center text-white shadow-[0_8px_20px_-4px_rgba(90,92,255,0.5),0_2px_12px_-2px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3 shrink-0">
+            <Zap className="w-4.5 h-4.5 fill-white" />
+          </div>
+          {!collapsed && (
+            <span className="text-app-text font-display font-bold text-2xl tracking-tight truncate">
+              Lead<span className="gradient-text">Pure</span>
+            </span>
+          )}
+        </button>
 
-      {/* Runner note: uses ephemeral GitHub Actions Port 25 workers behind the scenes */}
-      <div className="px-6 mb-6">
-        <div className="p-3.5 rounded-2xl bg-slate-100/80 dark:bg-white/[0.03] border border-app-border">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-              Verification Engine
-            </span>
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-          </div>
-          <div className="text-xs font-bold font-mono text-app-text tracking-tight">
-            V14 &middot; LIVE &amp; READY
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={cn(
+            'w-9 h-9 rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-white/[0.04] hover:bg-white dark:hover:bg-white/[0.10] hover:border-brand-blue/40 text-slate-600 dark:text-slate-300 hover:text-app-text transition-all flex items-center justify-center cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue shrink-0',
+            collapsed && 'shadow-sm'
+          )}
+        >
+          <Menu className="w-4 h-4" />
+        </button>
       </div>
 
-      <nav className="flex-1 px-4 space-y-2 mt-2" aria-label="Main navigation">
-        {onNavigateHome && (
-          <button
-            type="button"
-            onClick={onNavigateHome}
-            className="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl transition-colors duration-200 font-semibold text-xs tracking-tight text-slate-600 dark:text-slate-400 hover:text-app-text hover:bg-black/[0.04] dark:hover:bg-white/[0.04] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
-          >
-            <Home className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-            <span>Home Overview</span>
-          </button>
-        )}
-        {navItems.map((item) => {
+      {/* Live Engine Card (Expanded only; compact pill indicator sits at bottom in collapsed rail) */}
+      {!collapsed && (
+        <div className="px-6 mb-5">
+          <div className="p-3.5 rounded-2xl bg-white/60 dark:bg-white/[0.03] border border-white/80 dark:border-app-border backdrop-blur-md">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                Verification Engine
+              </span>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+            </div>
+            <div className="text-xs font-bold font-mono text-app-text tracking-tight">
+              V14 &middot; LIVE &amp; READY
+            </div>
+          </div>
+        </div>
+      )}
+
+      {collapsed && <div className="mx-4 mb-3 h-px bg-app-border" />}
+
+      {/* Navigation Rail / Items */}
+      <nav
+        className={cn('flex-1 flex flex-col mt-1', collapsed ? 'items-center px-2.5 gap-2.5' : 'px-4 space-y-2')}
+        aria-label="Main navigation"
+      >
+        {navItems.map((item, index) => {
           const Icon = item.icon;
+          const isHomeDivider = collapsed && item.id === 'home';
+
+          if (collapsed) {
+            return (
+              <React.Fragment key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => (item.id === 'home' ? onNavigateHome?.() : setTab(item.id))}
+                  aria-label={item.label}
+                  className={cn(
+                    'relative group w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
+                    item.active
+                      ? 'gradient-cta text-white shadow-[0_0_24px_-4px_rgba(90,92,255,0.68),0_0_14px_-4px_rgba(245,2,253,0.42)]'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-app-text hover:bg-slate-200/65 dark:hover:bg-white/[0.08] border border-transparent hover:border-slate-200/80 dark:hover:border-white/10'
+                  )}
+                >
+                  <Icon className="w-5 h-5 relative z-10 transition-transform duration-200 group-hover:scale-105" />
+                  {/* Floating Tooltip Label */}
+                  <span
+                    role="tooltip"
+                    className="pointer-events-none absolute left-full ml-3 px-3 py-1.5 rounded-xl liquid-glass text-xs font-semibold text-app-text whitespace-nowrap opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:translate-x-0 transition-all duration-150 shadow-xl z-[70]"
+                  >
+                    {item.label}
+                  </span>
+                </button>
+                {isHomeDivider && index < navItems.length - 1 && (
+                  <div className="w-8 h-px bg-app-border my-0.5" />
+                )}
+              </React.Fragment>
+            );
+          }
+
           return (
             <button
               key={item.id}
-              onClick={() => setTab(item.id)}
+              type="button"
+              onClick={() => (item.id === 'home' ? onNavigateHome?.() : setTab(item.id))}
               className={cn(
                 'w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl transition-colors duration-200 font-semibold text-xs tracking-tight relative overflow-hidden group active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
                 item.active
@@ -87,29 +173,55 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
                   <span className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-r-full gradient-bg" />
                 </motion.div>
               )}
-              <Icon className={cn('w-4 h-4 relative z-10 transition-transform duration-200 group-hover:scale-105', item.active ? 'text-white dark:text-brand-cyan' : 'text-slate-500 dark:text-slate-400')} />
-              <span className="relative z-10">{item.label}</span>
+              <Icon
+                className={cn(
+                  'w-4 h-4 relative z-10 transition-transform duration-200 group-hover:scale-105 shrink-0',
+                  item.active ? 'text-white dark:text-brand-cyan' : 'text-slate-500 dark:text-slate-400'
+                )}
+              />
+              <span className="relative z-10 truncate">{item.label}</span>
             </button>
           );
         })}
       </nav>
 
-      <div className="p-6 border-t border-app-border">
-        <GlossyCard className="p-4 rounded-2xl border border-app-border">
-          <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider mb-2.5">
-            Engine Release
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl gradient-surface border border-brand-blue/25 flex items-center justify-center shrink-0">
-              <Database className="w-4 h-4 text-brand-blue" />
-            </div>
-            <div className="min-w-0">
-              <span className="text-xs font-display font-bold text-app-text block leading-tight">LeadPure V14</span>
-              <span className="text-[10px] font-mono font-medium gradient-text">Probe 1.3.2 (Chunked)</span>
-            </div>
+      {/* Bottom Status Section */}
+      {collapsed ? (
+        <div className="py-5 px-2 border-t border-app-border flex flex-col items-center gap-3">
+          <div
+            title="LeadPure V14 Engine Ready (Probe 1.3.2)"
+            className="w-10 h-10 rounded-full border border-emerald-500/45 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 flex items-center justify-center text-[11px] font-mono font-bold shadow-[0_0_16px_-4px_rgba(16,185,129,0.5)]"
+          >
+            V14
           </div>
-        </GlossyCard>
-      </div>
-    </aside>
+          <button
+            type="button"
+            onClick={toggleCollapsed}
+            aria-label="Expand sidebar panel"
+            title="Expand sidebar"
+            className="w-8 h-8 rounded-full border border-app-border hover:border-brand-blue/40 bg-white/50 dark:bg-white/[0.03] hover:bg-white dark:hover:bg-white/[0.08] text-slate-500 dark:text-slate-400 hover:text-app-text flex items-center justify-center transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <div className="p-6 border-t border-app-border">
+          <GlossyCard className="p-4 rounded-2xl border border-app-border">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider mb-2.5">
+              Engine Release
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl gradient-surface border border-brand-blue/25 flex items-center justify-center shrink-0">
+                <Database className="w-4 h-4 text-brand-blue" />
+              </div>
+              <div className="min-w-0">
+                <span className="text-xs font-display font-bold text-app-text block leading-tight">LeadPure V14</span>
+                <span className="text-[10px] font-mono font-medium gradient-text">Probe 1.3.2 (Chunked)</span>
+              </div>
+            </div>
+          </GlossyCard>
+        </div>
+      )}
+    </motion.aside>
   );
 }

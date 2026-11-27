@@ -7,7 +7,7 @@ export interface ContactData {
   country?: string;
   city?: string;
   postalCode?: string;
-  [key: string]: string | number | boolean | undefined;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
