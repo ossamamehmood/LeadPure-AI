@@ -26,6 +26,8 @@ interface ResultsDashboardProps {
   estimatedSeconds?: number | null;
   activeRequestId?: string | null;
   onCancel?: () => void;
+  onRefreshRechecks?: () => void;
+  isRefreshingRechecks?: boolean;
 }
 
 function getCanonicalVerdict(contact: any): 'SAFE' | 'RISKY' | 'INVALID' | 'UNKNOWN' {
@@ -89,7 +91,7 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any; mappings:
         </div>
       </div>
 
-      <div className="md:px-6 py-1 md:py-3 w-full md:w-[15%] shrink-0">
+      <div className="md:px-6 py-1 md:py-3 w-full md:w-[15%] shrink-0 space-y-1">
         <div className={cn(
           'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] border',
           badgeStyle
@@ -97,6 +99,17 @@ const MemoizedRow = React.memo(({ contact, mappings }: { contact: any; mappings:
           <VerdictIcon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
           {isTimedOutMissing ? 'TIMED OUT' : verdict}
         </div>
+        {!isTimedOutMissing && contact.resolvedOnRecheck && (
+          <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+            Resolved on re-check
+            {contact.recheckResolvedAt ? ` (${new Date(contact.recheckResolvedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })})` : ''}
+          </div>
+        )}
+        {!isTimedOutMissing && !contact.resolvedOnRecheck && verdict === 'UNKNOWN' && (
+          <div className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+            {contact.recheckStatus === 'exhausted' ? 'Final UNKNOWN (2/2 re-checks)' : 're-check pending'}
+          </div>
+        )}
       </div>
 
       <div className="md:px-8 py-1 md:py-3 w-full md:w-[30%] min-w-0">
@@ -127,7 +140,9 @@ export function ResultsDashboard({
   chunksTotal = 0,
   estimatedSeconds = null,
   activeRequestId = null,
-  onCancel
+  onCancel,
+  onRefreshRechecks,
+  isRefreshingRechecks = false
 }: ResultsDashboardProps) {
   const [activeTab, setActiveTab] = useState<'all' | 'safe' | 'filtered'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -151,6 +166,23 @@ export function ResultsDashboard({
   const arrivedTotal = safeCount + arrivedEliminated.length;
   const definitiveCount = safeCount + riskyCount + invalidCount;
   const definitiveRate = arrivedTotal > 0 ? Math.round((definitiveCount / arrivedTotal) * 100) : 0;
+  const arrivedAll = useMemo(
+    () => [...(processedData || []), ...arrivedEliminated],
+    [processedData, arrivedEliminated]
+  );
+  const recheckResolvedCount = useMemo(
+    () => arrivedAll.filter((i: any) => Boolean(i.resolvedOnRecheck)).length,
+    [arrivedAll]
+  );
+  const recheckPendingCount = useMemo(
+    () => arrivedAll.filter((i: any) => getCanonicalVerdict(i) === 'UNKNOWN' && i.recheckStatus !== 'exhausted').length,
+    [arrivedAll]
+  );
+  const initialUnknownCount = unknownCount + recheckResolvedCount;
+  const initialDefinitiveRate = stats?.initialDefinitiveRate ?? (
+    arrivedTotal > 0 ? Math.round((Math.max(0, arrivedTotal - initialUnknownCount) / arrivedTotal) * 100) : definitiveRate
+  );
+  const showRateUpgrade = recheckResolvedCount > 0 && definitiveRate !== initialDefinitiveRate;
 
   const currentData = activeTab === 'all' ? allRows : activeTab === 'safe' ? (processedData || []) : (eliminatedData || []);
 
@@ -292,12 +324,38 @@ export function ResultsDashboard({
                 <Fingerprint className="w-4 h-4 text-brand-blue" />
               </div>
             </div>
-            <div className="flex items-baseline gap-2">
+            <div className="flex items-baseline gap-2 flex-wrap">
               <AnimatedMetric value={definitiveRate} suffix="%" className="text-4xl sm:text-5xl font-display font-bold tracking-tight text-app-text tabular-nums" />
+              {showRateUpgrade && (
+                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                  ({initialDefinitiveRate}% initial &rarr; {definitiveRate}% after re-checks)
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-3 tabular-nums">
               {definitiveCount}/{arrivedTotal} clear verdicts ({unknownCount} UNKNOWN)
             </p>
+            {(recheckPendingCount > 0 || onRefreshRechecks) && !isProcessing && (
+              <div className="mt-2.5 flex items-center justify-between gap-2">
+                {recheckPendingCount > 0 ? (
+                  <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 tabular-nums">
+                    {recheckPendingCount} re-check pending
+                  </span>
+                ) : (
+                  <span />
+                )}
+                {onRefreshRechecks && activeRequestId && (
+                  <button
+                    type="button"
+                    onClick={onRefreshRechecks}
+                    disabled={isRefreshingRechecks}
+                    className="text-[11px] font-semibold text-brand-blue hover:underline cursor-pointer disabled:opacity-60"
+                  >
+                    {isRefreshingRechecks ? 'Syncing...' : 'Refresh re-checks'}
+                  </button>
+                )}
+              </div>
+            )}
           </GlossyCard>
         </StaggerItem>
 

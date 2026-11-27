@@ -35,8 +35,20 @@ const IDENTITY_A = { helo: HELO_HOST, from: FROM_EMAIL };
 const IDENTITY_B = { helo: 'gmail.com', from: 'bssesessional@gmail.com' };
 const CONNECT_TIMEOUT_MS = 20000;
 const SESSION_TIMEOUT_MS = 45000;
-const GREYLIST_WAIT_MS = 30000;
+const GREYLIST_RETRY_DELAYS_MS = [45000, 120000];
+const SINGLE_RUN_DEADLINE_MS = 190000; // Leaves buffer inside 4-min UI watchdog
+const BULK_RUN_DEADLINE_MS = 285000; // Leaves buffer inside 6-min per-chunk timeout
 const PASS_WAIT_MS = 20000;
+
+const TEMP_REPLY_PATTERN = /\b(450|451|452)\b|greylist|graylist|rate[- ]?limit|too many (requests|connections|messages)|try again( later)?|temporar(il)?y\s+(deferred|rejected|busy|unavailable)|please\s+retry|deferred|come back later/i;
+const PERMANENT_POLICY_BLOCK_PATTERN = /Proofpoint Dynamic Reputation|Cloudmark Sender Intelligence|spamhaus|barracuda|blocklist|blacklisted/i;
+
+function isTemporaryText(text) {
+  const s = String(text || '');
+  if (!s) return false;
+  if (PERMANENT_POLICY_BLOCK_PATTERN.test(s)) return false;
+  return TEMP_REPLY_PATTERN.test(s);
+}
 
 const ROLE_LOCALPARTS = new Set(('info contact hello admin support sales office bookings booking enquiries inquiries mail team help service services no-reply noreply postmaster webmaster marketing reception frontdesk appointments appointment officeadmin').split(' '));
 const DISPOSABLE_DOMAINS = new Set(('mailinator.com guerrillamail.com 10minutemail.com tempmail.com temp-mail.org throwawaymail.com yopmail.com getnada.com trashmail.com fakeinbox.com maildrop.cc dispostable.com mohmal.com sharklasers.com guerrillamailblock.com pokemail.net spam4.me bccto.cc mailnesia.com mailinator.net emailondeck.com tempail.com minuteinbox.com').split(' '));
@@ -60,8 +72,8 @@ function randomLocal() {
   return 'lpchk' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 }
 
-// One SMTP conversation against one IP. Resolves {connected, code, reply} where code is the
-// numeric RCPT TO response (250/251 accept, 5xx reject, 4xx greylist/temp), or null.
+// One SMTP conversation against one IP. Resolves {connected, code, reply, isTemp}
+// where code is numeric (250/251 accept, 5xx reject, 4xx greylist/temp), or null.
 function smtpProbe(ip, mxHost, targetEmail, identity) {
   return new Promise((resolve) => {
     const socket = new net.Socket();
@@ -86,16 +98,45 @@ function smtpProbe(ip, mxHost, targetEmail, identity) {
         const code = parseInt(line.slice(0, 3), 10);
         try {
           if (stage === 'banner') {
-            if (code !== 220) return done({ connected: true, code: null, error: 'banner_' + code });
+            if (code !== 220) {
+              const isTemp = (code >= 400 && code < 500) || isTemporaryText(line);
+              return done({
+                connected: true,
+                code: isTemp ? code : null,
+                error: 'banner_' + code,
+                reply: line,
+                isTemp
+              });
+            }
             stage = 'helo'; socket.write(`HELO ${(identity || IDENTITY_A).helo}\r\n`);
           } else if (stage === 'helo') {
+            if (code >= 400) {
+              const isTemp = code < 500 || isTemporaryText(line);
+              return done({
+                connected: true,
+                code: isTemp ? code : null,
+                error: 'helo_' + code,
+                reply: line,
+                isTemp
+              });
+            }
             stage = 'mailfrom'; socket.write(`MAIL FROM:<${(identity || IDENTITY_A).from}>\r\n`);
           } else if (stage === 'mailfrom') {
-            if (code >= 500) return done({ connected: true, code: null, error: 'mailfrom_' + code });
+            if (code >= 400) {
+              const isTemp = code < 500 || isTemporaryText(line);
+              return done({
+                connected: true,
+                code: isTemp ? code : null,
+                error: 'mailfrom_' + code,
+                reply: line,
+                isTemp
+              });
+            }
             stage = 'rcpt'; socket.write(`RCPT TO:<${targetEmail}>\r\n`);
           } else if (stage === 'rcpt') {
             try { socket.write('QUIT\r\n'); } catch {}
-            return done({ connected: true, code, error: null, reply: line });
+            const isTemp = (code >= 400 && code < 500) || isTemporaryText(line);
+            return done({ connected: true, code, error: null, reply: line, isTemp });
           }
         } catch (e) { return done({ connected: true, code: null, error: String(e) }); }
       }
@@ -103,27 +144,24 @@ function smtpProbe(ip, mxHost, targetEmail, identity) {
   });
 }
 
-// Try candidates in order until one returns a definitive RCPT code (2xx or 5xx).
-// A 4xx triggers ONE greylist retry across all candidates after GREYLIST_WAIT_MS.
+// Try candidates in order until one returns a non-temporary answer (2xx or non-temp 5xx).
+// If all candidates give temporary 4xx/greylist answers or connection errors, returns the
+// best temporary/error result so greylist backoff retries can re-knock at probeEmail level.
 async function probeAcrossCandidates(candidates, targetEmail, identity) {
   let sawConnect = false;
   let lastError = null;
+  let lastTemp = null;
   for (const c of candidates) {
     const r = await smtpProbe(c.ip, c.host, targetEmail, identity);
     if (r.connected) sawConnect = true;
     if (r.error) lastError = r.error;
-    if (r.code !== null && (r.code < 400 || r.code >= 500)) return { ...r, sawConnect };
-    if (r.code !== null && r.code >= 400 && r.code < 500) {
-      await sleep(GREYLIST_WAIT_MS);
-      for (const c2 of candidates) {
-        const r2 = await smtpProbe(c2.ip, c2.host, targetEmail, identity);
-        if (r2.connected) sawConnect = true;
-        if (r2.error) lastError = r2.error;
-        if (r2.code !== null) return { ...r2, sawConnect };
-      }
-      return { connected: sawConnect, code: r.code, error: lastError, sawConnect };
+    if (r.code !== null && r.isTemp) {
+      lastTemp = r;
+      continue;
     }
+    if (r.code !== null) return { ...r, sawConnect };
   }
+  if (lastTemp) return { ...lastTemp, sawConnect };
   return { connected: sawConnect, code: null, error: lastError, sawConnect };
 }
 
@@ -176,8 +214,15 @@ async function probeOnce(email) {
   let rcpt = await probeAcrossCandidates(candidates, probeTarget, activeIdentity);
   out.smtp.can_connect_smtp = !!rcpt.sawConnect;
   if (rcpt.reply) out.debug.rcpt_reply = String(rcpt.reply).slice(0, 200);
-  if (rcpt.code === null) { out.debug.connect_error = rcpt.error || 'no_rcpt_code'; return out; }
-  if (rcpt.code >= 400 && rcpt.code < 500) { out.debug.greylisted_or_temp = rcpt.code; return out; }
+  if (rcpt.code === null) {
+    out.debug.connect_error = rcpt.error || 'no_rcpt_code';
+    if (isTemporaryText(rcpt.reply || rcpt.error)) out.debug.greylisted_or_temp = 'temp_text';
+    return out;
+  }
+  if (rcpt.isTemp || (rcpt.code >= 400 && rcpt.code < 500)) {
+    out.debug.greylisted_or_temp = rcpt.code;
+    return out;
+  }
   if (rcpt.code >= 500) {
     const enhanced = ((rcpt.reply || '').match(/(?:^|\s)(5\.\d+\.\d+)/) || [])[1] || '';
     if (enhanced) out.debug.rcpt_enhanced = enhanced;
@@ -185,6 +230,7 @@ async function probeOnce(email) {
       // Policy rejection of the probe itself (5.7.x etc.): the server refused the
       // conversation, it did not prove the mailbox is gone. Stay honest: unknown.
       out.debug.policy_rejection = { code: rcpt.code, enhanced: enhanced || null };
+      if (isTemporaryText(rcpt.reply)) out.debug.greylisted_or_temp = rcpt.code;
       return out;
     }
     if (isForwarding) {
@@ -203,7 +249,7 @@ async function probeOnce(email) {
       out.debug.identity_disagreement = { a_code: rcpt.code, b_code: conf.code };
       activeIdentity = IDENTITY_B;
       rcpt = conf;
-    } else if (conf.code !== null && conf.code >= 500) {
+    } else if (conf.code !== null && conf.code >= 500 && !conf.isTemp) {
       const confEnhanced = ((conf.reply || '').match(/(?:^|\s)(5\.\d+\.\d+)/) || [])[1] || '';
       if (confEnhanced.startsWith('5.1.')) {
         // Two independent sender identities rejected as user-unknown: INVALID stands.
@@ -216,6 +262,9 @@ async function probeOnce(email) {
       return out; // unknown: B was policy-rejected instead
     } else {
       out.debug.identity_disagreement = { a_code: rcpt.code, b_code: conf.code };
+      if (conf.isTemp || (conf.code !== null && conf.code >= 400 && conf.code < 500)) {
+        out.debug.greylisted_or_temp = conf.code;
+      }
       return out; // unknown: confirmation inconclusive (4xx / connect failure)
     }
   }
@@ -239,15 +288,67 @@ async function probeOnce(email) {
   return out;
 }
 
-async function probeEmail(emailRaw) {
+function isTemporaryOutcome(out) {
+  if (!out || out.is_reachable !== 'unknown') return false;
+  const dbg = out.debug || {};
+  if (dbg.greylisted_or_temp) return true;
+  if (dbg.identity_disagreement && dbg.identity_disagreement.b_code >= 400 && dbg.identity_disagreement.b_code < 500) {
+    return true;
+  }
+  return isTemporaryText(dbg.rcpt_reply || dbg.confirm_reply || dbg.connect_error);
+}
+
+async function probeEmail(emailRaw, runDeadlineMs = Date.now() + SINGLE_RUN_DEADLINE_MS) {
   const email = String(emailRaw || '').trim();
   let out = await probeOnce(email);
-  // Second full pass only when the first ended unknown purely from connection trouble.
-  if (out.is_reachable === 'unknown' && !out.smtp.can_connect_smtp) {
-    await sleep(PASS_WAIT_MS);
-    const retry = await probeOnce(email);
-    if (retry.is_reachable !== 'unknown' || retry.smtp.can_connect_smtp) out = retry;
+
+  // Second full pass when initial failure was purely connection trouble (not greylisting).
+  if (out.is_reachable === 'unknown' && !out.smtp.can_connect_smtp && !isTemporaryOutcome(out)) {
+    const remainingMs = runDeadlineMs - Date.now() - 12000;
+    if (remainingMs >= 10000) {
+      await sleep(Math.min(PASS_WAIT_MS, remainingMs));
+      const retry = await probeOnce(email);
+      if (retry.is_reachable !== 'unknown' || retry.smtp.can_connect_smtp || isTemporaryOutcome(retry)) {
+        out = retry;
+      }
+    }
   }
+
+  // Greylist patience: re-knock (~45s, then ~120s) whenever response indicates temporary deferral,
+  // capped strictly within the run deadline so single checks stay under 4m and bulk under 6m.
+  if (isTemporaryOutcome(out)) {
+    let retryCount = 0;
+    const delaysMs = [];
+    let finalReply = String(
+      out.debug?.rcpt_reply || out.debug?.confirm_reply || out.debug?.connect_error || out.debug?.greylisted_or_temp || ''
+    );
+
+    for (const targetDelayMs of GREYLIST_RETRY_DELAYS_MS) {
+      if (!isTemporaryOutcome(out)) break;
+      const availableMs = runDeadlineMs - Date.now() - 12000;
+      if (availableMs < 8000) break;
+
+      const waitMs = Math.min(targetDelayMs, availableMs);
+      await sleep(waitMs);
+      retryCount++;
+      delaysMs.push(waitMs);
+
+      const retried = await probeOnce(email);
+      finalReply = String(
+        retried.debug?.rcpt_reply || retried.debug?.confirm_reply || retried.debug?.connect_error || retried.is_reachable || finalReply
+      );
+      out = retried;
+
+      if (out.is_reachable !== 'unknown') break;
+    }
+
+    out.debug.greylist_retries = {
+      count: retryCount,
+      delays_ms: delaysMs,
+      final_reply: finalReply
+    };
+  }
+
   return out;
 }
 
@@ -256,7 +357,8 @@ async function main() {
   if (!inFile || !outFile) { console.error('usage: probe.mjs <emails.txt> <result.json>'); process.exit(2); }
   const emails = fs.readFileSync(inFile, 'utf8').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
   const results = new Array(emails.length);
-  const WORKER_COUNT = Math.min(4, Math.max(1, emails.length));
+  const WORKER_COUNT = emails.length > 20 ? 8 : Math.min(4, Math.max(1, emails.length));
+  const runDeadlineMs = Date.now() + (emails.length > 3 ? BULK_RUN_DEADLINE_MS : SINGLE_RUN_DEADLINE_MS);
   let cursor = 0;
 
   const worker = async () => {
@@ -265,7 +367,7 @@ async function main() {
       if (idx >= emails.length) break;
       const e = emails[idx];
       try {
-        results[idx] = await probeEmail(e);
+        results[idx] = await probeEmail(e, runDeadlineMs);
       } catch (err) {
         results[idx] = { input: e, is_reachable: 'unknown', debug: { backend_name: 'leadpure-own-engine', engine_version: '1.3.2', error: String(err && err.message || err) } };
       }

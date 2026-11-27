@@ -22,6 +22,11 @@ on:
         description: 'Emails to verify, one per line'
         required: true
         type: string
+      is_recheck:
+        description: 'True when dispatched by automatic UNKNOWN re-check queue'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -57,6 +62,7 @@ jobs:
           REQUEST_ID: ${{ inputs.request_id }}
           CHUNK_INDEX: ${{ inputs.chunk_index }}
           EMAILS_INPUT: ${{ inputs.emails }}
+          IS_RECHECK: ${{ inputs.is_recheck }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash engine/run-ci-probe.sh
 
@@ -92,6 +98,7 @@ jobs:
           REQUEST_ID: ${{ inputs.request_id }}
           CHUNK_INDEX: ${{ inputs.chunk_index }}
           EMAILS_INPUT: ${{ inputs.emails }}
+          IS_RECHECK: ${{ inputs.is_recheck }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash engine/run-ci-probe.sh
 
@@ -127,6 +134,7 @@ jobs:
           REQUEST_ID: ${{ inputs.request_id }}
           CHUNK_INDEX: ${{ inputs.chunk_index }}
           EMAILS_INPUT: ${{ inputs.emails }}
+          IS_RECHECK: ${{ inputs.is_recheck }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash engine/run-ci-probe.sh
 
@@ -147,5 +155,6 @@ jobs:
           REQUEST_ID: ${{ inputs.request_id }}
           CHUNK_INDEX: ${{ inputs.chunk_index }}
           EMAILS_INPUT: ${{ inputs.emails }}
+          IS_RECHECK: ${{ inputs.is_recheck }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash engine/run-ci-probe.sh

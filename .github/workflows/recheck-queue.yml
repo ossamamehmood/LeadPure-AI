@@ -1,0 +1,138 @@
+name: recheck-queue
+
+# Automatic UNKNOWN re-check queue drainer: runs every 15 minutes at zero cost on GitHub Actions,
+# selects up to 25 due UNKNOWN addresses (~1h and ~24h schedule, max 2 attempts per scan),
+# and dispatches leadpure-check.yml on a fresh Port-25 runner.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      force_due:
+        description: 'Process pending items even before scheduled timestamp (testing only)'
+        required: false
+        default: false
+        type: boolean
+      scan_id:
+        description: 'Optional scan request_id filter'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: recheck-queue-drain
+  cancel-in-progress: false
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout engine from main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main-src
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Select due UNKNOWN batch (<= 25) and dispatch probe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORCE_DUE: ${{ inputs.force_due }}
+          SCAN_ID: ${{ inputs.scan_id }}
+        run: |
+          set -euo pipefail
+          git config --global user.name "leadpure-engine"
+          git config --global user.email "engine@leadpure.ai"
+
+          if ! git ls-remote --exit-code --heads "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" results >/dev/null 2>&1; then
+            echo "No results branch yet; skipping queue drain."
+            exit 0
+          fi
+
+          git clone --quiet --branch results "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" results-tree
+          cd results-tree
+
+          if [ ! -f recheck-queue/queue.json ]; then
+            echo "No recheck-queue/queue.json present; nothing to drain."
+            exit 0
+          fi
+
+          BATCH_ID="recheck_$(date +%s)_$$"
+          SELECTED=0
+
+          for attempt in 1 2 3 4 5; do
+            node ../main-src/engine/recheck-queue.mjs select \
+              --batch "$BATCH_ID" \
+              --limit 25 \
+              --force-due "${FORCE_DUE:-false}" \
+              --scan-id "${SCAN_ID:-}" \
+              --repo-dir . \
+              --out-emails ../batch_emails.txt
+
+            if [ ! -s ../batch_emails.txt ]; then
+              echo "No due UNKNOWN items eligible for re-check right now."
+              exit 0
+            fi
+
+            git add -A recheck-queue
+            if ! git diff --cached --quiet; then
+              git commit --quiet -m "recheck select ${BATCH_ID}"
+            fi
+
+            if git push --quiet origin results; then
+              SELECTED=1
+              break
+            fi
+
+            sleep $((attempt * 2))
+            git fetch --quiet origin results
+            git reset --hard origin/results --quiet
+          done
+
+          if [ "$SELECTED" -ne 1 ]; then
+            echo "Failed to acquire queue dispatch lease after retries." >&2
+            exit 1
+          fi
+
+          EMAILS_PAYLOAD="$(cat ../batch_emails.txt)"
+          echo "Dispatching recheck batch ${BATCH_ID} ($(wc -l < ../batch_emails.txt) emails)"
+
+          node -e '
+            const fs = require("node:fs");
+            const payload = {
+              ref: "main",
+              inputs: {
+                request_id: process.env.BATCH_ID,
+                emails: fs.readFileSync("../batch_emails.txt", "utf8").trim(),
+                is_recheck: "true"
+              }
+            };
+            fetch(`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/actions/workflows/leadpure-check.yml/dispatches`, {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${process.env.GH_TOKEN}`,
+                "Accept": "application/vnd.github+json",
+                "Content-Type": "application/json",
+                "User-Agent": "LeadPure-Recheck-Queue"
+              },
+              body: JSON.stringify(payload)
+            }).then(async (res) => {
+              if (!res.ok) {
+                console.error("Dispatch failed:", res.status, await res.text());
+                process.exit(1);
+              }
+              console.log("Dispatched leadpure-check.yml cleanly for batch", process.env.BATCH_ID);
+            }).catch((err) => {
+              console.error(err);
+              process.exit(1);
+            });
+          ' BATCH_ID="$BATCH_ID"

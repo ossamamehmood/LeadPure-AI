@@ -60,6 +60,10 @@ async function mapProbeResults(resultArray: any[]) {
     const reachable = String(item.is_reachable || 'unknown').toLowerCase();
     const primaryMx = (item.mx?.records?.[0] || '').replace(/\.$/, '');
     const isFree = !!(item.misc?.is_b2c || item.debug?.freemail);
+    const recheckRaw = item.recheck && typeof item.recheck === 'object' ? item.recheck : null;
+    const greylistRaw = item.debug?.greylist_retries && typeof item.debug.greylist_retries === 'object'
+      ? item.debug.greylist_retries
+      : null;
 
     let verdict: CanonicalVerdict = 'UNKNOWN';
     let verificationStatus: CanonicalUiStatus = 'unknown';
@@ -103,8 +107,10 @@ async function mapProbeResults(resultArray: any[]) {
         ui_reason = 'Mail server blocked the verification check by policy; status could not be confirmed';
       } else if (item.debug?.forwarding_rcpt_rejected) {
         ui_reason = 'Forwarding service declined check; final inbox could not be confirmed';
-      } else if (item.debug?.greylisted_or_temp) {
-        ui_reason = 'Mail server is temporarily rate-limiting checks (greylisted); try again shortly';
+      } else if (item.debug?.greylisted_or_temp || (greylistRaw && Number(greylistRaw.count) >= 1)) {
+        ui_reason = greylistRaw && Number(greylistRaw.count) >= 1
+          ? `Mail server temporarily deferred check after ${greylistRaw.count} greylist retries; queued for automatic re-check`
+          : 'Mail server is temporarily rate-limiting checks (greylisted); queued for automatic re-check';
       } else if (item.debug?.connect_error) {
         ui_reason = 'Could not reach the mail server in time; try again to confirm';
       } else {
@@ -120,6 +126,9 @@ async function mapProbeResults(resultArray: any[]) {
     else if (item.smtp?.is_catch_all) sub_status = 'catch_all';
     else if (verdict === 'INVALID') sub_status = 'mailbox_not_found';
     else if (verdict === 'UNKNOWN') sub_status = 'unreachable';
+
+    const resolvedOnRecheck = Boolean(recheckRaw?.resolved || item.debug?.resolved_on_recheck);
+    const recheckStatus = recheckRaw?.status || (verdict === 'UNKNOWN' ? 'pending' : (resolvedOnRecheck ? 'resolved' : undefined));
 
     return {
       email: emailInput,
@@ -142,6 +151,14 @@ async function mapProbeResults(resultArray: any[]) {
       spfExists: hasSpf,
       smtpValid: !!item.smtp?.can_connect_smtp,
       syntaxValid: item.syntax?.is_valid_syntax !== false,
+      recheckStatus,
+      resolvedOnRecheck,
+      recheckResolvedAt: recheckRaw?.resolvedAt || item.debug?.recheck_resolved_at || undefined,
+      recheckAttempts: Number(recheckRaw?.attempts ?? item.debug?.recheck_attempts ?? 0),
+      recheckMaxAttempts: Number(recheckRaw?.maxAttempts ?? 2),
+      recheckNextAt: recheckRaw?.nextAttemptAt || undefined,
+      initialVerdict: recheckRaw?.initialVerdict || (resolvedOnRecheck ? 'UNKNOWN' : verdict),
+      greylistRetries: greylistRaw ? { count: Number(greylistRaw.count || 0), final_reply: greylistRaw.final_reply } : undefined,
       ui_label,
       ui_reason,
       raw: item
@@ -156,6 +173,50 @@ async function fetchGithubContent(url: string, token?: string, acceptRaw = false
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   return fetch(url, { headers });
+}
+
+async function fetchRecheckQueue(repoOwner: string, repoName: string, token?: string) {
+  try {
+    const queueUrl = token
+      ? `https://api.github.com/repos/${repoOwner}/${repoName}/contents/recheck-queue/queue.json?ref=results`
+      : `https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/recheck-queue/queue.json`;
+    const res = await fetchGithubContent(queueUrl, token, true);
+    if (!res.ok) return null;
+    const data: any = await res.json();
+    return Array.isArray(data?.items) ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+function mergeQueueStatusIntoMapped(mappedList: any[], requestId: string, queueData: any) {
+  if (!queueData || !Array.isArray(queueData.items)) return mappedList;
+  const byEmail = new Map<string, any>();
+  for (const entry of queueData.items) {
+    const matches =
+      entry?.scanId === requestId ||
+      (Array.isArray(entry?.scans) && entry.scans.some((s: any) => s?.requestId === requestId));
+    if (matches && entry?.email) {
+      byEmail.set(String(entry.email).toLowerCase(), entry);
+    }
+  }
+  if (byEmail.size === 0) return mappedList;
+
+  return mappedList.map((contact) => {
+    const emailLower = String(contact?.email || '').trim().toLowerCase();
+    const entry = byEmail.get(emailLower);
+    if (!entry) return contact;
+
+    return {
+      ...contact,
+      recheckStatus: entry.status || contact.recheckStatus,
+      recheckAttempts: Number(entry.attempts ?? contact.recheckAttempts ?? 0),
+      recheckMaxAttempts: Number(entry.maxAttempts ?? contact.recheckMaxAttempts ?? 2),
+      recheckNextAt: entry.nextAttemptAt ?? contact.recheckNextAt ?? null,
+      resolvedOnRecheck: Boolean(contact.resolvedOnRecheck || entry.status === 'resolved'),
+      recheckResolvedAt: contact.recheckResolvedAt || entry.resolvedAt || undefined
+    };
+  });
 }
 
 async function putGithubFile(url: string, token: string, message: string, jsonObj: any, sha?: string) {
@@ -350,7 +411,7 @@ export default async function handler(req: any, res: any) {
   // GET /api/check?requestId=... [&chunk=N | &mode=manifest]
   // -------------------------------------------------------------
   if (req.method === 'GET') {
-    const { requestId, chunk, mode } = req.query || {};
+    const { requestId, chunk, mode, withQueue } = req.query || {};
     if (!isValidRequestId(requestId)) {
       return res.status(400).json({ error: 'Valid requestId parameter is required' });
     }
@@ -360,6 +421,22 @@ export default async function handler(req: any, res: any) {
     }
 
     try {
+      // 0. Direct re-check queue query: GET /api/check?requestId=...&mode=queue
+      if (mode === 'queue') {
+        const queueData = await fetchRecheckQueue(repoOwner, repoName, token);
+        const items = (queueData?.items || []).filter(
+          (entry: any) =>
+            entry?.scanId === requestId ||
+            (Array.isArray(entry?.scans) && entry.scans.some((s: any) => s?.requestId === requestId))
+        );
+        return res.json({
+          status: 'completed',
+          requestId,
+          updatedAt: queueData?.updatedAt || null,
+          items
+        });
+      }
+
       // 1. Specific chunk download: GET /api/check?requestId=...&chunk=N
       if (chunk !== undefined) {
         const chunkIdx = Number(chunk);
@@ -402,7 +479,14 @@ export default async function handler(req: any, res: any) {
         }
         const rawJson: any = await chunkRes.json();
         const resultArray = Array.isArray(rawJson) ? rawJson : [rawJson];
-        const mappedList = await mapProbeResults(resultArray);
+        let mappedList = await mapProbeResults(resultArray);
+        const needsQueueMerge =
+          withQueue === '1' ||
+          mappedList.some((m: any) => m.status === 'UNKNOWN' || m.resolvedOnRecheck);
+        if (needsQueueMerge) {
+          const queueData = await fetchRecheckQueue(repoOwner, repoName, token);
+          mappedList = mergeQueueStatusIntoMapped(mappedList, requestId, queueData);
+        }
         return res.json({
           status: 'completed',
           requestId,
@@ -422,7 +506,14 @@ export default async function handler(req: any, res: any) {
         if (singleRes.ok) {
           const rawJson: any = await singleRes.json();
           const resultArray = Array.isArray(rawJson) ? rawJson : [rawJson];
-          const mappedList = await mapProbeResults(resultArray);
+          let mappedList = await mapProbeResults(resultArray);
+          if (
+            withQueue === '1' ||
+            mappedList.some((m: any) => m.status === 'UNKNOWN' || m.resolvedOnRecheck)
+          ) {
+            const queueData = await fetchRecheckQueue(repoOwner, repoName, token);
+            mappedList = mergeQueueStatusIntoMapped(mappedList, requestId, queueData);
+          }
           const primaryMapped = mappedList[0] || {};
           return res.json({
             ...primaryMapped,

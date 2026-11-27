@@ -10,7 +10,15 @@ export interface ContactData {
   [key: string]: string | number | boolean | null | undefined;
 }
 
-export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
+export interface ProcessedContact {
+  firstName?: string;
+  lastName?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  country?: string;
+  city?: string;
+  postalCode?: string;
   /** Core standardized status compliant with schema.md */
   status: 'SAFE' | 'RISKY' | 'INVALID' | 'UNKNOWN';
   /** Sub‑status or detailed reason */
@@ -52,8 +60,19 @@ export interface ProcessedContact extends Omit<ContactData, '__originalData'> {
   hasGravatar?: boolean;
   gravatarUrl?: string;
   isTimedOutMissing?: boolean;
+  recheckStatus?: 'pending' | 'resolved' | 'exhausted';
+  resolvedOnRecheck?: boolean;
+  recheckResolvedAt?: string;
+  recheckAttempts?: number;
+  recheckMaxAttempts?: number;
+  recheckNextAt?: string | null;
+  initialVerdict?: 'SAFE' | 'RISKY' | 'INVALID' | 'UNKNOWN';
+  greylistRetries?: { count: number; final_reply?: string };
+  ui_reason?: string;
+  raw?: any;
   originalIndex: number;
   __originalData?: any;
+  [key: string]: any;
 }
 
 export interface ValidationRules {
@@ -67,6 +86,9 @@ export interface ValidationRules {
 
 export interface HistoryItem {
   id: string;
+  requestId?: string;
+  type?: 'bulk' | 'single';
+  chunkCount?: number;
   date: string;
   fileName: string;
   totalRows: number;
@@ -74,6 +96,11 @@ export interface HistoryItem {
   processedData: ProcessedContact[];
   eliminatedData: any[];
   mappings: any;
+  initialDefinitiveRate?: number;
+  currentDefinitiveRate?: number;
+  recheckPendingCount?: number;
+  recheckResolvedCount?: number;
+  lastSyncedAt?: string;
   stats: {
     removed: number;
     phoneFormatted: number;

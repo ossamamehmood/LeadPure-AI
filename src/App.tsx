@@ -199,11 +199,13 @@ export default function App() {
     excludeSpamTraps: true
   });
 
-  const { history, saveToHistory, clearHistory } = useHistory();
+  const { history, saveToHistory, updateHistoryItem, clearHistory } = useHistory();
   const processor = useLeadProcessor();
   const { toast } = useToast();
   const [processingStats, setProcessingStats] = useState<any>(null);
   const [resumableScan, setResumableScan] = useState<SavedScanState | null>(null);
+  const [isRefreshingRechecks, setIsRefreshingRechecks] = useState(false);
+  const [activeScanRequestId, setActiveScanRequestId] = useState<string | null>(null);
 
   useEffect(() => {
     const saved = loadSavedScanState();
@@ -266,22 +268,44 @@ export default function App() {
     reader.readAsArrayBuffer(file);
   }, [toast]);
 
-  const finishScanState = (valid: any[], eliminated: any[], stats: any, timedOut: boolean, usedMappings: any, usedName: string) => {
+  const finishScanState = (
+    valid: any[],
+    eliminated: any[],
+    stats: any,
+    timedOut: boolean,
+    usedMappings: any,
+    usedName: string,
+    usedRequestId?: string
+  ) => {
     setProcessingStats(stats);
     setResumableScan(null);
+    if (usedRequestId) setActiveScanRequestId(usedRequestId);
+
+    const cleanEliminated = eliminated.filter((item: any) => !item.isTimedOutMissing);
+    const pendingRecheck = cleanEliminated.filter(
+      (item: any) => String(item.status || '').toUpperCase() === 'UNKNOWN' && item.recheckStatus !== 'exhausted'
+    ).length;
 
     if (stats && stats.arrivedCount > 0) {
       saveToHistory({
-        id: Math.random().toString(36).slice(2, 11),
+        id: usedRequestId || Math.random().toString(36).slice(2, 11),
+        requestId: usedRequestId,
+        type: 'bulk',
+        chunkCount: stats.chunkCount || Math.max(1, Math.ceil((valid.length + cleanEliminated.length) / 100)),
         date: new Date().toISOString(),
         fileName: usedName || 'LeadPure_Scan.xlsx',
         totalRows: stats.totalInput || (valid.length + eliminated.length),
         validRows: valid.length,
         processedData: valid,
-        eliminatedData: eliminated.filter((item: any) => !item.isTimedOutMissing),
+        eliminatedData: cleanEliminated,
         mappings: usedMappings,
+        initialDefinitiveRate: stats.initialDefinitiveRate ?? stats.definitiveRate ?? 0,
+        currentDefinitiveRate: stats.definitiveRate || 0,
+        recheckPendingCount: pendingRecheck,
+        recheckResolvedCount: 0,
+        lastSyncedAt: new Date().toISOString(),
         stats: {
-          removed: eliminated.filter((item: any) => !item.isTimedOutMissing).length,
+          removed: cleanEliminated.length,
           phoneFormatted: valid.length,
           avgConfidence: stats.definitiveRate || 0
         }
@@ -300,12 +324,53 @@ export default function App() {
     }
   };
 
+  const handleSingleCompleted = useCallback((resolved: any, reqId?: string) => {
+    const emailAddr = String(resolved?.email || '').trim();
+    if (!emailAddr || !reqId) return;
+    const verdict = String(resolved?.status || resolved?.verdict || 'UNKNOWN').toUpperCase() as any;
+    const row = {
+      ...resolved,
+      email: emailAddr,
+      status: verdict,
+      originalIndex: 0
+    };
+    const isSafe = verdict === 'SAFE';
+    const isUnknown = verdict === 'UNKNOWN';
+    const isResolved = Boolean(resolved?.resolvedOnRecheck);
+    const rate = isUnknown ? 0 : 100;
+    const initRate = isResolved ? 0 : rate;
+
+    saveToHistory({
+      id: reqId,
+      requestId: reqId,
+      type: 'single',
+      chunkCount: 0,
+      date: resolved?.timestamp || new Date().toISOString(),
+      fileName: emailAddr,
+      totalRows: 1,
+      validRows: isSafe ? 1 : 0,
+      processedData: isSafe ? [row] : [],
+      eliminatedData: isSafe ? [] : [row],
+      mappings: { emailKey: 'email' },
+      initialDefinitiveRate: initRate,
+      currentDefinitiveRate: rate,
+      recheckPendingCount: isUnknown && resolved?.recheckStatus !== 'exhausted' ? 1 : 0,
+      recheckResolvedCount: isResolved ? 1 : 0,
+      lastSyncedAt: new Date().toISOString(),
+      stats: {
+        removed: isSafe ? 0 : 1,
+        phoneFormatted: isSafe ? 1 : 0,
+        avgConfidence: rate
+      }
+    });
+  }, [saveToHistory]);
+
   const handleStartProcessing = async () => {
     setAppState('processing');
     try {
       const result = await processor.runProcessor(fileData, mappings, validationRules, fileName);
       if (result.stats) {
-        finishScanState(result.valid, result.eliminated, result.stats, !!result.timedOut, mappings, fileName);
+        finishScanState(result.valid, result.eliminated, result.stats, !!result.timedOut, mappings, fileName, result.requestId);
       } else {
         setAppState('mapping');
         toast('Verification cancelled', 'info');
@@ -324,7 +389,7 @@ export default function App() {
     try {
       const result = await processor.resumeProcessor(resumableScan);
       if (result.stats) {
-        finishScanState(result.valid, result.eliminated, result.stats, !!result.timedOut, resumableScan.mappings, resumableScan.fileName);
+        finishScanState(result.valid, result.eliminated, result.stats, !!result.timedOut, resumableScan.mappings, resumableScan.fileName, result.requestId || resumableScan.requestId);
       } else {
         setAppState('upload');
       }
@@ -417,13 +482,166 @@ export default function App() {
     setIsPreviewOpen(true);
   };
 
+  const syncHistoryItemFromServer = useCallback(async (item: HistoryItem): Promise<HistoryItem> => {
+    if (!item.requestId) return item;
+    try {
+      let freshResults: any[] = [];
+      if (item.type === 'single') {
+        const res = await fetch(`/api/check?requestId=${encodeURIComponent(item.requestId)}&withQueue=1`);
+        if (!res.ok) return item;
+        const data = await res.json();
+        if (data.status !== 'completed') return item;
+        freshResults = Array.isArray(data.results) && data.results.length > 0 ? data.results : [data];
+      } else {
+        const totalChunks = item.chunkCount || Math.max(1, Math.ceil(item.totalRows / 100));
+        const chunkPromises = Array.from({ length: totalChunks }, (_, idx) =>
+          fetch(`/api/check?requestId=${encodeURIComponent(item.requestId!)}&chunk=${idx}&withQueue=1`)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null)
+        );
+        const chunksData = await Promise.all(chunkPromises);
+        for (const cData of chunksData) {
+          if (cData?.status === 'completed' && Array.isArray(cData.results)) {
+            freshResults.push(...cData.results);
+          }
+        }
+        if (freshResults.length === 0) return item;
+      }
+
+      const freshByEmail = new Map<string, any>();
+      for (const r of freshResults) {
+        const em = String(r?.email || r?.input || '').trim().toLowerCase();
+        if (em) freshByEmail.set(em, r);
+      }
+
+      const combinedOld = [...(item.processedData || []), ...(item.eliminatedData || [])].sort(
+        (a: any, b: any) => (a.originalIndex ?? 0) - (b.originalIndex ?? 0)
+      );
+
+      const newValid: any[] = [];
+      const newEliminated: any[] = [];
+      let pendingCount = 0;
+      let resolvedCount = 0;
+      let unknownCount = 0;
+      let safeCount = 0;
+
+      for (const oldRow of combinedOld) {
+        const emailVal = String(oldRow?.[item.mappings?.emailKey] || oldRow?.email || '').trim().toLowerCase();
+        const fresh = freshByEmail.get(emailVal);
+        const merged = fresh
+          ? {
+              ...oldRow,
+              ...fresh,
+              email: fresh.email || oldRow.email,
+              status: String(fresh.status || fresh.verdict || oldRow.status || 'UNKNOWN').toUpperCase(),
+              verificationStatus: String(fresh.verificationStatus || fresh.status || 'unknown').toLowerCase(),
+              verificationReason: fresh.verificationReason || fresh.ui_reason || oldRow.verificationReason,
+              reason: fresh.verificationReason || fresh.ui_reason || oldRow.reason,
+              originalIndex: oldRow.originalIndex,
+              __originalData: oldRow.__originalData
+            }
+          : oldRow;
+
+        const v = String(merged.status || 'UNKNOWN').toUpperCase();
+        if (merged.resolvedOnRecheck) resolvedCount++;
+        if (v === 'UNKNOWN') {
+          unknownCount++;
+          if (merged.recheckStatus !== 'exhausted') pendingCount++;
+        }
+        if (v === 'SAFE') {
+          safeCount++;
+          newValid.push(merged);
+        } else {
+          newEliminated.push(merged);
+        }
+      }
+
+      const totalArrived = newValid.length + newEliminated.length;
+      const currentDefinitive = totalArrived - unknownCount;
+      const currentRate = totalArrived > 0 ? Math.round((currentDefinitive / totalArrived) * 100) : 0;
+      const initialUnknown = unknownCount + resolvedCount;
+      const initialRate = item.initialDefinitiveRate ?? (
+        totalArrived > 0 ? Math.round((Math.max(0, totalArrived - initialUnknown) / totalArrived) * 100) : currentRate
+      );
+
+      const updated: HistoryItem = {
+        ...item,
+        validRows: safeCount,
+        processedData: newValid,
+        eliminatedData: newEliminated,
+        initialDefinitiveRate: initialRate,
+        currentDefinitiveRate: currentRate,
+        recheckPendingCount: pendingCount,
+        recheckResolvedCount: resolvedCount,
+        lastSyncedAt: new Date().toISOString(),
+        stats: {
+          ...item.stats,
+          removed: newEliminated.length,
+          phoneFormatted: safeCount,
+          avgConfidence: currentRate
+        }
+      };
+
+      updateHistoryItem(item.id, () => updated);
+      return updated;
+    } catch {
+      return item;
+    }
+  }, [updateHistoryItem]);
+
+  const refreshPendingHistory = useCallback(async () => {
+    const syncTargets = history.filter(
+      (item) =>
+        Boolean(item.requestId) &&
+        ((item.recheckPendingCount ?? 0) > 0 ||
+          [...(item.processedData || []), ...(item.eliminatedData || [])].some(
+            (r: any) => String(r?.status || '').toUpperCase() === 'UNKNOWN' && r?.recheckStatus !== 'exhausted'
+          ))
+    );
+    if (syncTargets.length === 0) return;
+
+    setIsRefreshingRechecks(true);
+    try {
+      await Promise.all(syncTargets.map((item) => syncHistoryItemFromServer(item)));
+    } finally {
+      setIsRefreshingRechecks(false);
+    }
+  }, [history, syncHistoryItemFromServer]);
+
+  useEffect(() => {
+    if (route === '/dashboard' && appState === 'history') {
+      refreshPendingHistory();
+    }
+  }, [route, appState]);
+
   const loadHistoryItem = (item: HistoryItem) => {
     if (!item.processedData) return;
     processor.setProcessedData(item.processedData);
     processor.setEliminatedData(item.eliminatedData || []);
     setMappings(item.mappings);
     setFileName(item.fileName);
+    setActiveScanRequestId(item.requestId || null);
+    setProcessingStats({
+      arrivedCount: item.processedData.length + (item.eliminatedData || []).length,
+      initialDefinitiveRate: item.initialDefinitiveRate,
+      definitiveRate: item.currentDefinitiveRate
+    });
     setAppState('results');
+
+    if (item.requestId && (item.recheckPendingCount ?? 0) > 0) {
+      setIsRefreshingRechecks(true);
+      syncHistoryItemFromServer(item)
+        .then((updated) => {
+          processor.setProcessedData(updated.processedData);
+          processor.setEliminatedData(updated.eliminatedData || []);
+          setProcessingStats({
+            arrivedCount: updated.processedData.length + (updated.eliminatedData || []).length,
+            initialDefinitiveRate: updated.initialDefinitiveRate,
+            definitiveRate: updated.currentDefinitiveRate
+          });
+        })
+        .finally(() => setIsRefreshingRechecks(false));
+    }
   };
 
   const downloadHistoryItem = async (item: HistoryItem) => {
@@ -574,6 +792,7 @@ export default function App() {
                     initialEmail={prefillEmail}
                     onConsumeInitialEmail={() => setPrefillEmail('')}
                     onVerifyingChange={setIsSingleVerifying}
+                    onCompleted={handleSingleCompleted}
                   />
                   <LeadUpload onDrop={onDrop} />
                 </motion.div>
@@ -628,6 +847,8 @@ export default function App() {
                     loadItem={loadHistoryItem}
                     downloadItem={downloadHistoryItem}
                     clearHistory={clearHistory}
+                    onRefreshRechecks={refreshPendingHistory}
+                    isRefreshingRechecks={isRefreshingRechecks}
                   />
                 </motion.div>
               )}
@@ -656,8 +877,26 @@ export default function App() {
                     chunksDone={processor.chunksDone}
                     chunksTotal={processor.chunksTotal}
                     estimatedSeconds={processor.estimatedSeconds}
-                    activeRequestId={processor.activeRequestId}
+                    activeRequestId={processor.activeRequestId || activeScanRequestId}
                     onCancel={processor.cancelProcessing}
+                    onRefreshRechecks={() => {
+                      const reqId = processor.activeRequestId || activeScanRequestId;
+                      const match = history.find((h) => h.requestId === reqId || h.id === reqId);
+                      if (!match) return;
+                      setIsRefreshingRechecks(true);
+                      syncHistoryItemFromServer(match)
+                        .then((updated) => {
+                          processor.setProcessedData(updated.processedData);
+                          processor.setEliminatedData(updated.eliminatedData || []);
+                          setProcessingStats({
+                            arrivedCount: updated.processedData.length + (updated.eliminatedData || []).length,
+                            initialDefinitiveRate: updated.initialDefinitiveRate,
+                            definitiveRate: updated.currentDefinitiveRate
+                          });
+                        })
+                        .finally(() => setIsRefreshingRechecks(false));
+                    }}
+                    isRefreshingRechecks={isRefreshingRechecks}
                   />
                 </motion.div>
               )}

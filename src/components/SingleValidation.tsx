@@ -19,12 +19,14 @@ interface SingleValidationProps {
   initialEmail?: string;
   onConsumeInitialEmail?: () => void;
   onVerifyingChange?: (verifying: boolean) => void;
+  onCompleted?: (result: Partial<ProcessedContact>, requestId?: string) => void;
 }
 
 export function SingleValidation({
   initialEmail,
   onConsumeInitialEmail,
-  onVerifyingChange
+  onVerifyingChange,
+  onCompleted
 }: SingleValidationProps = {}) {
   const [email, setEmail] = useState(initialEmail || '');
   const [isVerifying, setIsVerifying] = useState(false);
@@ -229,8 +231,10 @@ export function SingleValidation({
       if (initialData.status === 'completed') {
         clearTimers();
         currentRequestIdRef.current = null;
-        setResult(resolveCompletedResult(initialData));
+        const resolved = resolveCompletedResult(initialData);
+        setResult(resolved);
         setIsVerifying(false);
+        onCompleted?.(resolved, initialData.requestId);
         return;
       }
 
@@ -263,8 +267,10 @@ export function SingleValidation({
               if (pollData.status === 'completed') {
                 clearTimers();
                 currentRequestIdRef.current = null;
-                setResult(resolveCompletedResult(pollData));
+                const resolved = resolveCompletedResult(pollData);
+                setResult(resolved);
                 setIsVerifying(false);
+                onCompleted?.(resolved, reqId);
                 return;
               }
             }
@@ -582,6 +588,17 @@ export function SingleValidation({
                       )}>
                         {verdict}
                       </div>
+                      {result.resolvedOnRecheck && (
+                        <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-2 relative z-10">
+                          Resolved on re-check
+                          {result.recheckResolvedAt ? ` (${new Date(result.recheckResolvedAt).toLocaleString()})` : ''}
+                        </p>
+                      )}
+                      {!result.resolvedOnRecheck && verdict === 'UNKNOWN' && (
+                        <p className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mt-2 relative z-10">
+                          {result.recheckStatus === 'exhausted' ? 'Final UNKNOWN (2/2 re-checks completed)' : 're-check pending (~1h / ~24h)'}
+                        </p>
+                      )}
                     </GlossyCard>
                   </StaggerItem>
 

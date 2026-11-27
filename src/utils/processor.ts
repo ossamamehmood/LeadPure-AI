@@ -617,7 +617,10 @@ export const processContacts = async (
     eliminated: finalSnap.eliminatedSnap,
     stats: {
       ...stats,
+      chunkCount,
       definitiveRate,
+      initialDefinitiveRate: definitiveRate,
+      recheckPendingCount: stats.unknownCount,
       finalDeliverable: finalSnap.safeCount,
       finalFiltered: stats.riskyCount + stats.invalidCount + stats.unknownCount,
       failedChunkCount,
