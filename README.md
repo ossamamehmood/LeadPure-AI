@@ -172,7 +172,6 @@ LeadPure-AI/
 ├── agents/                        # Engineering rules, architecture notes & audit protocols
 ├── vercel.json                    # Security headers, cache rules & SPA rewrites
 └── .github/
-    ├── dependabot.yml             # Dependency update schedule
     └── workflows/
         ├── ci.yml                 # Lint, static guards, test suite & Vite build
         ├── leadpure-check.yml     # Port-25 workflow dispatcher with Port-25 gate & retries
