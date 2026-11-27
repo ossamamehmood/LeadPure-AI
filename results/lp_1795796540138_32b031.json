@@ -1,0 +1,32 @@
+[
+  {
+    "input": "sarah.chen@company.example",
+    "is_reachable": "invalid",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": false,
+      "records": []
+    },
+    "smtp": {
+      "can_connect_smtp": false,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "sarah.chen@company.example",
+      "domain": "company.example",
+      "is_valid_syntax": true,
+      "username": "sarah.chen"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "no_mx": true
+    }
+  }
+]
