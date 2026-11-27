@@ -1,0 +1,42 @@
+[
+  {
+    "input": "bellanacosta1@gmail.com",
+    "is_reachable": "invalid",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": false,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "bellanacosta1@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "bellanacosta1"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 586e51a60fabf-4bc62945371si40445714fac.290 - gsmtp",
+      "rcpt_enhanced": "5.1.1",
+      "confirm_reply": "550 5.1.1  https://support.google.com/mail/?p=NoSuchUser 5614622812f47-57a35f527e5si33509372b6e.110 - gsmtp",
+      "rcpt_code": 550,
+      "confirmed_two_identities": true
+    }
+  }
+]
