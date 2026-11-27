@@ -37,6 +37,12 @@ export function SiteShell({
 
   return (
     <div className="min-h-[100dvh] bg-app-bg text-app-text font-sans relative selection:bg-brand-blue/30 selection:text-white overflow-x-clip">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[90] px-4 py-2 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-950 text-xs font-semibold shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+      >
+        Skip to main content
+      </a>
       {!shouldReduceMotion && (
         <motion.div
           aria-hidden="true"
@@ -61,10 +67,10 @@ export function SiteShell({
             }}
             className="flex items-center gap-2 sm:gap-2.5 group shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-full pl-1"
           >
-            <div className="w-8 h-8 rounded-full gradient-cta flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(90,92,255,0.5),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
-              <Zap className="w-4 h-4 fill-white" />
+            <div className="w-8 h-8 rounded-full gradient-cta flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(90,92,255,0.5),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-200 group-hover:scale-105 group-hover:-rotate-3">
+              <Zap className="w-4 h-4 fill-white" aria-hidden="true" />
             </div>
-            <span className="text-base sm:text-lg font-display font-bold text-app-text tracking-tight">
+            <span translate="no" className="text-base sm:text-lg font-display font-bold text-app-text tracking-tight">
               Lead<span className="gradient-text">Pure</span>
             </span>
           </a>
@@ -122,10 +128,10 @@ export function SiteShell({
             <button
               onClick={(e) => onToggleTheme(e)}
               aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              className="w-9 h-9 rounded-full bg-white/60 dark:bg-white/[0.06] hover:bg-white/90 dark:hover:bg-white/[0.12] text-slate-600 dark:text-slate-300 transition-all border border-white/80 dark:border-white/10 active:scale-95 flex items-center justify-center overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+              className="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-white/60 dark:bg-white/[0.06] hover:bg-white/90 dark:hover:bg-white/[0.12] text-slate-600 dark:text-slate-300 transition-[background-color,border-color,transform] duration-200 border border-white/80 dark:border-white/10 active:scale-[0.97] flex items-center justify-center overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
-              <div className="relative w-4 h-4">
+              <div className="relative w-4 h-4" aria-hidden="true">
                 <Sun
                   className={cn(
                     'w-4 h-4 absolute inset-0 transition-transform duration-300',
@@ -145,17 +151,17 @@ export function SiteShell({
               onClick={() => onNavigate('/dashboard')}
               variant="primary"
               size="sm"
-              className="rounded-full px-3.5 sm:px-5 min-h-[36px]"
+              className="rounded-full px-3.5 sm:px-5 min-h-[40px] sm:min-h-[36px]"
             >
               <span className="hidden sm:inline">Verify Free</span>
               <span className="sm:hidden">Verify</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
             </MagneticButton>
           </div>
         </header>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-16 space-y-20 sm:space-y-28 relative z-10">
+      <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-16 space-y-20 sm:space-y-28 relative z-10">
         {children}
         <Footer variant="landing" onNavigate={onNavigate} />
       </main>

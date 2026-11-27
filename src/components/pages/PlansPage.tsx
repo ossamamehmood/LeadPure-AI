@@ -142,14 +142,14 @@ export function PlansPage({ onNavigate }: PlansPageProps) {
               href="https://www.patreon.com/c/ossamamehmood"
               target="_blank"
               rel="noreferrer"
-              className="liquid-glass flex-1 min-h-[52px] px-6 py-3 rounded-full text-sm font-semibold text-app-text flex items-center justify-center gap-2 transition-all"
+              className="liquid-glass flex-1 min-h-[52px] px-6 py-3 rounded-full text-sm font-semibold text-app-text flex items-center justify-center gap-2 transition-[border-color,background-color,box-shadow,transform] duration-200 active:scale-[0.97]"
             >
               <span>Back Upcoming Releases</span>
             </a>
             <button
               type="button"
               onClick={() => onNavigate('/deliverability')}
-              className="flex-1 min-h-[52px] px-6 py-3 rounded-full border border-app-border hover:border-brand-blue/40 text-sm font-semibold text-app-text flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="flex-1 min-h-[52px] px-6 py-3 rounded-full border border-app-border hover:border-brand-blue/40 text-sm font-semibold text-app-text flex items-center justify-center gap-2 transition-[border-color,color,transform] duration-200 active:scale-[0.97] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
             >
               <span>Read Bounce Guide</span>
             </button>

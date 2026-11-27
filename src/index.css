@@ -25,6 +25,9 @@
 }
 
 :root {
+  color-scheme: dark;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --bg-color: #07080F;
   --text-color: #F8FAFC;
   --border-color: rgba(255, 255, 255, 0.09);
@@ -39,6 +42,7 @@
 }
 
 [data-theme='light'] {
+  color-scheme: light;
   --bg-color: #EDF2F9;
   --text-color: #0F172A;
   --border-color: rgba(15, 23, 42, 0.08);
@@ -59,10 +63,20 @@
     inset 0 1.5px 1px 0 rgba(255, 255, 255, 1);
 }
 
+@media (pointer: fine) {
+  html {
+    overscroll-behavior: none;
+  }
+}
+
 body {
   @apply bg-app-bg text-app-text selection:bg-brand-blue/25 selection:text-app-text;
-  transition: background-color 0.25s cubic-bezier(0.22, 1, 0.36, 1), color 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background-color 0.25s var(--ease-out), color 0.25s var(--ease-out);
   overflow-y: overlay;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  caret-color: #5A5CFF;
+  text-underline-offset: 3px;
   -webkit-font-smoothing: antialiased;
 }
 

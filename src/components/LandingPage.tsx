@@ -171,7 +171,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
   };
 
   return (
-    <div className="space-y-24 sm:space-y-28">
+    <div className="space-y-24 sm:space-y-32">
       {/* 1. ASYMMETRIC PRODUCT-FIRST HERO + LIVE VERIFICATION INSPECTOR */}
       <section className="relative pt-2 sm:pt-4">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center relative z-10">
@@ -179,7 +179,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
           <div className="lg:col-span-6 space-y-6">
             <div className="flex items-center gap-3">
               <span className="h-[1px] w-7 bg-brand-blue/70" aria-hidden="true" />
-              <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400">
+              <p className="text-xs font-mono font-medium uppercase tracking-[0.14em] text-slate-600 dark:text-slate-400">
                 Email Hygiene &amp; Deliverability
               </p>
             </div>
@@ -199,20 +199,24 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
             <form onSubmit={handleQuickLaunch} className="space-y-3 max-w-xl">
               <div className="liquid-glass rounded-2xl p-1.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="relative flex-1 min-w-0">
-                  <MailCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <MailCheck className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
                   <input
                     type="email"
+                    name="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    spellCheck={false}
                     value={heroEmail}
                     onChange={(e) => setHeroEmail(e.target.value)}
                     placeholder="alex@company.example"
                     aria-label="Enter an email address to verify"
-                    className="w-full h-12 sm:h-13 pl-10 pr-3 rounded-xl bg-white/55 dark:bg-white/[0.04] border border-white/70 dark:border-white/10 text-sm font-medium text-app-text placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-all"
+                    className="w-full h-12 sm:h-13 pl-10 pr-3 rounded-xl bg-white/55 dark:bg-white/[0.04] border border-white/70 dark:border-white/10 text-sm font-medium text-app-text placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-[border-color,box-shadow] duration-200"
                   />
                 </div>
                 <SparkBurstButton className="w-full sm:w-auto shrink-0">
                   <MagneticButton type="submit" variant="primary" size="lg" className="w-full sm:w-auto px-6 !min-h-[48px] sm:!min-h-[52px] rounded-xl">
                     <span>Verify Email</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4" aria-hidden="true" />
                   </MagneticButton>
                 </SparkBurstButton>
               </div>
@@ -223,8 +227,9 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                   <button
                     key={preset}
                     type="button"
+                    translate="no"
                     onClick={() => setHeroEmail(preset)}
-                    className="px-2 py-0.5 rounded-md font-mono text-[11px] bg-white/45 dark:bg-white/[0.06] border border-white/60 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-brand-blue transition-colors cursor-pointer"
+                    className="min-h-[30px] px-2.5 py-1 rounded-md font-mono text-[11px] bg-white/45 dark:bg-white/[0.06] border border-white/60 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-brand-blue hover:border-brand-blue/40 transition-[color,border-color,transform] duration-150 active:scale-[0.97] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
                   >
                     {preset}
                   </button>
@@ -269,23 +274,23 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
       </section>
 
       {/* 2. ASYMMETRIC FEATURE BENTO (UNIFIED LIQUID GLASS) */}
-      <section className="space-y-8">
+      <section className="space-y-6 sm:space-y-7">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div className="space-y-2 max-w-2xl">
-            <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+            <p className="text-xs font-mono font-medium uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
               Built Better
             </p>
-            <h2 className="text-2xl sm:text-4xl font-display font-bold text-app-text tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-display font-bold text-app-text tracking-tight text-balance">
               Fewer false drops. Cleaner spreadsheets.
             </h2>
           </div>
           <button
             type="button"
             onClick={() => onNavigate('/deliverability')}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-app-text hover:text-brand-blue transition-colors cursor-pointer self-start sm:self-end"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-app-text hover:text-brand-blue transition-colors cursor-pointer self-start sm:self-end focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-md px-1 py-0.5"
           >
             <span>See how bounce protection works</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
+            <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
 
@@ -299,15 +304,16 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="inline-flex items-center gap-2 text-xs font-semibold text-app-text">
-                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                    <ShieldCheck className="w-4 h-4 text-emerald-500" aria-hidden="true" />
                     Backup Confirmation
                   </span>
                   <div className="inline-flex p-1 rounded-full bg-white/40 dark:bg-white/[0.05] border border-white/60 dark:border-white/10 text-[11px] font-semibold">
                     <button
                       type="button"
+                      aria-pressed={passStep === 'first'}
                       onClick={() => setPassStep('first')}
                       className={cn(
-                        'px-2.5 py-1 rounded-full transition-colors cursor-pointer',
+                        'px-2.5 py-1 rounded-full transition-[color,background-color,transform] duration-200 active:scale-[0.97] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
                         passStep === 'first'
                           ? 'bg-slate-900 !text-white dark:bg-white dark:!text-slate-950'
                           : 'text-slate-600 dark:text-slate-300'
@@ -317,9 +323,10 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                     </button>
                     <button
                       type="button"
+                      aria-pressed={passStep === 'confirmed'}
                       onClick={() => setPassStep('confirmed')}
                       className={cn(
-                        'px-2.5 py-1 rounded-full transition-colors cursor-pointer',
+                        'px-2.5 py-1 rounded-full transition-[color,background-color,transform] duration-200 active:scale-[0.97] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
                         passStep === 'confirmed'
                           ? 'bg-slate-900 !text-white dark:bg-white dark:!text-slate-950'
                           : 'text-slate-600 dark:text-slate-300'
@@ -443,26 +450,26 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
       </section>
 
       {/* 4. MINIMALIST TICK / CROSS COMPARISON MATRIX */}
-      <section id="compare" className="space-y-10 scroll-mt-24">
+      <section id="compare" className="space-y-6 sm:space-y-7 scroll-mt-24">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="max-w-2xl space-y-3">
-            <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+          <div className="max-w-2xl space-y-2.5">
+            <p className="text-xs font-mono font-medium uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
               Side-By-Side
             </p>
-            <h2 className="text-3xl sm:text-4xl font-display font-bold text-app-text tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-display font-bold text-app-text tracking-tight text-balance">
               How LeadPure compares to popular email verifiers
             </h2>
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
               Honest feature comparison alongside{' '}
-              <a href="https://www.zerobounce.net/" target="_blank" rel="noreferrer" className="text-app-text underline decoration-slate-400/50 hover:text-brand-blue">
+              <a href="https://www.zerobounce.net/" target="_blank" rel="noreferrer" aria-label="ZeroBounce website (opens in a new tab)" className="text-app-text underline decoration-slate-400/50 hover:text-brand-blue">
                 ZeroBounce
               </a>
               ,{' '}
-              <a href="https://emailable.com/" target="_blank" rel="noreferrer" className="text-app-text underline decoration-slate-400/50 hover:text-brand-blue">
+              <a href="https://emailable.com/" target="_blank" rel="noreferrer" aria-label="Emailable website (opens in a new tab)" className="text-app-text underline decoration-slate-400/50 hover:text-brand-blue">
                 Emailable
               </a>
               ,{' '}
-              <a href="https://hunter.io/email-verifier" target="_blank" rel="noreferrer" className="text-app-text underline decoration-slate-400/50 hover:text-brand-blue">
+              <a href="https://hunter.io/email-verifier" target="_blank" rel="noreferrer" aria-label="Hunter Email Verifier website (opens in a new tab)" className="text-app-text underline decoration-slate-400/50 hover:text-brand-blue">
                 Hunter
               </a>
               , and Reacher.
@@ -471,14 +478,14 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
           <SparkBurstButton className="shrink-0">
             <MagneticButton onClick={() => onOpenDashboard()} variant="primary" size="md" className="shrink-0 rounded-full">
               <span>Start Verifying</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </MagneticButton>
           </SparkBurstButton>
         </div>
 
-        <div className="sm:hidden flex items-center justify-end gap-1 text-[11px] font-mono text-slate-500 dark:text-slate-400 pr-1 -mb-6">
+        <div className="sm:hidden flex items-center justify-end gap-1 text-[11px] font-mono text-slate-500 dark:text-slate-400 pr-1 -mb-3">
           <span>Swipe table to compare</span>
-          <ArrowRight className="w-3 h-3" />
+          <ArrowRight className="w-3 h-3" aria-hidden="true" />
         </div>
 
         <LiquidSpotlightCard
@@ -612,7 +619,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
           <button
             type="button"
             onClick={() => onNavigate('/pricing')}
-            className="liquid-glass min-h-[54px] sm:min-h-[58px] px-7 py-3 rounded-full text-sm font-semibold text-app-text flex items-center justify-center gap-2 w-full sm:w-auto transition-all cursor-pointer"
+            className="liquid-glass min-h-[54px] sm:min-h-[58px] px-7 py-3 rounded-full text-sm font-semibold text-app-text flex items-center justify-center gap-2 w-full sm:w-auto transition-[border-color,background-color,box-shadow,transform] duration-200 active:scale-[0.97] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
           >
             <span>Explore Plans &amp; Roadmap</span>
           </button>

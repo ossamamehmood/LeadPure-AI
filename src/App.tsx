@@ -1,29 +1,32 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, Suspense, lazy } from 'react';
 import { MotionConfig, motion, AnimatePresence } from 'motion/react';
 import { Play, X } from 'lucide-react';
 
-// Components
-import { Sidebar } from './components/Sidebar';
-import { Header } from './components/Header';
-import { AppRoutePath, Footer } from './components/Footer';
-import { LeadUpload } from './components/LeadUpload';
-import { MappingSection } from './components/MappingSection';
-import { RulesSection } from './components/RulesSection';
-import { HistorySection } from './components/HistorySection';
-import { ResultsDashboard } from './components/ResultsDashboard';
-import { LoadingOverlay } from './components/LoadingOverlay';
-import { DataPreviewModal } from './components/DataPreviewModal';
-import { SingleValidation } from './components/SingleValidation';
+// Core Shell & Landing Components (kept in initial entry for instant `/` paint)
+import { Footer, AppRoutePath } from './components/Footer';
 import { GlossyCard } from './components/ui/GlossyCard';
 import { MagneticButton } from './components/ui/MagneticButton';
 import { BackgroundMotion } from './components/ui/BackgroundMotion';
 import { LiquidGlassFilter } from './components/ui/LiquidGlassFilter';
 import { SiteShell } from './components/layout/SiteShell';
 import { LandingPage } from './components/LandingPage';
-import { PlansPage } from './components/pages/PlansPage';
-import { DeliverabilityPage } from './components/pages/DeliverabilityPage';
-import { PrivacyPage } from './components/pages/PrivacyPage';
-import { TermsPage } from './components/pages/TermsPage';
+
+// Code-split subpages and workspace views for fast Landing Core Web Vitals
+const Sidebar = lazy(() => import('./components/Sidebar').then((m) => ({ default: m.Sidebar })));
+const Header = lazy(() => import('./components/Header').then((m) => ({ default: m.Header })));
+const MobileNav = lazy(() => import('./components/MobileNav').then((m) => ({ default: m.MobileNav })));
+const SingleValidation = lazy(() => import('./components/SingleValidation').then((m) => ({ default: m.SingleValidation })));
+const LeadUpload = lazy(() => import('./components/LeadUpload').then((m) => ({ default: m.LeadUpload })));
+const MappingSection = lazy(() => import('./components/MappingSection').then((m) => ({ default: m.MappingSection })));
+const RulesSection = lazy(() => import('./components/RulesSection').then((m) => ({ default: m.RulesSection })));
+const HistorySection = lazy(() => import('./components/HistorySection').then((m) => ({ default: m.HistorySection })));
+const ResultsDashboard = lazy(() => import('./components/ResultsDashboard').then((m) => ({ default: m.ResultsDashboard })));
+const LoadingOverlay = lazy(() => import('./components/LoadingOverlay').then((m) => ({ default: m.LoadingOverlay })));
+const DataPreviewModal = lazy(() => import('./components/DataPreviewModal').then((m) => ({ default: m.DataPreviewModal })));
+const PlansPage = lazy(() => import('./components/pages/PlansPage').then((m) => ({ default: m.PlansPage })));
+const DeliverabilityPage = lazy(() => import('./components/pages/DeliverabilityPage').then((m) => ({ default: m.DeliverabilityPage })));
+const PrivacyPage = lazy(() => import('./components/pages/PrivacyPage').then((m) => ({ default: m.PrivacyPage })));
+const TermsPage = lazy(() => import('./components/pages/TermsPage').then((m) => ({ default: m.TermsPage })));
 
 // Hooks & Types
 import { useHistory } from './hooks/useHistory';
@@ -31,7 +34,6 @@ import { useLeadProcessor } from './hooks/useLeadProcessor';
 import { loadSavedScanState, clearSavedScanState, SavedScanState } from './utils/processor';
 import { ContactData, HistoryItem, ValidationRules } from './types';
 
-import { MobileNav } from './components/MobileNav';
 import { useToast } from './components/Toast';
 
 type AppState = 'upload' | 'mapping' | 'processing' | 'results' | 'rules' | 'history';
@@ -96,6 +98,19 @@ export default function App() {
     document.title = meta.title;
     const descTag = document.querySelector('meta[name="description"]');
     if (descTag) descTag.setAttribute('content', meta.description);
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.setAttribute('content', meta.title);
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.setAttribute('content', meta.description);
+    if (typeof window !== 'undefined') {
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+      if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.rel = 'canonical';
+        document.head.appendChild(canonical);
+      }
+      canonical.href = `${window.location.origin}${route === '/' ? '/' : route}`;
+    }
   }, [route]);
 
   const navigate = useCallback((target: AppRoutePath) => {
@@ -440,23 +455,25 @@ export default function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
         >
-          {route === '/' && (
-            <LandingPage
-              onOpenDashboard={(email?: string) => {
-                if (typeof email === 'string' && email.trim()) {
-                  setPrefillEmail(email.trim());
-                }
-                setAppState('upload');
-                navigate('/dashboard');
-              }}
-              onNavigate={navigate}
-              theme={theme}
-            />
-          )}
-          {route === '/pricing' && <PlansPage onNavigate={navigate} />}
-          {route === '/deliverability' && <DeliverabilityPage onNavigate={navigate} />}
-          {route === '/privacy' && <PrivacyPage onNavigate={navigate} />}
-          {route === '/terms' && <TermsPage onNavigate={navigate} />}
+          <Suspense fallback={<div className="min-h-[60vh]" aria-busy="true" />}>
+            {route === '/' && (
+              <LandingPage
+                onOpenDashboard={(email?: string) => {
+                  if (typeof email === 'string' && email.trim()) {
+                    setPrefillEmail(email.trim());
+                  }
+                  setAppState('upload');
+                  navigate('/dashboard');
+                }}
+                onNavigate={navigate}
+                theme={theme}
+              />
+            )}
+            {route === '/pricing' && <PlansPage onNavigate={navigate} />}
+            {route === '/deliverability' && <DeliverabilityPage onNavigate={navigate} />}
+            {route === '/privacy' && <PrivacyPage onNavigate={navigate} />}
+            {route === '/terms' && <TermsPage onNavigate={navigate} />}
+          </Suspense>
         </SiteShell>
       </MotionConfig>
     );
@@ -466,23 +483,34 @@ export default function App() {
     <MotionConfig reducedMotion="user">
       <LiquidGlassFilter />
       <div className="flex min-h-[100dvh] lg:h-screen bg-app-bg text-app-text font-sans overflow-hidden relative selection:bg-brand-blue/30 selection:text-white" data-theme={theme}>
+      <a
+        href="#workspace-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[90] px-4 py-2 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-950 text-xs font-semibold shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+      >
+        Skip to workspace
+      </a>
       <BackgroundMotion variant="ambient" />
 
-      <Sidebar currentTab={appState} setTab={setAppState} onNavigateHome={() => navigate('/')} />
+      <Suspense fallback={null}>
+        <Sidebar currentTab={appState} setTab={setAppState} onNavigateHome={() => navigate('/')} />
+      </Suspense>
 
-      <main className="flex-1 flex flex-col overflow-hidden pb-24 lg:pb-0 relative z-10 min-w-0">
-        <Header
-          appState={appState}
-          isProcessing={processor.isProcessing}
-          onDownload={handleDownloadAll}
-          onReset={reset}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-          onNavigateHome={() => navigate('/')}
-        />
+      <main id="workspace-main" className="flex-1 flex flex-col overflow-hidden pb-24 lg:pb-0 relative z-10 min-w-0">
+        <Suspense fallback={<div className="h-20" />}>
+          <Header
+            appState={appState}
+            isProcessing={processor.isProcessing}
+            onDownload={handleDownloadAll}
+            onReset={reset}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+            onNavigateHome={() => navigate('/')}
+          />
+        </Suspense>
 
         <section className="flex-1 px-4 py-6 sm:p-8 md:p-10 overflow-y-auto flex flex-col gap-8 scrollbar-hide">
           <div className="max-w-7xl mx-auto w-full min-w-0">
+            <Suspense fallback={<div className="min-h-[50vh]" aria-busy="true" />}>
             <AnimatePresence mode="wait">
               {appState === 'upload' && (
                 <motion.div
@@ -617,6 +645,7 @@ export default function App() {
                 </motion.div>
               )}
             </AnimatePresence>
+            </Suspense>
 
             <div className="mt-16">
               <Footer variant="dashboard" onNavigate={navigate} />
@@ -624,27 +653,31 @@ export default function App() {
           </div>
         </section>
 
-        <MobileNav currentTab={appState} setTab={setAppState} onNavigateHome={() => navigate('/')} />
+        <Suspense fallback={null}>
+          <MobileNav currentTab={appState} setTab={setAppState} onNavigateHome={() => navigate('/')} />
+        </Suspense>
       </main>
 
-      <AnimatePresence>
-        {isParsing && (
-          <LoadingOverlay
-            key="parsing-overlay"
-            progress={parsingProgress}
-            estimatedSeconds={1}
-            customText="Reading Your Spreadsheet..."
-            customDescription="Loading contacts smoothly in your browser without slowing down the page."
-          />
-        )}
-      </AnimatePresence>
+      <Suspense fallback={null}>
+        <AnimatePresence>
+          {isParsing && (
+            <LoadingOverlay
+              key="parsing-overlay"
+              progress={parsingProgress}
+              estimatedSeconds={1}
+              customText="Reading Your Spreadsheet..."
+              customDescription="Loading contacts smoothly in your browser without slowing down the page."
+            />
+          )}
+        </AnimatePresence>
 
-      <DataPreviewModal
-        isOpen={isPreviewOpen}
-        onClose={() => setIsPreviewOpen(false)}
-        data={previewData}
-        title={previewTitle}
-      />
+        <DataPreviewModal
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+          data={previewData}
+          title={previewTitle}
+        />
+      </Suspense>
     </div>
     </MotionConfig>
   );

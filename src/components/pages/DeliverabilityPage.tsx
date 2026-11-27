@@ -108,7 +108,7 @@ export function DeliverabilityPage({ onNavigate }: DeliverabilityPageProps) {
           ].map((card) => (
             <div
               key={card.title}
-              className="p-5 rounded-2xl bg-white/55 dark:bg-white/[0.03] border border-white/75 dark:border-app-border space-y-2"
+              className="p-5 rounded-2xl bg-white/30 dark:bg-white/[0.03] border border-white/55 dark:border-white/[0.08] space-y-2"
             >
               <h3 className="text-base font-display font-bold text-app-text">{card.title}</h3>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{card.desc}</p>

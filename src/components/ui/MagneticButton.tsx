@@ -69,12 +69,12 @@ export function MagneticButton({
     <motion.button
       ref={ref}
       style={shouldReduceMotion ? undefined : { x: springX, y: springY }}
-      whileTap={disabled || shouldReduceMotion ? undefined : { scale: 0.975 }}
+      whileTap={disabled || shouldReduceMotion ? undefined : { scale: 0.97 }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       disabled={disabled}
       className={cn(
-        'group/btn relative overflow-hidden font-semibold tracking-tight transition-[filter,box-shadow,background-color,border-color] duration-250 flex items-center justify-center gap-2.5 cursor-pointer select-none disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
+        'group/btn relative overflow-hidden font-semibold tracking-tight transition-[filter,box-shadow,background-color,border-color,transform] duration-200 flex items-center justify-center gap-2.5 cursor-pointer select-none disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
         variantStyles[variant],
         sizeStyles[size],
         className

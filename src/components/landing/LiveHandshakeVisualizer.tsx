@@ -168,7 +168,10 @@ export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHand
         </div>
 
         {/* Transparent Glass Result Row */}
-        <div className="rounded-2xl border border-white/55 dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.03] p-4 sm:p-5 space-y-4">
+        <div
+          aria-live="polite"
+          className="rounded-2xl border border-white/55 dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.03] p-4 sm:p-5 space-y-4"
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
