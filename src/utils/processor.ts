@@ -152,7 +152,15 @@ export const processContacts = async (
   signal?: AbortSignal,
   resumeContext?: { requestId: string; fileName: string },
   uploadFileName?: string
-): Promise<{ valid: ProcessedContact[]; eliminated: any[]; stats: any; timedOut: boolean; requestId?: string }> => {
+): Promise<{
+  valid: ProcessedContact[];
+  eliminated: any[];
+  stats: any;
+  timedOut: boolean;
+  failedChunkCount?: number;
+  failureMessage?: string | null;
+  requestId?: string;
+}> => {
   console.log(`[PROCESSOR_V14.0.0] Initializing verification scan (${data.length} input rows).`);
 
   const stats = {
@@ -239,8 +247,11 @@ export const processContacts = async (
 
   let reqId = resumeContext?.requestId || '';
   const dispatchedChunks = new Set<number>();
+  const chunkDispatchedAt = new Map<number, number>();
   const fetchedChunks = new Set<number>();
+  const failedChunks = new Map<number, string>();
   const chunkResultsMap = new Map<number, any[]>();
+  const PER_CHUNK_TIMEOUT_MS = 360_000; // 6 minutes per 100-email batch
 
   if (!resumeContext) {
     if (onProgress) {
@@ -262,13 +273,21 @@ export const processContacts = async (
       signal
     });
 
+    if (!initRes.ok) {
+      throw new Error(`Dispatch endpoint returned HTTP ${initRes.status}`);
+    }
+
     const initData = await initRes.json();
-    if (initData.status === 'error' || !initData.requestId) {
+    if (initData.status === 'failed' || initData.status === 'error' || !initData.requestId) {
       throw new Error(initData.ui_reason || initData.error || 'Failed to dispatch bulk verification');
     }
 
     reqId = initData.requestId;
-    (initData.dispatchedChunks || [0]).forEach((idx: number) => dispatchedChunks.add(idx));
+    const initTime = Date.now();
+    (initData.dispatchedChunks || [0]).forEach((idx: number) => {
+      dispatchedChunks.add(idx);
+      chunkDispatchedAt.set(idx, initTime);
+    });
 
     saveScanState({
       requestId: reqId,
@@ -390,8 +409,20 @@ export const processContacts = async (
       const mRes = await fetch(`/api/check?requestId=${encodeURIComponent(reqId)}&mode=manifest`, { signal });
       if (mRes.ok) {
         const mData = await mRes.json();
-        if (mData.status === 'error') {
+        if (mData.status === 'failed' || mData.status === 'error') {
           throw new Error(mData.ui_reason || 'Manifest polling failed');
+        }
+
+        const serverFailedChunks = mData.manifest?.failedChunks || {};
+        for (const [rawIdx, reason] of Object.entries(serverFailedChunks)) {
+          const fIdx = Number(rawIdx);
+          if (Number.isInteger(fIdx) && !fetchedChunks.has(fIdx) && !failedChunks.has(fIdx)) {
+            failedChunks.set(
+              fIdx,
+              String(reason || "This check didn't complete - the verification runner couldn't be reached. Please try again.")
+            );
+            madeProgress = true;
+          }
         }
 
         const completedChunks: number[] = mData.manifest?.completedChunks || [];
@@ -401,6 +432,7 @@ export const processContacts = async (
           if (signal?.aborted) break;
           if (!fetchedChunks.has(cIdx)) {
             dispatchedChunks.add(cIdx);
+            failedChunks.delete(cIdx);
             const cRes = await fetch(`/api/check?requestId=${encodeURIComponent(reqId)}&chunk=${cIdx}`, { signal });
             if (cRes.ok) {
               const cData = await cRes.json();
@@ -408,15 +440,35 @@ export const processContacts = async (
                 chunkResultsMap.set(cIdx, cData.results);
                 fetchedChunks.add(cIdx);
                 madeProgress = true;
+              } else if (cData.status === 'failed' || cData.status === 'error') {
+                failedChunks.set(
+                  cIdx,
+                  cData.ui_reason || "This check didn't complete - the verification runner couldn't be reached. Please try again."
+                );
+                madeProgress = true;
               }
             }
           }
         }
 
+        // Enforce per-chunk timeout so a stalled worker fails visibly instead of blocking remaining batches
+        const nowMs = Date.now();
+        for (const cIdx of dispatchedChunks) {
+          if (fetchedChunks.has(cIdx) || failedChunks.has(cIdx)) continue;
+          const dispatchedMs = chunkDispatchedAt.get(cIdx) ?? startTime;
+          if (nowMs - dispatchedMs >= PER_CHUNK_TIMEOUT_MS) {
+            failedChunks.set(
+              cIdx,
+              "Batch timed out after 6 minutes - the verification runner couldn't be reached. Please try again."
+            );
+            madeProgress = true;
+          }
+        }
+
         // Maintain sliding window: max 3 concurrent chunk runs in-flight
-        let inFlight = [...dispatchedChunks].filter(c => !fetchedChunks.has(c)).length;
+        let inFlight = [...dispatchedChunks].filter((c) => !fetchedChunks.has(c) && !failedChunks.has(c)).length;
         for (let nextChunk = 0; nextChunk < chunkCount && inFlight < 3 && !signal?.aborted; nextChunk++) {
-          if (!dispatchedChunks.has(nextChunk) && !fetchedChunks.has(nextChunk)) {
+          if (!dispatchedChunks.has(nextChunk) && !fetchedChunks.has(nextChunk) && !failedChunks.has(nextChunk)) {
             const dRes = await fetch('/api/check', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -429,8 +481,21 @@ export const processContacts = async (
               signal
             });
             if (dRes.ok) {
-              dispatchedChunks.add(nextChunk);
-              inFlight++;
+              const dData = await dRes.json();
+              if (dData.status === 'failed' || dData.status === 'error') {
+                failedChunks.set(
+                  nextChunk,
+                  dData.ui_reason || `Batch ${nextChunk + 1} failed to dispatch`
+                );
+                madeProgress = true;
+              } else {
+                dispatchedChunks.add(nextChunk);
+                chunkDispatchedAt.set(nextChunk, Date.now());
+                inFlight++;
+              }
+            } else {
+              failedChunks.set(nextChunk, `Batch ${nextChunk + 1} dispatch failed (HTTP ${dRes.status})`);
+              madeProgress = true;
             }
           }
         }
@@ -438,12 +503,13 @@ export const processContacts = async (
         const snap = buildArrivedSnapshots();
         const elapsedSec = Math.round((Date.now() - startTime) / 1000);
         const chunksDone = fetchedChunks.size;
+        const chunksSettled = fetchedChunks.size + failedChunks.size;
         const pct = Math.max(5, Math.min(100, Math.round((snap.arrivedCount / total) * 100)));
 
         let etaSeconds: number | null = null;
-        if (chunksDone > 0 && chunksDone < chunkCount) {
+        if (chunksDone > 0 && chunksSettled < chunkCount) {
           const avgSecPerChunk = elapsedSec / chunksDone;
-          etaSeconds = Math.max(5, Math.round((chunkCount - chunksDone) * avgSecPerChunk));
+          etaSeconds = Math.max(5, Math.round((chunkCount - chunksSettled) * avgSecPerChunk));
         }
 
         if (onProgress) {
@@ -457,19 +523,27 @@ export const processContacts = async (
             requestId: reqId,
             validSnapshot: snap.validSnap,
             eliminatedSnapshot: snap.eliminatedSnap,
-            logMessage: madeProgress
-              ? `Chunk ${chunksDone}/${chunkCount} received: ${snap.arrivedCount}/${total} emails verified`
-              : `Polling manifest (${chunksDone}/${chunkCount} chunks, ${snap.arrivedCount}/${total} emails, ${elapsedSec}s elapsed)...`
+            logMessage: failedChunks.size > 0 && madeProgress
+              ? `Batch alert: ${failedChunks.size} batch(es) failed or timed out (${chunksDone}/${chunkCount} finished)`
+              : madeProgress
+                ? `Chunk ${chunksDone}/${chunkCount} received: ${snap.arrivedCount}/${total} emails verified`
+                : `Polling manifest (${chunksDone}/${chunkCount} chunks, ${snap.arrivedCount}/${total} emails, ${elapsedSec}s elapsed)...`
           });
         }
 
-        if (chunksDone >= chunkCount) {
+        if (chunksSettled >= chunkCount) {
           break;
         }
       }
     } catch (pollErr: any) {
       if (pollErr.name === 'AbortError' || signal?.aborted) {
         throw new Error('Pipeline Aborted');
+      }
+      if (
+        typeof pollErr?.message === 'string' &&
+        (pollErr.message.includes('Manifest') || pollErr.message.includes('failed'))
+      ) {
+        throw pollErr;
       }
       console.warn('[BULK_MANIFEST_POLL_ERR]', pollErr);
     }
@@ -489,6 +563,8 @@ export const processContacts = async (
 
   const finalSnap = buildArrivedSnapshots();
   const timedOut = fetchedChunks.size < chunkCount;
+  const failedChunkCount = failedChunks.size;
+  const firstFailureReason = failedChunks.values().next().value || null;
 
   // Build arrived stats ONLY from chunks that landed
   stats.arrivedCount = finalSnap.arrivedCount;
@@ -501,11 +577,12 @@ export const processContacts = async (
   stats.roleBasedMatch = finalSnap.roleBasedMatch;
   stats.verifiedLeads = finalSnap.safeCount;
 
-  // Any chunks still missing after the 20-minute cap MUST NOT be stamped fake UNKNOWN.
-  // Display explicitly as "STILL CHECKING / TIMED OUT - re-run to complete" and keep excluded from counts/export.
+  // Any chunks still missing after failure or per-chunk timeout MUST NOT be stamped fake UNKNOWN.
+  // Display explicitly as timed out / failed and keep excluded from counts/export.
   if (timedOut) {
     for (let cIdx = 0; cIdx < chunkCount; cIdx++) {
       if (chunkResultsMap.has(cIdx)) continue;
+      const chunkFailureMsg = failedChunks.get(cIdx) || 'STILL CHECKING / TIMED OUT - re-run to complete';
       const baseIndex = cIdx * CHUNK_SIZE;
       chunkSlices[cIdx].forEach((emailVal, offset) => {
         const globalIdx = baseIndex + offset;
@@ -517,8 +594,8 @@ export const processContacts = async (
           email: emailVal,
           status: 'STILL CHECKING / TIMED OUT - re-run to complete',
           verificationStatus: 'unknown',
-          verificationReason: 'STILL CHECKING / TIMED OUT - re-run to complete',
-          reason: 'STILL CHECKING / TIMED OUT - re-run to complete',
+          verificationReason: chunkFailureMsg,
+          reason: chunkFailureMsg,
           isTimedOutMissing: true,
           originalIndex: globalIdx,
           __originalData: item
@@ -531,6 +608,9 @@ export const processContacts = async (
 
   const arrivedDefinitive = stats.safeCount + stats.riskyCount + stats.invalidCount;
   const definitiveRate = stats.arrivedCount > 0 ? Math.round((arrivedDefinitive / stats.arrivedCount) * 100) : 0;
+  const failureMessage = timedOut
+    ? (firstFailureReason || `${Math.max(failedChunkCount, chunkCount - fetchedChunks.size)} verification batch(es) timed out or failed`)
+    : null;
 
   return {
     valid: finalSnap.validSnap,
@@ -539,9 +619,13 @@ export const processContacts = async (
       ...stats,
       definitiveRate,
       finalDeliverable: finalSnap.safeCount,
-      finalFiltered: stats.riskyCount + stats.invalidCount + stats.unknownCount
+      finalFiltered: stats.riskyCount + stats.invalidCount + stats.unknownCount,
+      failedChunkCount,
+      failureMessage
     },
     timedOut,
+    failedChunkCount,
+    failureMessage,
     requestId: reqId
   };
 };

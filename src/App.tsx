@@ -53,6 +53,8 @@ export default function App() {
   const [route, setRoute] = useState<AppRoutePath>(() => getRouteFromLocation());
   const [appState, setAppState] = useState<AppState>('upload');
   const [prefillEmail, setPrefillEmail] = useState<string>('');
+  const [sessionVersion, setSessionVersion] = useState(0);
+  const [isSingleVerifying, setIsSingleVerifying] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
       return localStorage.getItem('leadpure_theme') === 'light' ? 'light' : 'dark';
@@ -287,8 +289,12 @@ export default function App() {
     }
 
     setAppState('results');
-    if (timedOut) {
-      toast('Scan hit 20-minute limit - arrived results saved, missing rows marked timed out.', 'info');
+    if (stats?.failedChunkCount > 0 || timedOut) {
+      toast(
+        stats?.failureMessage ||
+          'Some verification batches failed or timed out - arrived results saved, missing rows are marked.',
+        'error'
+      );
     } else {
       toast('Verification complete', 'success');
     }
@@ -438,6 +444,9 @@ export default function App() {
 
   const reset = () => {
     if (processor.isProcessing) processor.cancelProcessing();
+    setSessionVersion((v) => v + 1);
+    setIsSingleVerifying(false);
+    setPrefillEmail('');
     setAppState('upload');
     setFileData([]);
     setFileName('');
@@ -505,7 +514,7 @@ export default function App() {
         <Suspense fallback={<div className="h-20" />}>
           <Header
             appState={appState}
-            isProcessing={processor.isProcessing}
+            isProcessing={processor.isProcessing || isSingleVerifying}
             onDownload={handleDownloadAll}
             onReset={reset}
             theme={theme}
@@ -561,8 +570,10 @@ export default function App() {
                   )}
 
                   <SingleValidation
+                    key={sessionVersion}
                     initialEmail={prefillEmail}
                     onConsumeInitialEmail={() => setPrefillEmail('')}
+                    onVerifyingChange={setIsSingleVerifying}
                   />
                   <LeadUpload onDrop={onDrop} />
                 </motion.div>

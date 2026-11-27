@@ -118,6 +118,7 @@ export function ResultsDashboard({
   onDownloadValid,
   onDownloadAll,
   onDownloadEliminated,
+  stats,
   isProcessing = false,
   progress = 100,
   emailsDone = 0,
@@ -224,6 +225,24 @@ export function ResultsDashboard({
             />
           </div>
         </GlossyCard>
+      )}
+
+      {!isProcessing && (stats?.failedChunkCount > 0 || stats?.timedOutMissingCount > 0) && (
+        <div
+          role="alert"
+          className="rounded-2xl border border-amber-500/40 bg-amber-500/10 px-5 py-4 flex items-start gap-3 text-amber-800 dark:text-amber-300"
+        >
+          <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm font-semibold">
+              {stats?.failureMessage ||
+                "This check didn't complete - the verification runner couldn't be reached. Please try again."}
+            </p>
+            <p className="text-xs text-amber-700/90 dark:text-amber-300/80 mt-1">
+              Arrived results are preserved below. Unfinished rows are marked so you can re-run them safely.
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Summary Cards (Built strictly from arrived engine results) */}

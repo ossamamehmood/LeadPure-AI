@@ -203,6 +203,139 @@ async function dispatchWorkflow(
   });
 }
 
+const FAILED_RUNNER_REASON =
+  "This check didn't complete - the verification runner couldn't be reached. Please try again.";
+
+const TERMINAL_FAILED_CONCLUSIONS = new Set([
+  'failure',
+  'cancelled',
+  'timed_out',
+  'startup_failure',
+  'action_required'
+]);
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getRequestTimestampMs(requestId: string): number | null {
+  const m = requestId.match(/^lp_(\d{10,16})_[a-f0-9]+$/i);
+  return m ? Number(m[1]) : null;
+}
+
+function matchWorkflowRunForRequest(
+  runs: any[],
+  requestId: string,
+  chunkIndex?: number
+): any | null {
+  const reqRegex = new RegExp(`(?:^|\\s)${escapeRegExp(requestId)}(?:$|\\s)`);
+  const chunkRegex = typeof chunkIndex === 'number'
+    ? new RegExp(`(?:^|\\s)chunk-${chunkIndex}(?:$|\\s)`)
+    : null;
+
+  const matched = runs.filter((run) => {
+    const title = String(run?.display_title || run?.name || '');
+    if (!reqRegex.test(title)) return false;
+    if (chunkRegex) return chunkRegex.test(title);
+    return !/(?:^|\s)chunk-\d+(?:$|\s)/.test(title);
+  });
+
+  if (matched.length === 0) return null;
+  matched.sort((a, b) => Date.parse(b.created_at || '') - Date.parse(a.created_at || ''));
+  return matched[0];
+}
+
+async function fetchWorkflowRunsList(
+  repoOwner: string,
+  repoName: string,
+  workflowFile: string,
+  token: string
+): Promise<any[] | null> {
+  try {
+    const runsUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/actions/workflows/${workflowFile}/runs?event=workflow_dispatch&per_page=30`;
+    const runsRes = await fetchGithubContent(runsUrl, token, false);
+    if (!runsRes.ok) return null;
+    const data: any = await runsRes.json();
+    return Array.isArray(data?.workflow_runs) ? data.workflow_runs : [];
+  } catch {
+    return null;
+  }
+}
+
+async function isWorkflowDisabled(
+  repoOwner: string,
+  repoName: string,
+  workflowFile: string,
+  token: string
+): Promise<boolean> {
+  try {
+    const wfUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/actions/workflows/${workflowFile}`;
+    const wfRes = await fetchGithubContent(wfUrl, token, false);
+    if (!wfRes.ok) return wfRes.status === 404;
+    const wf: any = await wfRes.json();
+    return Boolean(wf?.state && wf.state !== 'active');
+  } catch {
+    return false;
+  }
+}
+
+async function inspectTargetFailure(params: {
+  repoOwner: string;
+  repoName: string;
+  workflowFile: string;
+  token?: string;
+  requestId: string;
+  chunkIndex?: number;
+  targetUrl: string;
+  runsCache?: any[] | null;
+}) {
+  const { repoOwner, repoName, workflowFile, token, requestId, chunkIndex, targetUrl, runsCache } = params;
+  if (!token) return { failed: false as const };
+
+  const runs = runsCache !== undefined
+    ? runsCache
+    : await fetchWorkflowRunsList(repoOwner, repoName, workflowFile, token);
+
+  if (runs) {
+    const run = matchWorkflowRunForRequest(runs, requestId, chunkIndex);
+    if (run && run.status === 'completed') {
+      const conclusion = String(run.conclusion || '');
+      const updatedMs = Date.parse(run.updated_at || '');
+      const completedWithNoFileGraceExpired =
+        conclusion === 'success' && Number.isFinite(updatedMs) && (Date.now() - updatedMs > 15_000);
+
+      if (TERMINAL_FAILED_CONCLUSIONS.has(conclusion) || completedWithNoFileGraceExpired) {
+        // Re-check storage once to eliminate commit-vs-status race conditions.
+        const recheckRes = await fetchGithubContent(targetUrl, token, true);
+        if (recheckRes.ok) {
+          return { failed: false as const, recoveredRes: recheckRes };
+        }
+        return {
+          failed: true as const,
+          runId: run.id,
+          conclusion: completedWithNoFileGraceExpired ? 'missing_result' : conclusion,
+          ui_reason: FAILED_RUNNER_REASON
+        };
+      }
+    }
+
+    if (!run) {
+      const reqTs = getRequestTimestampMs(requestId);
+      if (reqTs && Date.now() - reqTs > 15_000) {
+        if (await isWorkflowDisabled(repoOwner, repoName, workflowFile, token)) {
+          return {
+            failed: true as const,
+            conclusion: 'workflow_disabled',
+            ui_reason: FAILED_RUNNER_REASON
+          };
+        }
+      }
+    }
+  }
+
+  return { failed: false as const };
+}
+
 export default async function handler(req: any, res: any) {
   res.setHeader('X-LeadPure-Version', 'v14.0.0');
   res.setHeader('Cache-Control', 'no-store, max-age=0');
@@ -210,7 +343,7 @@ export default async function handler(req: any, res: any) {
   // Prefer LEADPURE_* env vars, preserving REACHER_* fallback for backwards compatibility
   const token = process.env.LEADPURE_GH_TOKEN || process.env.REACHER_GH_TOKEN || process.env.GITHUB_TOKEN;
   const repoOwner = process.env.LEADPURE_REPO_OWNER || process.env.REACHER_REPO_OWNER || 'ossamamehmood';
-  const repoName = process.env.LEADPURE_REPO_NAME || process.env.REACHER_REPO_NAME || 'LeadPure-AI';
+  const repoName = process.env.LEADPURE_REPO_NAME || process.env.REACHER_REPO_NAME || 'LeadPure';
   const workflowFile = 'leadpure-check.yml';
 
   // -------------------------------------------------------------
@@ -229,16 +362,41 @@ export default async function handler(req: any, res: any) {
     try {
       // 1. Specific chunk download: GET /api/check?requestId=...&chunk=N
       if (chunk !== undefined) {
+        const chunkIdx = Number(chunk);
         const chunkUrl = token
           ? `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}/chunk-${chunk}.json?ref=results`
           : `https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/results/${requestId}/chunk-${chunk}.json`;
-        const chunkRes = await fetchGithubContent(chunkUrl, token, true);
+        let chunkRes = await fetchGithubContent(chunkUrl, token, true);
         if (chunkRes.status === 404) {
-          return res.json({ status: 'pending', requestId, chunkIndex: Number(chunk) });
+          const failure = await inspectTargetFailure({
+            repoOwner,
+            repoName,
+            workflowFile,
+            token,
+            requestId,
+            chunkIndex: chunkIdx,
+            targetUrl: chunkUrl
+          });
+          if (failure.failed) {
+            return res.json({
+              status: 'failed',
+              requestId,
+              chunkIndex: chunkIdx,
+              runId: failure.runId,
+              conclusion: failure.conclusion,
+              ui_reason: failure.ui_reason
+            });
+          }
+          if (!failure.recoveredRes) {
+            return res.json({ status: 'pending', requestId, chunkIndex: chunkIdx });
+          }
+          chunkRes = failure.recoveredRes;
         }
         if (!chunkRes.ok) {
           return res.json({
-            status: 'error',
+            status: 'failed',
+            requestId,
+            chunkIndex: chunkIdx,
             ui_reason: `Failed to fetch chunk ${chunk} (HTTP ${chunkRes.status})`
           });
         }
@@ -248,7 +406,7 @@ export default async function handler(req: any, res: any) {
         return res.json({
           status: 'completed',
           requestId,
-          chunkIndex: Number(chunk),
+          chunkIndex: chunkIdx,
           results: mappedList,
           timestamp: new Date().toISOString()
         });
@@ -277,7 +435,8 @@ export default async function handler(req: any, res: any) {
 
         if (singleRes.status !== 404) {
           return res.json({
-            status: 'error',
+            status: 'failed',
+            requestId,
             ui_reason: `Verification storage returned status ${singleRes.status}`
           });
         }
@@ -297,6 +456,41 @@ export default async function handler(req: any, res: any) {
       ]);
 
       if (manifestRes.status === 404) {
+        if (mode !== 'manifest') {
+          const singleUrl = token
+            ? `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}.json?ref=results`
+            : `https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/results/${requestId}.json`;
+          const singleFailure = await inspectTargetFailure({
+            repoOwner,
+            repoName,
+            workflowFile,
+            token,
+            requestId,
+            targetUrl: singleUrl
+          });
+          if (singleFailure.recoveredRes) {
+            const rawJson: any = await singleFailure.recoveredRes.json();
+            const resultArray = Array.isArray(rawJson) ? rawJson : [rawJson];
+            const mappedList = await mapProbeResults(resultArray);
+            const primaryMapped = mappedList[0] || {};
+            return res.json({
+              ...primaryMapped,
+              status: 'completed',
+              results: mappedList,
+              requestId,
+              timestamp: new Date().toISOString()
+            });
+          }
+          if (singleFailure.failed) {
+            return res.json({
+              status: 'failed',
+              requestId,
+              runId: singleFailure.runId,
+              conclusion: singleFailure.conclusion,
+              ui_reason: singleFailure.ui_reason
+            });
+          }
+        }
         return res.json({
           status: 'pending',
           requestId,
@@ -306,7 +500,8 @@ export default async function handler(req: any, res: any) {
 
       if (!manifestRes.ok) {
         return res.json({
-          status: 'error',
+          status: 'failed',
+          requestId,
           ui_reason: `Manifest read failed (${manifestRes.status})`
         });
       }
@@ -351,8 +546,40 @@ export default async function handler(req: any, res: any) {
         putGithubFile(manifestApiUrl, token, `manifest completed ${requestId}`, manifestData, manifestSha).catch(() => {});
       }
 
+      // Check for any failed chunk workflows while chunks are still outstanding
+      const failedChunks: Record<number, string> = {};
+      if (!allDone && token) {
+        const completedSet = new Set(completedChunks);
+        const runs = await fetchWorkflowRunsList(repoOwner, repoName, workflowFile, token);
+        if (runs) {
+          for (let i = 0; i < chunkCount; i++) {
+            if (completedSet.has(i)) continue;
+            const chunkUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}/chunk-${i}.json?ref=results`;
+            const check = await inspectTargetFailure({
+              repoOwner,
+              repoName,
+              workflowFile,
+              token,
+              requestId,
+              chunkIndex: i,
+              targetUrl: chunkUrl,
+              runsCache: runs
+            });
+            if (check.recoveredRes) {
+              completedChunks.push(i);
+            } else if (check.failed) {
+              failedChunks[i] = check.ui_reason;
+            }
+          }
+          completedChunks.sort((a, b) => a - b);
+        }
+      }
+
+      const finalChunksDone = completedChunks.length;
+      const finalAllDone = finalChunksDone >= chunkCount;
+
       // Convenience fallback: if external single-poll caller hit bulk with <=1 chunk and didn't pass mode=manifest
-      if (mode !== 'manifest' && allDone && chunkCount === 1) {
+      if (mode !== 'manifest' && finalAllDone && chunkCount === 1) {
         const cUrl = token
           ? `https://api.github.com/repos/${repoOwner}/${repoName}/contents/results/${requestId}/chunk-0.json?ref=results`
           : `https://raw.githubusercontent.com/${repoOwner}/${repoName}/results/results/${requestId}/chunk-0.json`;
@@ -365,7 +592,7 @@ export default async function handler(req: any, res: any) {
             ...(mappedList[0] || {}),
             status: 'completed',
             results: mappedList,
-            manifest: { ...manifestData, completedChunks, chunksDone },
+            manifest: { ...manifestData, completedChunks, chunksDone: finalChunksDone, failedChunks },
             requestId,
             timestamp: new Date().toISOString()
           });
@@ -373,18 +600,20 @@ export default async function handler(req: any, res: any) {
       }
 
       return res.json({
-        status: allDone ? 'completed' : 'pending',
+        status: finalAllDone ? 'completed' : 'pending',
         requestId,
         manifest: {
           ...manifestData,
-          status: allDone ? 'completed' : 'pending',
+          status: finalAllDone ? 'completed' : 'pending',
           completedChunks,
-          chunksDone
+          chunksDone: finalChunksDone,
+          failedChunks
         }
       });
     } catch (err: any) {
       return res.json({
-        status: 'error',
+        status: 'failed',
+        requestId,
         ui_reason: `Polling error: ${err.message}`
       });
     }
@@ -398,7 +627,7 @@ export default async function handler(req: any, res: any) {
 
     if (!token) {
       return res.json({
-        status: 'error',
+        status: 'failed',
         ui_reason: 'GitHub workflow token (LEADPURE_GH_TOKEN / REACHER_GH_TOKEN) is not configured on server'
       });
     }
@@ -426,13 +655,13 @@ export default async function handler(req: any, res: any) {
         if (!dispatchRes.ok) {
           const errText = await dispatchRes.text();
           return res.json({
-            status: 'error',
+            status: 'failed',
             ui_reason: `Chunk ${chunkIndex} dispatch failed (${dispatchRes.status}): ${errText.slice(0, 120)}`
           });
         }
         return res.json({ status: 'dispatched', requestId: existingReqId, chunkIndex });
       } catch (err: any) {
-        return res.json({ status: 'error', ui_reason: `Chunk dispatch error: ${err.message}` });
+        return res.json({ status: 'failed', ui_reason: `Chunk dispatch error: ${err.message}` });
       }
     }
 
@@ -476,8 +705,10 @@ export default async function handler(req: any, res: any) {
         if (!dispatchRes.ok) {
           const errText = await dispatchRes.text();
           return res.json({
-            status: 'error',
-            ui_reason: `Workflow dispatch failed (${dispatchRes.status}): ${errText.slice(0, 120)}`
+            status: 'failed',
+            requestId,
+            ui_reason: FAILED_RUNNER_REASON,
+            detail: `Workflow dispatch failed (${dispatchRes.status}): ${errText.slice(0, 120)}`
           });
         }
         return res.json({
@@ -487,7 +718,12 @@ export default async function handler(req: any, res: any) {
           message: 'SMTP probe running on worker...'
         });
       } catch (err: any) {
-        return res.json({ status: 'error', ui_reason: `Dispatch error: ${err.message}` });
+        return res.json({
+          status: 'failed',
+          requestId,
+          ui_reason: FAILED_RUNNER_REASON,
+          detail: `Dispatch error: ${err.message}`
+        });
       }
     }
 
@@ -517,7 +753,7 @@ export default async function handler(req: any, res: any) {
       if (!putRes.ok) {
         const errText = await putRes.text();
         return res.json({
-          status: 'error',
+          status: 'failed',
           ui_reason: `Failed to initialize scan manifest (${putRes.status}): ${errText.slice(0, 120)}`
         });
       }
@@ -531,7 +767,7 @@ export default async function handler(req: any, res: any) {
         if (!dRes.ok) {
           const errText = await dRes.text();
           return res.json({
-            status: 'error',
+            status: 'failed',
             ui_reason: `Initial chunk ${idx} dispatch failed (${dRes.status}): ${errText.slice(0, 120)}`
           });
         }
@@ -549,7 +785,7 @@ export default async function handler(req: any, res: any) {
         message: `Dispatched ${dispatchedChunks.length} of ${chunks.length} chunk(s)`
       });
     } catch (err: any) {
-      return res.json({ status: 'error', ui_reason: `Bulk init error: ${err.message}` });
+      return res.json({ status: 'failed', ui_reason: `Bulk init error: ${err.message}` });
     }
   }
 

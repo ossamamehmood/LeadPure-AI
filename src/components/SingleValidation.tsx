@@ -1,23 +1,83 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, ShieldCheck, ShieldAlert, Zap, Activity, Globe, Info, HelpCircle, ArrowRight } from 'lucide-react';
+import { Search, ShieldCheck, ShieldAlert, Zap, Activity, Globe, Info, HelpCircle, ArrowRight, RefreshCw, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { GlossyCard } from './ui/GlossyCard';
 import { MagneticButton } from './ui/MagneticButton';
 import { StaggerGroup, StaggerItem, EDITORIAL_EASE } from './ui/MotionPrimitives';
 import { ProcessedContact } from '../types';
 
+const SINGLE_CHECK_TIMEOUT_MS = 240_000; // 4 minutes hard ceiling
+const FAILURE_HEADLINE =
+  "This check didn't complete - the verification runner couldn't be reached. Please try again.";
+
+// Session-wide set so late responses for cancelled or superseded requestIds
+// are always ignored even after Start New Session remounts this component.
+const abandonedSingleRequestIds = new Set<string>();
+
 interface SingleValidationProps {
   initialEmail?: string;
   onConsumeInitialEmail?: () => void;
+  onVerifyingChange?: (verifying: boolean) => void;
 }
 
-export function SingleValidation({ initialEmail, onConsumeInitialEmail }: SingleValidationProps = {}) {
+export function SingleValidation({
+  initialEmail,
+  onConsumeInitialEmail,
+  onVerifyingChange
+}: SingleValidationProps = {}) {
   const [email, setEmail] = useState(initialEmail || '');
   const [isVerifying, setIsVerifying] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [result, setResult] = useState<Partial<ProcessedContact> | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
+
+  const activeRunTokenRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const currentRequestIdRef = useRef<string | null>(null);
+  const lastAttemptedEmailRef = useRef<string>('');
+  const elapsedTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const watchdogTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearTimers = useCallback(() => {
+    if (elapsedTimerRef.current) {
+      clearInterval(elapsedTimerRef.current);
+      elapsedTimerRef.current = null;
+    }
+    if (watchdogTimerRef.current) {
+      clearTimeout(watchdogTimerRef.current);
+      watchdogTimerRef.current = null;
+    }
+    if (sleepTimerRef.current) {
+      clearTimeout(sleepTimerRef.current);
+      sleepTimerRef.current = null;
+    }
+  }, []);
+
+  const abandonInFlight = useCallback(() => {
+    clearTimers();
+    if (currentRequestIdRef.current) {
+      abandonedSingleRequestIds.add(currentRequestIdRef.current);
+      currentRequestIdRef.current = null;
+    }
+    activeRunTokenRef.current += 1;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, [clearTimers]);
+
+  useEffect(() => {
+    onVerifyingChange?.(isVerifying);
+  }, [isVerifying, onVerifyingChange]);
+
+  useEffect(() => {
+    return () => {
+      abandonInFlight();
+    };
+  }, [abandonInFlight]);
 
   useEffect(() => {
     if (initialEmail && initialEmail.trim()) {
@@ -25,6 +85,27 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
       onConsumeInitialEmail?.();
     }
   }, [initialEmail, onConsumeInitialEmail]);
+
+  const abortableSleep = (ms: number, signal: AbortSignal) =>
+    new Promise<void>((resolve) => {
+      if (signal.aborted || ms <= 0) {
+        resolve();
+        return;
+      }
+      const onAbort = () => {
+        if (sleepTimerRef.current) {
+          clearTimeout(sleepTimerRef.current);
+          sleepTimerRef.current = null;
+        }
+        resolve();
+      };
+      signal.addEventListener('abort', onAbort, { once: true });
+      sleepTimerRef.current = setTimeout(() => {
+        signal.removeEventListener('abort', onAbort);
+        sleepTimerRef.current = null;
+        resolve();
+      }, ms);
+    });
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -53,84 +134,183 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
     return payload;
   };
 
-  const handleVerify = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    const clean = email.trim();
+  const handleCancel = () => {
+    abandonInFlight();
+    setIsVerifying(false);
+    setElapsedSeconds(0);
+    setResult(null);
+    setErrorMsg(null);
+    setErrorDetail(null);
+  };
+
+  const startVerification = async (targetEmail: string) => {
+    const clean = targetEmail.trim();
     if (!clean || !clean.includes('@')) return;
+
+    abandonInFlight();
+    lastAttemptedEmailRef.current = clean;
+    setEmail(clean);
+
+    const runToken = activeRunTokenRef.current;
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    let timedOut = false;
+
+    const isStale = (reqId?: string | null) =>
+      runToken !== activeRunTokenRef.current ||
+      controller.signal.aborted ||
+      (reqId ? abandonedSingleRequestIds.has(reqId) : false);
 
     setIsVerifying(true);
     setResult(null);
     setErrorMsg(null);
+    setErrorDetail(null);
     setElapsedSeconds(0);
 
-    const timer = setInterval(() => {
+    elapsedTimerRef.current = setInterval(() => {
       setElapsedSeconds((s) => s + 1);
     }, 1000);
+
+    const startTime = Date.now();
+    const deadlineAt = startTime + SINGLE_CHECK_TIMEOUT_MS;
+
+    const failNow = (detail?: string | null) => {
+      if (currentRequestIdRef.current) {
+        abandonedSingleRequestIds.add(currentRequestIdRef.current);
+        currentRequestIdRef.current = null;
+      }
+      clearTimers();
+      setErrorMsg(FAILURE_HEADLINE);
+      setErrorDetail(detail && detail !== FAILURE_HEADLINE ? detail : null);
+      setIsVerifying(false);
+    };
+
+    watchdogTimerRef.current = setTimeout(() => {
+      if (runToken !== activeRunTokenRef.current) return;
+      timedOut = true;
+      if (currentRequestIdRef.current) {
+        abandonedSingleRequestIds.add(currentRequestIdRef.current);
+        currentRequestIdRef.current = null;
+      }
+      controller.abort();
+      clearTimers();
+      setErrorMsg(FAILURE_HEADLINE);
+      setErrorDetail('Timed out after 4 minutes waiting for the verification runner.');
+      setIsVerifying(false);
+    }, SINGLE_CHECK_TIMEOUT_MS);
 
     try {
       const postRes = await fetch('/api/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: clean })
+        body: JSON.stringify({ email: clean }),
+        signal: controller.signal
       });
 
-      const initialData = await postRes.json();
+      if (isStale()) return;
 
-      if (initialData.status === 'error') {
-        clearInterval(timer);
-        setErrorMsg(initialData.ui_reason || 'Verification backend unreachable');
-        setIsVerifying(false);
+      if (!postRes.ok) {
+        failNow(`Dispatch endpoint returned HTTP ${postRes.status}`);
+        return;
+      }
+
+      const initialData = await postRes.json();
+      if (isStale(initialData?.requestId)) {
+        if (initialData?.requestId) abandonedSingleRequestIds.add(initialData.requestId);
+        return;
+      }
+
+      if (initialData.status === 'failed' || initialData.status === 'error') {
+        failNow(initialData.detail || initialData.ui_reason || null);
         return;
       }
 
       if (initialData.status === 'completed') {
-        clearInterval(timer);
+        clearTimers();
+        currentRequestIdRef.current = null;
         setResult(resolveCompletedResult(initialData));
         setIsVerifying(false);
         return;
       }
 
       if (initialData.status === 'pending' && initialData.requestId) {
-        const reqId = initialData.requestId;
-        const startTime = Date.now();
-        const maxWaitMs = 1200000; // 20 minutes
+        const reqId = String(initialData.requestId);
+        currentRequestIdRef.current = reqId;
+        let pollDelayMs = 3000;
 
-        while (Date.now() - startTime < maxWaitMs) {
-          await new Promise((r) => setTimeout(r, 6000));
+        while (Date.now() < deadlineAt && !isStale(reqId)) {
+          const remainingMs = deadlineAt - Date.now();
+          if (remainingMs <= 0) break;
+
+          await abortableSleep(Math.min(pollDelayMs, remainingMs), controller.signal);
+          if (isStale(reqId) || Date.now() >= deadlineAt) break;
 
           try {
-            const pollRes = await fetch(`/api/check?requestId=${encodeURIComponent(reqId)}`);
+            const pollRes = await fetch(`/api/check?requestId=${encodeURIComponent(reqId)}`, {
+              signal: controller.signal
+            });
+            if (isStale(reqId)) return;
+
             if (pollRes.ok) {
               const pollData = await pollRes.json();
-              if (pollData.status === 'error') {
-                clearInterval(timer);
-                setErrorMsg(pollData.ui_reason || 'Verification probe error');
-                setIsVerifying(false);
+              if (isStale(reqId)) return;
+
+              if (pollData.status === 'failed' || pollData.status === 'error') {
+                failNow(pollData.detail || pollData.ui_reason || null);
                 return;
               }
               if (pollData.status === 'completed') {
-                clearInterval(timer);
+                clearTimers();
+                currentRequestIdRef.current = null;
                 setResult(resolveCompletedResult(pollData));
                 setIsVerifying(false);
                 return;
               }
             }
-          } catch (pollErr) {
+          } catch (pollErr: any) {
+            if (pollErr?.name === 'AbortError' || isStale(reqId)) break;
             console.warn('[POLL_ATTEMPT_ERR]', pollErr);
           }
+
+          pollDelayMs = Math.min(5000, pollDelayMs + 1000);
         }
+
+        if (runToken === activeRunTokenRef.current && (!controller.signal.aborted || timedOut)) {
+          failNow('Timed out after 4 minutes waiting for the verification runner.');
+        }
+        return;
       }
 
-      clearInterval(timer);
-      setErrorMsg('STILL CHECKING / TIMED OUT - re-run to complete');
+      if (!isStale()) {
+        failNow('Unexpected response from verification endpoint.');
+      }
     } catch (err: any) {
-      clearInterval(timer);
+      if (runToken !== activeRunTokenRef.current) return;
+      if (timedOut) {
+        failNow('Timed out after 4 minutes waiting for the verification runner.');
+        return;
+      }
+      if (err?.name === 'AbortError' || controller.signal.aborted) {
+        // Cancelled by user or Start New Session; stay idle without surfacing an error.
+        return;
+      }
       console.error('[SINGLE_VERIFY_ERR]', err);
-      setErrorMsg(`Verification request failed: ${err.message || 'Network error'}`);
+      failNow(err?.message ? `Request failed: ${err.message}` : null);
     } finally {
-      clearInterval(timer);
-      setIsVerifying(false);
+      if (runToken === activeRunTokenRef.current) {
+        clearTimers();
+        abortControllerRef.current = null;
+        if (!timedOut) {
+          setIsVerifying(false);
+        }
+      }
     }
+  };
+
+  const handleVerify = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    startVerification(email);
   };
 
   const verdict = getCanonicalVerdict(result);
@@ -263,11 +443,32 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
                 transition={{ duration: 0.28, ease: EDITORIAL_EASE }}
                 className="h-full min-h-[280px] flex items-center justify-center border border-dashed border-amber-500/40 bg-amber-500/5 rounded-3xl p-6 sm:p-8"
               >
-                <div className="text-center max-w-md">
-                  <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 mx-auto mb-4 shadow-sm">
-                    <ShieldAlert className="w-7 h-7 text-amber-500 dark:text-amber-400" />
+                <div className="text-center max-w-md space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center border border-amber-500/20 mx-auto shadow-sm">
+                    <ShieldAlert className="w-7 h-7 text-amber-500 dark:text-amber-400" aria-hidden="true" />
                   </div>
-                  <p className="text-sm text-amber-700 dark:text-amber-400 font-semibold">{errorMsg}</p>
+                  <div className="space-y-1.5">
+                    <p className="text-sm text-amber-700 dark:text-amber-300 font-semibold leading-relaxed">
+                      {errorMsg}
+                    </p>
+                    {errorDetail && (
+                      <p className="text-xs text-slate-600 dark:text-slate-400 font-mono break-words">
+                        {errorDetail}
+                      </p>
+                    )}
+                  </div>
+                  <div className="pt-1 flex flex-wrap items-center justify-center gap-3">
+                    <MagneticButton
+                      type="button"
+                      variant="primary"
+                      size="md"
+                      onClick={() => startVerification(email.includes('@') ? email : lastAttemptedEmailRef.current)}
+                      disabled={!(email.includes('@') ? email : lastAttemptedEmailRef.current).includes('@')}
+                    >
+                      <RefreshCw className="w-4 h-4" aria-hidden="true" />
+                      <span>Retry</span>
+                    </MagneticButton>
+                  </div>
                 </div>
               </motion.div>
             ) : !result && !isVerifying ? (
@@ -354,6 +555,14 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
                     Waiting for live mail server response. Verdicts come directly from the engine, never guessed.
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="mt-5 inline-flex items-center gap-1.5 min-h-[38px] px-4 py-1.5 rounded-xl bg-white/60 dark:bg-white/[0.06] hover:bg-rose-500/15 border border-slate-200 dark:border-white/10 hover:border-rose-500/35 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                >
+                  <X className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Cancel Check</span>
+                </button>
               </motion.div>
             ) : result && (
               <StaggerGroup key="single-result" className="space-y-4 sm:space-y-5" staggerDelay={0.06}>

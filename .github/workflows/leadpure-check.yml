@@ -1,9 +1,10 @@
 name: leadpure-check
+run-name: "leadpure-check ${{ inputs.request_id }}${{ inputs.chunk_index != '' && format(' chunk-{0}', inputs.chunk_index) || '' }}"
 
 # LeadPure OWN engine: verifies emails on a GitHub Actions runner with Port 25 open.
 # GitHub schedules ubuntu-latest across Azure (Port 25 open) and AWS (Port 25 blocked).
-# Fast Port-25 check before running probe fails AWS nodes in <4s and immediately retries
-# on a fresh runner VM until an open-port-25 node is assigned.
+# Fast Port-25 check before running probe skips AWS nodes in <4s and retries on a
+# fresh runner VM until an open-port-25 node is assigned.
 
 on:
   workflow_dispatch:
@@ -29,16 +30,29 @@ jobs:
   probe_1:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      ok: ${{ steps.p25.outputs.ok }}
     steps:
       - name: Check Port 25 egress
-        run: nc -4 -z -w 4 gmail-smtp-in.l.google.com 25 || nc -4 -z -w 4 alt1.gmail-smtp-in.l.google.com 25
+        id: p25
+        continue-on-error: true
+        run: |
+          if nc -4 -z -w 4 gmail-smtp-in.l.google.com 25 || nc -4 -z -w 4 alt1.gmail-smtp-in.l.google.com 25; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
       - uses: actions/checkout@v4
+        if: steps.p25.outputs.ok == 'true'
         with:
           ref: main
       - uses: actions/setup-node@v4
+        if: steps.p25.outputs.ok == 'true'
         with:
           node-version: '22'
       - name: Probe and publish results
+        if: steps.p25.outputs.ok == 'true'
         env:
           REQUEST_ID: ${{ inputs.request_id }}
           CHUNK_INDEX: ${{ inputs.chunk_index }}
@@ -48,19 +62,32 @@ jobs:
 
   probe_2:
     needs: probe_1
-    if: needs.probe_1.result == 'failure'
+    if: ${{ !cancelled() && (needs.probe_1.result == 'failure' || needs.probe_1.outputs.ok == 'false') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      ok: ${{ steps.p25.outputs.ok }}
     steps:
       - name: Check Port 25 egress (Retry 1)
-        run: nc -4 -z -w 4 gmail-smtp-in.l.google.com 25 || nc -4 -z -w 4 alt1.gmail-smtp-in.l.google.com 25
+        id: p25
+        continue-on-error: true
+        run: |
+          if nc -4 -z -w 4 gmail-smtp-in.l.google.com 25 || nc -4 -z -w 4 alt1.gmail-smtp-in.l.google.com 25; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
       - uses: actions/checkout@v4
+        if: steps.p25.outputs.ok == 'true'
         with:
           ref: main
       - uses: actions/setup-node@v4
+        if: steps.p25.outputs.ok == 'true'
         with:
           node-version: '22'
       - name: Probe and publish results
+        if: steps.p25.outputs.ok == 'true'
         env:
           REQUEST_ID: ${{ inputs.request_id }}
           CHUNK_INDEX: ${{ inputs.chunk_index }}
@@ -70,19 +97,32 @@ jobs:
 
   probe_3:
     needs: probe_2
-    if: needs.probe_2.result == 'failure'
+    if: ${{ !cancelled() && (needs.probe_2.result == 'failure' || needs.probe_2.outputs.ok == 'false') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      ok: ${{ steps.p25.outputs.ok }}
     steps:
       - name: Check Port 25 egress (Retry 2)
-        run: nc -4 -z -w 4 gmail-smtp-in.l.google.com 25 || nc -4 -z -w 4 alt1.gmail-smtp-in.l.google.com 25
+        id: p25
+        continue-on-error: true
+        run: |
+          if nc -4 -z -w 4 gmail-smtp-in.l.google.com 25 || nc -4 -z -w 4 alt1.gmail-smtp-in.l.google.com 25; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
       - uses: actions/checkout@v4
+        if: steps.p25.outputs.ok == 'true'
         with:
           ref: main
       - uses: actions/setup-node@v4
+        if: steps.p25.outputs.ok == 'true'
         with:
           node-version: '22'
       - name: Probe and publish results
+        if: steps.p25.outputs.ok == 'true'
         env:
           REQUEST_ID: ${{ inputs.request_id }}
           CHUNK_INDEX: ${{ inputs.chunk_index }}
@@ -92,7 +132,7 @@ jobs:
 
   probe_fallback:
     needs: probe_3
-    if: needs.probe_3.result == 'failure'
+    if: ${{ !cancelled() && (needs.probe_3.result == 'failure' || needs.probe_3.outputs.ok == 'false') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
