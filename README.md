@@ -2,8 +2,6 @@
     <img src=".github/LeadPure.gif" alt="LeadPure - Verify every inbox before you hit send." width="100%" />
 
   <br />
-
-  <h1>LeadPure</h1>
   <p>
     <strong>Real-time inbox verification and browser-local spreadsheet cleaning before you hit send.</strong><br />
     Zero per-credit SaaS fees. Zero emails sent to your contacts. Honest deliverability verdicts straight from live checks.
