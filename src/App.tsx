@@ -5,7 +5,7 @@ import { Play, X } from 'lucide-react';
 // Components
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
-import { Footer } from './components/Footer';
+import { AppRoutePath, Footer } from './components/Footer';
 import { LeadUpload } from './components/LeadUpload';
 import { MappingSection } from './components/MappingSection';
 import { RulesSection } from './components/RulesSection';
@@ -18,7 +18,12 @@ import { GlossyCard } from './components/ui/GlossyCard';
 import { MagneticButton } from './components/ui/MagneticButton';
 import { BackgroundMotion } from './components/ui/BackgroundMotion';
 import { LiquidGlassFilter } from './components/ui/LiquidGlassFilter';
+import { SiteShell } from './components/layout/SiteShell';
 import { LandingPage } from './components/LandingPage';
+import { PlansPage } from './components/pages/PlansPage';
+import { DeliverabilityPage } from './components/pages/DeliverabilityPage';
+import { PrivacyPage } from './components/pages/PrivacyPage';
+import { TermsPage } from './components/pages/TermsPage';
 
 // Hooks & Types
 import { useHistory } from './hooks/useHistory';
@@ -30,15 +35,20 @@ import { MobileNav } from './components/MobileNav';
 import { useToast } from './components/Toast';
 
 type AppState = 'upload' | 'mapping' | 'processing' | 'results' | 'rules' | 'history';
-type RoutePath = '/' | '/dashboard';
 
-function getRouteFromLocation(): RoutePath {
+function getRouteFromLocation(): AppRoutePath {
   if (typeof window === 'undefined') return '/';
-  return window.location.pathname.toLowerCase().startsWith('/dashboard') ? '/dashboard' : '/';
+  const p = window.location.pathname.toLowerCase();
+  if (p.startsWith('/dashboard')) return '/dashboard';
+  if (p.startsWith('/pricing')) return '/pricing';
+  if (p.startsWith('/deliverability')) return '/deliverability';
+  if (p.startsWith('/privacy')) return '/privacy';
+  if (p.startsWith('/terms')) return '/terms';
+  return '/';
 }
 
 export default function App() {
-  const [route, setRoute] = useState<RoutePath>(() => getRouteFromLocation());
+  const [route, setRoute] = useState<AppRoutePath>(() => getRouteFromLocation());
   const [appState, setAppState] = useState<AppState>('upload');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     try {
@@ -54,7 +64,7 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  const navigate = useCallback((target: RoutePath) => {
+  const navigate = useCallback((target: AppRoutePath) => {
     if (getRouteFromLocation() !== target) {
       window.history.pushState({}, '', target);
     }
@@ -386,15 +396,28 @@ export default function App() {
     toast('Session reset', 'info');
   };
 
-  if (route === '/') {
+  if (route !== '/dashboard') {
     return (
       <MotionConfig reducedMotion="user">
         <LiquidGlassFilter />
-        <LandingPage
-          onOpenDashboard={() => navigate('/dashboard')}
+        <SiteShell
+          activeRoute={route}
+          onNavigate={navigate}
           theme={theme}
           onToggleTheme={toggleTheme}
-        />
+        >
+          {route === '/' && (
+            <LandingPage
+              onOpenDashboard={() => navigate('/dashboard')}
+              onNavigate={navigate}
+              theme={theme}
+            />
+          )}
+          {route === '/pricing' && <PlansPage onNavigate={navigate} />}
+          {route === '/deliverability' && <DeliverabilityPage onNavigate={navigate} />}
+          {route === '/privacy' && <PrivacyPage onNavigate={navigate} />}
+          {route === '/terms' && <TermsPage onNavigate={navigate} />}
+        </SiteShell>
       </MotionConfig>
     );
   }
@@ -553,7 +576,7 @@ export default function App() {
             </AnimatePresence>
 
             <div className="mt-16">
-              <Footer />
+              <Footer variant="dashboard" onNavigate={navigate} />
             </div>
           </div>
         </section>
