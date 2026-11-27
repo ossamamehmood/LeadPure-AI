@@ -11,7 +11,7 @@ interface SidebarProps {
   onNavigateHome?: () => void;
 }
 
-const SIDEBAR_STORAGE_KEY = 'leadpure_sidebar_collapsed';
+const SIDEBAR_STORAGE_KEY = 'leadpure_sidebar_collapsed_v2';
 
 export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
   const shouldReduceMotion = useReducedMotion();
