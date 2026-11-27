@@ -21,11 +21,11 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 sm:gap-6">
           <div className="flex items-center gap-2.5">
             <div className="w-2 h-2 rounded-full gradient-bg shadow-[0_0_10px_rgba(90,92,255,0.55)]" />
-            <span className="font-display font-bold gradient-text">LeadPure V14</span>
+            <span className="font-display font-bold gradient-text">LeadPure</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span>Own SMTP Engine 1.3.2</span>
+            <span>Real-Time Engine Active</span>
           </div>
         </div>
 
@@ -80,8 +80,7 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
                 <Zap className="w-4 h-4 fill-white" />
               </div>
               <span className="text-lg font-display font-bold text-app-text tracking-tight">
-                Lead<span className="gradient-text">Pure</span>{' '}
-                <span className="text-slate-600 dark:text-slate-300 font-semibold">AI</span>
+                Lead<span className="gradient-text">Pure</span>
               </span>
             </a>
 
@@ -199,7 +198,7 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
         </div>
 
         <div className="pt-6 border-t border-app-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
-          <p>LeadPure AI &middot; Built for clean outreach and protected sender reputation.</p>
+          <p>LeadPure &middot; Built for clean outreach and protected sender reputation.</p>
           <a
             href="https://ossamamehmood.com"
             target="_blank"

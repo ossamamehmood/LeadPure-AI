@@ -56,7 +56,7 @@ export function HistorySection({ history, loadItem, downloadItem, clearHistory }
               >
                 <GlossyCard
                   glow="blue"
-                  className="group hover:border-brand-blue/40 transition-all cursor-pointer p-5 sm:p-8 rounded-3xl border-app-border bg-app-card"
+                  className="group hover:border-brand-blue/40 transition-all cursor-pointer p-5 sm:p-8 rounded-3xl"
                   onClick={() => loadItem(item)}
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">

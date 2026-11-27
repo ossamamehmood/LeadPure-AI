@@ -65,6 +65,39 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
+  useEffect(() => {
+    const ROUTE_SEO: Record<AppRoutePath, { title: string; description: string }> = {
+      '/': {
+        title: 'LeadPure | Email Verification & List Hygiene',
+        description: 'Know every email is real before you hit send. Real-time verification and local spreadsheet cleanup up to 5,000 contacts.',
+      },
+      '/dashboard': {
+        title: 'Workspace | LeadPure',
+        description: 'Check single email addresses live or upload spreadsheets to verify leads and clean formatting locally in your browser.',
+      },
+      '/deliverability': {
+        title: 'Deliverability Guide | LeadPure',
+        description: 'How LeadPure keeps outreach bounce rates under 1% with double-checked rejections and honest risky-domain labels.',
+      },
+      '/pricing': {
+        title: 'Plans & Access | LeadPure',
+        description: 'Start verifying individual emails and cleaning outreach lists free with zero credit fees.',
+      },
+      '/privacy': {
+        title: 'Privacy Policy | LeadPure',
+        description: 'Your contact names, phone numbers, and spreadsheet columns stay strictly inside your browser.',
+      },
+      '/terms': {
+        title: 'Terms of Service | LeadPure',
+        description: 'Clear, fair terms for verifying business and outreach email lists with LeadPure.',
+      },
+    };
+    const meta = ROUTE_SEO[route] || ROUTE_SEO['/'];
+    document.title = meta.title;
+    const descTag = document.querySelector('meta[name="description"]');
+    if (descTag) descTag.setAttribute('content', meta.description);
+  }, [route]);
+
   const navigate = useCallback((target: AppRoutePath) => {
     if (getRouteFromLocation() !== target) {
       window.history.pushState({}, '', target);

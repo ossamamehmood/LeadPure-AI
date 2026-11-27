@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { Check, AlertTriangle, X, HelpCircle, ArrowUpRight, ShieldCheck } from 'lucide-react';
+import { Check, AlertTriangle, X, HelpCircle, ArrowUpRight } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { EDITORIAL_EASE } from '../ui/MotionPrimitives';
-import SpotlightCard from '../reactbits/SpotlightCard';
-import DecryptedText from '../reactbits/DecryptedText';
+import { LiquidSpotlightCard } from '../ui/LiquidSpotlightCard';
+import { TraceAddressText } from '../ui/TraceAddressText';
 import { AppRoutePath } from '../Footer';
 
 interface SampleContact {
@@ -15,14 +15,14 @@ interface SampleContact {
   outcome: 'Safe to Send' | 'Risky' | 'Will Bounce' | 'Unconfirmed';
   tone: 'emerald' | 'amber' | 'rose' | 'slate';
   summary: string;
-  checks: [
-    { step: string; detail: string; status: 'pass' | 'warn' | 'fail' },
-    { step: string; detail: string; status: 'pass' | 'warn' | 'fail' },
-    { step: string; detail: string; status: 'pass' | 'warn' | 'fail' }
+  signals: [
+    { label: string; ok: boolean | 'warn' },
+    { label: string; ok: boolean | 'warn' },
+    { label: string; ok: boolean | 'warn' }
   ];
 }
 
-// Strictly uses RFC 2606 .example domains and non-personal role labels
+// Uses RFC 2606 .example sample domains only
 const CONTACTS: SampleContact[] = [
   {
     id: 'real',
@@ -31,11 +31,11 @@ const CONTACTS: SampleContact[] = [
     email: 'sales@company.example',
     outcome: 'Safe to Send',
     tone: 'emerald',
-    summary: 'Real inbox confirmed directly without sending an email to the contact.',
-    checks: [
-      { step: 'Address formatting', detail: 'Valid structure', status: 'pass' },
-      { step: 'Domain mail server', detail: 'Active and reachable', status: 'pass' },
-      { step: 'Mailbox confirmation', detail: 'Inbox ready for mail', status: 'pass' },
+    summary: 'Real inbox confirmed directly without sending any email.',
+    signals: [
+      { label: 'Format', ok: true },
+      { label: 'Domain', ok: true },
+      { label: 'Inbox', ok: true },
     ],
   },
   {
@@ -45,11 +45,11 @@ const CONTACTS: SampleContact[] = [
     email: 'partners@agency.example',
     outcome: 'Risky',
     tone: 'amber',
-    summary: 'Domain accepts any username typed in, so it is held separately for review.',
-    checks: [
-      { step: 'Address formatting', detail: 'Valid structure', status: 'pass' },
-      { step: 'Domain mail server', detail: 'Active gateway', status: 'pass' },
-      { step: 'Catch-all detection', detail: 'Accepts all usernames', status: 'warn' },
+    summary: 'Domain accepts any username typed in, held for review.',
+    signals: [
+      { label: 'Format', ok: true },
+      { label: 'Domain', ok: true },
+      { label: 'Catch-all', ok: 'warn' },
     ],
   },
   {
@@ -59,11 +59,11 @@ const CONTACTS: SampleContact[] = [
     email: 'former.desk@domain.example',
     outcome: 'Will Bounce',
     tone: 'rose',
-    summary: 'Double-checked twice and removed before campaign launch to protect domain reputation.',
-    checks: [
-      { step: 'Address formatting', detail: 'Valid structure', status: 'pass' },
-      { step: 'Backup second check', detail: 'Confirmed inactive', status: 'fail' },
-      { step: 'Mailbox confirmation', detail: 'Inbox no longer exists', status: 'fail' },
+    summary: 'Removed before sending so your domain reputation stays intact.',
+    signals: [
+      { label: 'Format', ok: true },
+      { label: 'Domain', ok: true },
+      { label: 'Closed', ok: false },
     ],
   },
   {
@@ -73,11 +73,11 @@ const CONTACTS: SampleContact[] = [
     email: 'contact@gateway.example',
     outcome: 'Unconfirmed',
     tone: 'slate',
-    summary: 'Receiving server paused incoming checks temporarily. Saved cleanly instead of guessing.',
-    checks: [
-      { step: 'Address formatting', detail: 'Valid structure', status: 'pass' },
-      { step: 'Domain mail server', detail: 'Temporarily throttled', status: 'warn' },
-      { step: 'Honest safety hold', detail: 'Marked for review', status: 'warn' },
+    summary: 'Server asked to pause temporarily. Held safely instead of guessing.',
+    signals: [
+      { label: 'Format', ok: true },
+      { label: 'Domain', ok: true },
+      { label: 'Busy', ok: 'warn' },
     ],
   },
 ];
@@ -131,28 +131,23 @@ export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHand
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <SpotlightCard
-        theme={theme}
-        spotlightColor={theme === 'dark' ? '#5A5CFF' : '#4F46E5'}
-        intensity={theme === 'dark' ? 0.14 : 0.07}
-        borderGlow={0.75}
-        grain={0.024}
-        spotlightSize={280}
-        className="spotlight-glass !p-0 rounded-3xl border border-app-border"
+      <LiquidSpotlightCard
+        spotlightColor={theme === 'dark' ? 'rgba(90, 92, 255, 0.16)' : 'rgba(90, 92, 255, 0.10)'}
+        className="rounded-3xl p-5 sm:p-6 space-y-5"
       >
-        {/* Top inspector header */}
-        <div className="px-5 py-4 border-b border-app-border flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
+        {/* Minimalist Header */}
+        <div className="flex items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-app-text">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-xs font-semibold text-app-text tracking-tight">Live Inspection Trace</span>
-          </div>
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-            0 Emails Sent
+            Live Check Preview
+          </span>
+          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            Zero emails sent
           </span>
         </div>
 
-        {/* Scenario switcher */}
-        <div className="px-5 pt-4 pb-3 border-b border-app-border/70 flex flex-wrap gap-1.5" role="tablist" aria-label="Sample email scenarios">
+        {/* Minimal Scenario Switcher */}
+        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Sample email scenarios">
           {CONTACTS.map((item, idx) => (
             <button
               key={item.id}
@@ -164,7 +159,7 @@ export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHand
                 'px-2.5 sm:px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
                 idx === activeIdx
                   ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-sm'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-app-text bg-slate-100/85 dark:bg-white/[0.05]'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-app-text bg-white/35 dark:bg-white/[0.04]'
               )}
             >
               {item.tab}
@@ -172,28 +167,19 @@ export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHand
           ))}
         </div>
 
-        {/* Target address header + always-visible verdict badge */}
-        <div className="p-5 sm:p-6 space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-50/90 dark:bg-white/[0.03] border border-app-border">
+        {/* Transparent Glass Result Row */}
+        <div className="rounded-2xl border border-white/55 dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.03] p-4 sm:p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                 {current.label}
               </p>
               <div className="text-sm sm:text-base font-mono font-semibold text-app-text mt-0.5 truncate">
-                {hasInteracted ? (
-                  <DecryptedText
-                    key={current.id}
-                    text={current.email}
-                    animateOn="view"
-                    speed={16}
-                    maxIterations={3}
-                    sequential
-                    revealDirection="start"
-                    characters="abcdefghijklmnopqrstuvwxyz0123456789.-_@"
-                  />
-                ) : (
-                  <span>{current.email}</span>
-                )}
+                <TraceAddressText
+                  key={current.id}
+                  text={current.email}
+                  animateOnChange={hasInteracted}
+                />
               </div>
             </div>
 
@@ -212,51 +198,41 @@ export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHand
             </motion.span>
           </div>
 
-          {/* Hairline sequential check ledger */}
-          <div className="divide-y divide-app-border rounded-2xl border border-app-border bg-white/50 dark:bg-white/[0.02]">
-            {current.checks.map((row, idx) => {
-              const badgeColor =
-                row.status === 'pass'
-                  ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
-                  : row.status === 'warn'
-                    ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10'
-                    : 'text-rose-600 dark:text-rose-400 bg-rose-500/10';
-              return (
-                <div key={`${current.id}-step-${idx}`} className="px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="w-5 h-5 rounded-md border border-app-border bg-slate-100/80 dark:bg-white/[0.04] flex items-center justify-center text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300 shrink-0 tabular-nums">
-                      0{idx + 1}
-                    </span>
-                    <span className="text-xs sm:text-sm font-medium text-app-text truncate">
-                      {row.step}
-                    </span>
-                  </div>
-                  <span className={cn('px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0', badgeColor)}>
-                    {row.detail}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Outcome explanation + link */}
-          <div className="flex items-center justify-between gap-4 pt-1">
-            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-              {current.summary}
-            </p>
-            <button
-              type="button"
-              onClick={() => onNavigate?.('/deliverability')}
-              className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-app-text hover:text-brand-blue transition-colors cursor-pointer"
-              aria-label="Learn how bounce protection works"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-brand-blue" />
-              <span>Why it works</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </button>
+          {/* Ultra-minimalist inline check trail */}
+          <div className="grid grid-cols-3 gap-2 pt-3 border-t border-black/[0.06] dark:border-white/[0.07]">
+            {current.signals.map((sig) => (
+              <div key={sig.label} className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                <span
+                  className={cn(
+                    'w-1.5 h-1.5 rounded-full shrink-0',
+                    sig.ok === true
+                      ? 'bg-emerald-500'
+                      : sig.ok === 'warn'
+                        ? 'bg-amber-400'
+                        : 'bg-rose-500'
+                  )}
+                />
+                <span className="truncate">{sig.label}</span>
+              </div>
+            ))}
           </div>
         </div>
-      </SpotlightCard>
+
+        {/* Quiet Single-Line Explanation + Action */}
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            {current.summary}
+          </p>
+          <button
+            type="button"
+            onClick={() => onNavigate?.('/deliverability')}
+            className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-app-text hover:text-brand-blue transition-colors cursor-pointer"
+          >
+            <span>Details</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </LiquidSpotlightCard>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { AlertTriangle, ArrowRight, CheckCircle2, ShieldAlert, ShieldCheck, Sparkles } from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { MagneticButton } from '../ui/MagneticButton';
 import { EDITORIAL_EASE } from '../ui/MotionPrimitives';
 import { AppRoutePath } from '../Footer';
@@ -118,7 +118,7 @@ export function DeliverabilityPage({ onNavigate }: DeliverabilityPageProps) {
 
         <div className="pt-2 flex flex-col sm:flex-row items-center gap-3.5">
           <MagneticButton onClick={() => onNavigate('/dashboard')} variant="primary" size="lg" className="rounded-full px-8">
-            <Sparkles className="w-4 h-4" />
+            <ShieldCheck className="w-4 h-4" />
             <span>Clean Your List Free</span>
             <ArrowRight className="w-4 h-4" />
           </MagneticButton>

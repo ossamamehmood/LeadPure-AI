@@ -16,12 +16,12 @@ import {
 import { cn } from '../lib/utils';
 import { MagneticButton } from './ui/MagneticButton';
 import { EDITORIAL_EASE } from './ui/MotionPrimitives';
+import { KineticText } from './ui/KineticText';
+import { CounterMetric } from './ui/CounterMetric';
+import { LiquidSpotlightCard } from './ui/LiquidSpotlightCard';
+import { SparkBurstButton } from './ui/SparkBurstButton';
 import { LiveHandshakeVisualizer } from './landing/LiveHandshakeVisualizer';
 import { ArchitecturePipeline } from './landing/ArchitecturePipeline';
-import BlurText from './reactbits/BlurText';
-import CountUp from './reactbits/CountUp';
-import SpotlightCard from './reactbits/SpotlightCard';
-import ClickSpark from './reactbits/ClickSpark';
 import { AppRoutePath } from './Footer';
 
 interface LandingPageProps {
@@ -36,11 +36,10 @@ interface MatrixCell {
 }
 
 /**
- * Technical reference for future roadmap & monetization updates:
- * Advantage rows reflect verified behaviors inside engine/probe.mjs v1.3.2:
- * dual sender-identity confirmation (IDENTITY_A -> IDENTITY_B), 5.1.x vs 5.7.x code
- * differentiation, forwarding MX protections (ImprovMX / ForwardEmail / Cloudflare),
- * 30s greylist wait retries, random-local catch-all detection, and browser xlsxWorker parsing.
+ * Technical maintenance reference (non-public):
+ * Matrix reflects engine verification checks including dual sender-identity retry,
+ * forwarding-domain safeguards, 30s greylist wait handling, catch-all detection,
+ * and local Web Worker spreadsheet parsing & normalization.
  */
 const COMPARISON_ROWS: {
   feature: string;
@@ -109,7 +108,7 @@ function ComparisonCell({ cell, primary = false }: { cell: MatrixCell; primary?:
             'w-6 h-6 rounded-full flex items-center justify-center border',
             primary
               ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-              : 'bg-slate-100 dark:bg-white/[0.05] border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200'
+              : 'bg-white/40 dark:bg-white/[0.05] border-white/60 dark:border-white/10 text-slate-700 dark:text-slate-200'
           )}
           aria-label="Yes"
         >
@@ -117,7 +116,7 @@ function ComparisonCell({ cell, primary = false }: { cell: MatrixCell; primary?:
         </span>
       ) : (
         <span
-          className="w-6 h-6 rounded-full flex items-center justify-center bg-slate-100/60 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.07] text-slate-400 dark:text-slate-600"
+          className="w-6 h-6 rounded-full flex items-center justify-center bg-slate-200/45 dark:bg-white/[0.03] border border-slate-300/50 dark:border-white/[0.08] text-slate-400 dark:text-slate-500"
           aria-label="No"
         >
           <X className="w-3.5 h-3.5" />
@@ -173,59 +172,20 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
 
   return (
     <div className="space-y-24 sm:space-y-28">
-      {/* 1. ASYMMETRIC PRODUCT-FIRST HERO + MINIMSAM BACKGROUND LETTERS + INSPECTOR */}
+      {/* 1. ASYMMETRIC PRODUCT-FIRST HERO + LIVE VERIFICATION INSPECTOR */}
       <section className="relative pt-2 sm:pt-4">
-        {/* Minimsam-inspired monumental kinetic background typography (subtly masked behind Hero) */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none select-none absolute -top-6 sm:-top-10 -inset-x-[12vw] -z-10 overflow-hidden"
-          style={{
-            maskImage: 'linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%)',
-          }}
-        >
-          <div className="space-y-1 sm:space-y-2 text-[4.5rem] sm:text-[7.5rem] lg:text-[9.5rem] font-display font-black uppercase tracking-[-0.04em] leading-[0.88] whitespace-nowrap text-slate-900/[0.045] dark:text-white/[0.045]">
-            <motion.div
-              className="flex w-max"
-              animate={shouldReduceMotion ? undefined : { x: ['0%', '-50%'] }}
-              transition={shouldReduceMotion ? undefined : { duration: 42, repeat: Infinity, ease: 'linear' }}
-            >
-              <span>LEADPURE ENGINE &middot; ZERO BOUNCE HYGIENE &middot;&nbsp;</span>
-              <span>LEADPURE ENGINE &middot; ZERO BOUNCE HYGIENE &middot;&nbsp;</span>
-            </motion.div>
-            <motion.div
-              className="flex w-max"
-              animate={shouldReduceMotion ? undefined : { x: ['-50%', '0%'] }}
-              transition={shouldReduceMotion ? undefined : { duration: 48, repeat: Infinity, ease: 'linear' }}
-            >
-              <span>ACTIVE INBOXES &middot; CATCH-ALL SHIELD &middot; BULK CLEANER &middot;&nbsp;</span>
-              <span>ACTIVE INBOXES &middot; CATCH-ALL SHIELD &middot; BULK CLEANER &middot;&nbsp;</span>
-            </motion.div>
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center relative z-10">
           {/* Left Editorial Column + Interactive Quick Check Bar */}
           <div className="lg:col-span-6 space-y-6">
             <div className="flex items-center gap-3">
-              <span className="h-[1px] w-7 bg-brand-blue/60" aria-hidden="true" />
+              <span className="h-[1px] w-7 bg-brand-blue/70" aria-hidden="true" />
               <p className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400">
                 Email Hygiene &amp; Deliverability
               </p>
             </div>
 
             <h1 className="text-[1.85rem] sm:text-4xl lg:text-[2.95rem] xl:text-[3.2rem] font-display font-bold tracking-[-0.04em] leading-[1.08] text-app-text text-balance">
-              <BlurText
-                text="Know every email is real"
-                trigger="load"
-                animateBy="words"
-                direction="bottom"
-                delay={35}
-                blur={5}
-                distance={12}
-                stepDuration={0.28}
-                className="text-app-text"
-              />
+              <KineticText text="Know every email is real" className="text-app-text" />
               <span className="inline-block sm:whitespace-nowrap gradient-text mt-1">
                 before you hit send.
               </span>
@@ -235,7 +195,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               Verify single leads right away or clean spreadsheets of up to 5,000 contacts inside your browser so your campaigns reach active inboxes.
             </p>
 
-            {/* Real-Product Interactive Quick-Check Form */}
+            {/* Quick-Check Form */}
             <form onSubmit={handleQuickLaunch} className="space-y-3 max-w-xl">
               <div className="liquid-glass rounded-2xl p-1.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="relative flex-1 min-w-0">
@@ -246,21 +206,15 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                     onChange={(e) => setHeroEmail(e.target.value)}
                     placeholder="alex@company.example"
                     aria-label="Enter an email address to verify"
-                    className="w-full h-12 sm:h-13 pl-10 pr-3 rounded-xl bg-white/80 dark:bg-[#0B0D13]/90 border border-slate-200/80 dark:border-white/10 text-sm font-medium text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-all"
+                    className="w-full h-12 sm:h-13 pl-10 pr-3 rounded-xl bg-white/55 dark:bg-white/[0.04] border border-white/70 dark:border-white/10 text-sm font-medium text-app-text placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-all"
                   />
                 </div>
-                <ClickSpark
-                  sparkColor={['#02FEDC', '#5A5CFF', '#F502FD']}
-                  sparkCount={8}
-                  sparkRadius={22}
-                  duration={420}
-                  className="w-full sm:w-auto shrink-0"
-                >
+                <SparkBurstButton className="w-full sm:w-auto shrink-0">
                   <MagneticButton type="submit" variant="primary" size="lg" className="w-full sm:w-auto px-6 !min-h-[48px] sm:!min-h-[52px] rounded-xl">
                     <span>Verify Email</span>
                     <ArrowRight className="w-4 h-4" />
                   </MagneticButton>
-                </ClickSpark>
+                </SparkBurstButton>
               </div>
 
               <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 px-1">
@@ -270,7 +224,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                     key={preset}
                     type="button"
                     onClick={() => setHeroEmail(preset)}
-                    className="px-2 py-0.5 rounded-md font-mono text-[11px] bg-slate-200/70 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 hover:text-brand-blue transition-colors cursor-pointer"
+                    className="px-2 py-0.5 rounded-md font-mono text-[11px] bg-white/45 dark:bg-white/[0.06] border border-white/60 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-brand-blue transition-colors cursor-pointer"
                   >
                     {preset}
                   </button>
@@ -278,11 +232,11 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               </div>
             </form>
 
-            {/* Grounded Architectural Proof Metrics (React Bits CountUp) */}
+            {/* Proof Metrics Strip */}
             <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-5 border-t border-app-border max-w-lg">
               <div>
                 <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums">
-                  &lt; <CountUp to={1} trigger="load" duration={0.8} />%
+                  &lt; <CounterMetric to={1} duration={0.75} />%
                 </p>
                 <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Target bounces
@@ -290,7 +244,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums">
-                  <CountUp to={5000} separator="," trigger="load" duration={1.1} />
+                  <CounterMetric to={5000} separator="," duration={1.05} />
                 </p>
                 <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Rows per sheet
@@ -298,7 +252,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums">
-                  <CountUp to={2} trigger="load" duration={0.7} />x
+                  <CounterMetric to={2} duration={0.7} />x
                 </p>
                 <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Rejection recheck
@@ -307,14 +261,14 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
             </div>
           </div>
 
-          {/* Right Live Verification Instrument */}
+          {/* Right Minimalist Glass Inspection Trace */}
           <div id="live-demo" className="lg:col-span-6 scroll-mt-24">
             <LiveHandshakeVisualizer onNavigate={onNavigate} theme={theme} />
           </div>
         </div>
       </section>
 
-      {/* 2. ASYMMETRIC PRODUCT ENGINEERING BENTO (NO 3-CARD CLONING) */}
+      {/* 2. ASYMMETRIC FEATURE BENTO (UNIFIED LIQUID GLASS) */}
       <section className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div className="space-y-2 max-w-2xl">
@@ -336,15 +290,11 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
-          {/* Featured Interactive 2-Pass Verification Card (7 cols) */}
+          {/* Featured Interactive 2-Pass Confirmation Card (7 cols) */}
           <div className="lg:col-span-7">
-            <SpotlightCard
-              theme={theme}
-              spotlightColor="#5A5CFF"
-              intensity={theme === 'dark' ? 0.13 : 0.06}
-              borderGlow={0.7}
-              grain={0.02}
-              className="spotlight-glass !p-6 sm:!p-8 rounded-3xl border border-app-border h-full flex flex-col justify-between gap-6"
+            <LiquidSpotlightCard
+              spotlightColor={theme === 'dark' ? 'rgba(90, 92, 255, 0.16)' : 'rgba(90, 92, 255, 0.09)'}
+              className="p-6 sm:p-8 rounded-3xl h-full flex flex-col justify-between gap-6"
             >
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -352,7 +302,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                     <ShieldCheck className="w-4 h-4 text-emerald-500" />
                     Backup Confirmation
                   </span>
-                  <div className="inline-flex p-1 rounded-full bg-slate-100 dark:bg-white/[0.05] border border-app-border text-[11px] font-semibold">
+                  <div className="inline-flex p-1 rounded-full bg-white/40 dark:bg-white/[0.05] border border-white/60 dark:border-white/10 text-[11px] font-semibold">
                     <button
                       type="button"
                       onClick={() => setPassStep('first')}
@@ -388,8 +338,8 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                 </p>
               </div>
 
-              {/* Miniature Interactive Pass Comparison Readout */}
-              <div className="rounded-2xl border border-app-border bg-slate-50/90 dark:bg-white/[0.025] p-4 space-y-3">
+              {/* Translucent Interactive Pass Readout */}
+              <div className="rounded-2xl border border-white/55 dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.025] p-4 space-y-2.5">
                 <div className="flex items-center justify-between gap-3 text-xs">
                   <span className="font-mono font-semibold text-app-text truncate">
                     alex.desk@enterprise.example
@@ -411,18 +361,14 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                     : 'LeadPure automatically confirms on a clean second check, saving active pipeline leads.'}
                 </p>
               </div>
-            </SpotlightCard>
+            </LiquidSpotlightCard>
           </div>
 
-          {/* Right Stacked Complementary Panels (5 cols) */}
+          {/* Right Stacked Panels (5 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-5 sm:gap-6">
-            <SpotlightCard
-              theme={theme}
-              spotlightColor="#02FEDC"
-              intensity={theme === 'dark' ? 0.11 : 0.06}
-              borderGlow={0.65}
-              grain={0.02}
-              className="spotlight-glass !p-6 rounded-3xl border border-app-border space-y-4"
+            <LiquidSpotlightCard
+              spotlightColor={theme === 'dark' ? 'rgba(2, 254, 220, 0.14)' : 'rgba(90, 92, 255, 0.08)'}
+              className="p-6 rounded-3xl space-y-4"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="inline-flex items-center gap-2 text-xs font-semibold text-app-text">
@@ -441,7 +387,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                   Fixes name capitalization, cities, and international phone formatting right in your browser before exporting.
                 </p>
               </div>
-              <div className="rounded-xl border border-app-border bg-slate-50/90 dark:bg-white/[0.025] px-3.5 py-2.5 space-y-1 text-xs font-mono">
+              <div className="rounded-xl border border-white/55 dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.025] px-3.5 py-2.5 space-y-1 text-xs font-mono">
                 <div className="flex items-center justify-between gap-2 text-slate-400">
                   <span className="text-[10px] uppercase tracking-wider">Raw</span>
                   <span className="line-through truncate">tariq hussain &middot; 3128471928</span>
@@ -451,15 +397,11 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                   <span className="truncate">Tariq Hussain &middot; +1 (312) 847-1928</span>
                 </div>
               </div>
-            </SpotlightCard>
+            </LiquidSpotlightCard>
 
-            <SpotlightCard
-              theme={theme}
-              spotlightColor="#F502FD"
-              intensity={theme === 'dark' ? 0.10 : 0.05}
-              borderGlow={0.65}
-              grain={0.02}
-              className="spotlight-glass !p-6 rounded-3xl border border-app-border space-y-4 flex-1 flex flex-col justify-between"
+            <LiquidSpotlightCard
+              spotlightColor={theme === 'dark' ? 'rgba(245, 2, 253, 0.14)' : 'rgba(90, 92, 255, 0.08)'}
+              className="p-6 rounded-3xl space-y-4 flex-1 flex flex-col justify-between"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="inline-flex items-center gap-2 text-xs font-semibold text-app-text">
@@ -479,7 +421,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="h-2 w-full rounded-full overflow-hidden flex bg-slate-200 dark:bg-white/10">
+                <div className="h-2 w-full rounded-full overflow-hidden flex bg-slate-200/70 dark:bg-white/10">
                   <div className="h-full bg-emerald-500" style={{ width: '64.2%' }} />
                   <div className="h-full bg-amber-400" style={{ width: '21.4%' }} />
                   <div className="h-full bg-rose-500" style={{ width: '14.4%' }} />
@@ -490,7 +432,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                   <span>14.4% Removed</span>
                 </div>
               </div>
-            </SpotlightCard>
+            </LiquidSpotlightCard>
           </div>
         </div>
       </section>
@@ -526,37 +468,26 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               , and Reacher.
             </p>
           </div>
-          <ClickSpark
-            sparkColor={['#02FEDC', '#5A5CFF', '#F502FD']}
-            sparkCount={8}
-            sparkRadius={20}
-            duration={400}
-            className="shrink-0"
-          >
+          <SparkBurstButton className="shrink-0">
             <MagneticButton onClick={() => onOpenDashboard()} variant="primary" size="md" className="shrink-0 rounded-full">
               <span>Start Verifying</span>
               <ArrowRight className="w-4 h-4" />
             </MagneticButton>
-          </ClickSpark>
+          </SparkBurstButton>
         </div>
 
-        <SpotlightCard
-          theme={theme}
-          spotlightColor={theme === 'dark' ? '#5A5CFF' : '#4F46E5'}
-          intensity={theme === 'dark' ? 0.12 : 0.06}
-          borderGlow={0.7}
-          grain={0.02}
-          spotlightSize={360}
-          className="spotlight-glass !p-0 rounded-3xl border border-app-border overflow-hidden"
+        <LiquidSpotlightCard
+          spotlightColor={theme === 'dark' ? 'rgba(90, 92, 255, 0.14)' : 'rgba(90, 92, 255, 0.08)'}
+          className="rounded-3xl overflow-hidden"
         >
           <div className="overflow-x-auto">
             <table className="w-full min-w-[740px] text-left border-collapse">
               <thead>
-                <tr className="border-b border-app-border bg-white/45 dark:bg-white/[0.025] text-xs font-display font-bold text-app-text">
+                <tr className="border-b border-black/[0.07] dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.025] text-xs font-display font-bold text-app-text">
                   <th className="py-5 px-6 w-[28%] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
                     Capability
                   </th>
-                  <th className="py-5 px-4 w-[16%] text-center bg-white/40 dark:bg-white/[0.04] border-x border-app-border">
+                  <th className="py-5 px-4 w-[16%] text-center bg-white/25 dark:bg-white/[0.03] border-x border-black/[0.06] dark:border-white/[0.07]">
                     <div className="inline-flex items-center gap-1.5 justify-center">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       <span className="text-sm font-bold text-app-text">LeadPure</span>
@@ -580,11 +511,11 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                   <th className="py-5 px-4 w-[14%] text-center">Reacher</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-app-border text-xs">
+              <tbody className="divide-y divide-black/[0.06] dark:divide-white/[0.07] text-xs">
                 {COMPARISON_ROWS.map((row) => (
-                  <tr key={row.feature} className="hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-colors">
+                  <tr key={row.feature} className="hover:bg-white/20 dark:hover:bg-white/[0.02] transition-colors">
                     <td className="py-4 px-6 font-medium text-app-text align-middle">{row.feature}</td>
-                    <td className="py-4 px-4 bg-white/30 dark:bg-white/[0.04] border-x border-app-border align-middle">
+                    <td className="py-4 px-4 bg-white/20 dark:bg-white/[0.025] border-x border-black/[0.06] dark:border-white/[0.07] align-middle">
                       <ComparisonCell cell={row.leadpure} primary />
                     </td>
                     <td className="py-4 px-4 align-middle">
@@ -604,7 +535,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               </tbody>
             </table>
           </div>
-        </SpotlightCard>
+        </LiquidSpotlightCard>
       </section>
 
       {/* 5. MINIMALIST LIQUID-GLASS FAQ */}
@@ -658,7 +589,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
         </div>
       </section>
 
-      {/* 6. CALM MINIMALIST LIQUID-GLASS HORIZON CTA */}
+      {/* 6. UNIFIED LIQUID-GLASS HORIZON CTA */}
       <section className="liquid-glass py-12 sm:py-20 text-center space-y-6 relative rounded-3xl sm:rounded-[36px] px-6 overflow-hidden">
         <h2 className="text-3xl sm:text-5xl font-display font-bold tracking-tight text-app-text max-w-2xl mx-auto leading-[1.08] relative z-10">
           Clean your list. <span className="gradient-text">Protect your inbox.</span>
@@ -667,18 +598,12 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
           Verify individual contacts right now or clean your next outreach spreadsheet with zero credit fees.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-2 relative z-10">
-          <ClickSpark
-            sparkColor={['#02FEDC', '#5A5CFF', '#F502FD']}
-            sparkCount={8}
-            sparkRadius={22}
-            duration={420}
-            className="w-full sm:w-auto"
-          >
+          <SparkBurstButton className="w-full sm:w-auto">
             <MagneticButton onClick={() => onOpenDashboard()} variant="primary" size="lg" className="px-9 w-full sm:w-auto rounded-full">
               <span>Start Verifying Free</span>
               <ArrowRight className="w-4 h-4" />
             </MagneticButton>
-          </ClickSpark>
+          </SparkBurstButton>
           <button
             type="button"
             onClick={() => onNavigate('/pricing')}

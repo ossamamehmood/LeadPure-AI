@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } fr
 import { Check, AlertTriangle, X, CircleDashed, CheckCircle2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { EDITORIAL_EASE } from '../ui/MotionPrimitives';
-import SpotlightCard from '../reactbits/SpotlightCard';
+import { LiquidSpotlightCard } from '../ui/LiquidSpotlightCard';
 
 interface SampleRow {
   email: string;
@@ -12,7 +12,7 @@ interface SampleRow {
   tag: string;
 }
 
-// Strictly uses RFC 2606 .example domains (zero personal or real-world emails)
+// Uses RFC 2606 .example sample domains only
 const SAMPLE_LIST: SampleRow[] = [
   { email: 'hello@company.example', note: 'Active business inbox', bucket: 'safe', tag: 'Safe to Send' },
   { email: 'sales@company.exmaple', note: 'Typo domain flagged', bucket: 'remove', tag: 'Bad Address' },
@@ -59,7 +59,7 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
         </p>
 
         {/* Monochrome Toggle Switch */}
-        <div className="inline-flex p-1.5 rounded-full bg-slate-100 dark:bg-white/[0.04] border border-app-border">
+        <div className="inline-flex p-1.5 rounded-full liquid-glass">
           <button
             type="button"
             onClick={() => setCleaned(false)}
@@ -116,18 +116,14 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
         </div>
       </div>
 
-      {/* Right Kinetic List Stage inside React Bits SpotlightCard */}
+      {/* Right Kinetic List Stage inside Unified Glossy Container */}
       <div ref={stageRef} className="lg:col-span-7" style={{ perspective: '1100px' }}>
         <motion.div style={shouldReduceMotion ? undefined : { rotateX: cardRotateX, y: cardY }}>
-          <SpotlightCard
-            theme={theme}
-            spotlightColor={theme === 'dark' ? '#02FEDC' : '#5A5CFF'}
-            intensity={theme === 'dark' ? 0.11 : 0.06}
-            borderGlow={0.7}
-            grain={0.02}
-            className="spotlight-glass !p-5 sm:!p-7 rounded-3xl border border-app-border space-y-3"
+          <LiquidSpotlightCard
+            spotlightColor={theme === 'dark' ? 'rgba(2, 254, 220, 0.14)' : 'rgba(90, 92, 255, 0.10)'}
+            className="p-5 sm:p-7 rounded-3xl space-y-3"
           >
-            <div className="flex items-center justify-between text-xs pb-3 border-b border-app-border">
+            <div className="flex items-center justify-between text-xs pb-3 border-b border-black/[0.07] dark:border-white/[0.08]">
               <span className="font-display font-bold text-app-text">
                 {cleaned ? 'Sorted Contact List' : 'Unchecked Spreadsheet'}
               </span>
@@ -160,10 +156,10 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
                     layout={!shouldReduceMotion}
                     transition={{ type: 'spring', stiffness: 360, damping: 30 }}
                     className={cn(
-                      'flex items-center justify-between gap-3 p-3.5 rounded-2xl border border-app-border transition-opacity duration-300',
+                      'flex items-center justify-between gap-3 p-3.5 rounded-2xl border border-white/55 dark:border-white/[0.08] transition-opacity duration-300',
                       cleaned && row.bucket === 'remove'
-                        ? 'opacity-50 bg-slate-50/40 dark:bg-white/[0.01]'
-                        : 'bg-slate-50/90 dark:bg-white/[0.03]'
+                        ? 'opacity-50 bg-white/20 dark:bg-white/[0.015]'
+                        : 'bg-white/35 dark:bg-white/[0.03]'
                     )}
                   >
                     <div className="min-w-0">
@@ -198,7 +194,7 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
                 );
               })}
             </div>
-          </SpotlightCard>
+          </LiquidSpotlightCard>
         </motion.div>
       </div>
     </div>

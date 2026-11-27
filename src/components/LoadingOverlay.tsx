@@ -41,7 +41,7 @@ export function LoadingOverlay({
         <div className="absolute inset-3.5 rounded-full border-2 border-transparent border-b-[#F502FD] border-l-[#5A5CFF] animate-[spin_2.6s_linear_infinite_reverse]" />
         <div className="absolute inset-7 rounded-full gradient-surface border border-brand-blue/25 flex flex-col items-center justify-center shadow-lg">
           <RefreshCw className="w-7 h-7 sm:w-9 sm:h-9 text-brand-blue animate-spin [animation-duration:4s] mb-1" />
-          <span className="text-[10px] font-display font-bold gradient-text tracking-wide">LeadPure V14</span>
+          <span className="text-[10px] font-display font-bold gradient-text tracking-wide">LeadPure</span>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export function LoadingOverlay({
                 <div className="w-2 h-2 rounded-full bg-amber-500/30" />
                 <div className="w-2 h-2 rounded-full bg-emerald-500/30" />
               </div>
-              <span className="text-[8px] font-semibold uppercase tracking-[0.25em] text-slate-500 font-mono">LeadPure V14 Verification Engine</span>
+              <span className="text-[8px] font-semibold uppercase tracking-[0.25em] text-slate-500 font-mono">Live Engine Output</span>
             </div>
 
             <div className="p-4 sm:p-5 h-36 overflow-y-auto font-mono text-[10px] leading-relaxed flex flex-col justify-end space-y-1.5 scrollbar-hide">

@@ -166,7 +166,7 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
           </h2>
           <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-1 flex items-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            V14 Real-Time Mailbox Check
+            Real-Time Mailbox Check
           </p>
         </div>
       </div>

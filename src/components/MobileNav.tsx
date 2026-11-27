@@ -20,7 +20,7 @@ export function MobileNav({ currentTab, setTab, onNavigateHome }: MobileNavProps
 
   return (
     <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pb-4 pt-2 bg-gradient-to-t from-app-bg via-app-bg/95 to-transparent">
-      <nav className="flex items-center justify-around h-16 bg-app-card/95 backdrop-blur-2xl border border-app-border rounded-2xl px-2 shadow-2xl" aria-label="Mobile navigation">
+      <nav className="flex items-center justify-around h-16 liquid-glass rounded-2xl px-2" aria-label="Mobile navigation">
         {items.map((item) => {
           const Icon = item.icon;
           return (

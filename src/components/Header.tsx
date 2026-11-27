@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, RefreshCw, Sun, Moon, Zap, Home } from 'lucide-react';
+import { Download, RefreshCw, Sun, Moon, Home } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { MagneticButton } from './ui/MagneticButton';
 
@@ -13,71 +13,63 @@ interface HeaderProps {
   onNavigateHome?: () => void;
 }
 
+const VIEW_TITLES: Record<string, string> = {
+  upload: 'Inbox Verification',
+  mapping: 'Column Mapping',
+  processing: 'Scanning Leads',
+  results: 'Verification Results',
+  rules: 'Protection Rules',
+  history: 'Scan History',
+};
+
 export function Header({ appState, isProcessing, onDownload, onReset, theme, onToggleTheme, onNavigateHome }: HeaderProps) {
   const isResults = appState === 'results' || appState === 'processing';
+  const viewTitle = VIEW_TITLES[appState] || 'Workspace';
 
   return (
-    <header className="h-20 sm:h-24 border-b border-app-border flex items-center justify-between px-4 sm:px-8 lg:px-10 bg-app-bg/60 backdrop-blur-2xl shrink-0 sticky top-0 z-50 gap-3">
-      <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
-        <button
-          type="button"
-          onClick={onNavigateHome}
-          title="Back to LeadPure Homepage"
-          className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-xl"
-        >
-          <div className="w-8 h-8 rounded-xl gradient-cta flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(90,92,255,0.5),0_2px_10px_-2px_rgba(245,2,253,0.22),inset_0_1px_0_rgba(255,255,255,0.28)] transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
-            <Zap className="w-4 h-4 fill-white" />
-          </div>
-          <h1 className="text-xl sm:text-2xl font-display font-bold text-app-text tracking-tight flex items-center gap-1 select-none">
-            Lead<span className="gradient-text">Pure</span><span className="text-slate-600 dark:text-slate-300 font-semibold ml-0.5 pr-1">AI</span>
+    <header className="px-4 sm:px-8 pt-4 shrink-0 sticky top-0 z-40 pointer-events-none">
+      <div className="liquid-glass pointer-events-auto h-16 sm:h-17 rounded-2xl px-4 sm:px-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
+          <h1 className="text-sm sm:text-base font-display font-bold text-app-text tracking-tight truncate">
+            {viewTitle}
           </h1>
-        </button>
-        <div className="h-5 w-px bg-app-border hidden md:block shrink-0" />
-        <div className="hidden md:flex items-center text-[11px] font-semibold tracking-tight text-slate-600 dark:text-slate-400 min-w-0">
-          <span className="flex items-center gap-2 px-3 py-1 bg-slate-100/80 dark:bg-white/[0.04] rounded-full border border-app-border text-slate-700 dark:text-slate-300 truncate">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-            <span className="truncate">
-              V14 Enterprise Release <span className="hidden xl:inline text-slate-500 dark:text-slate-400">(Own SMTP Engine 1.3.2)</span>
-            </span>
-          </span>
         </div>
-      </div>
 
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        {onNavigateHome && (
-          <button
-            type="button"
-            onClick={onNavigateHome}
-            className="hidden sm:flex items-center gap-1.5 min-h-[40px] px-3.5 py-2 rounded-xl bg-slate-100/80 dark:bg-white/[0.04] hover:bg-slate-200/80 dark:hover:bg-white/[0.09] border border-slate-200 dark:border-white/10 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-app-text transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
-            title="Back to LeadPure Homepage"
-          >
-            <Home className="w-3.5 h-3.5" />
-            <span>Overview</span>
-          </button>
-        )}
-        {isResults && (
-          <MagneticButton onClick={onDownload} variant="primary" size="sm" className="rounded-full px-4 sm:px-5">
-            <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Export Results</span>
-            <span className="sm:hidden">Export</span>
-          </MagneticButton>
-        )}
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          {onNavigateHome && (
+            <button
+              type="button"
+              onClick={onNavigateHome}
+              className="hidden sm:flex items-center gap-1.5 min-h-[38px] px-3.5 py-1.5 rounded-xl bg-white/45 dark:bg-white/[0.05] hover:bg-white/75 dark:hover:bg-white/[0.10] border border-white/60 dark:border-white/10 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+              title="Back to Homepage"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span>Overview</span>
+            </button>
+          )}
+          {isResults && (
+            <MagneticButton onClick={onDownload} variant="primary" size="sm" className="rounded-full px-4 sm:px-5">
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Export Results</span>
+              <span className="sm:hidden">Export</span>
+            </MagneticButton>
+          )}
 
-        <div className="flex gap-1.5 sm:gap-2">
           <button
             onClick={(e) => onToggleTheme(e)}
             aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className="min-w-[44px] min-h-[44px] p-2.5 sm:p-3 bg-slate-100/80 dark:bg-white/[0.04] hover:bg-slate-200/80 dark:hover:bg-white/[0.09] rounded-2xl text-slate-600 dark:text-slate-400 hover:text-brand-blue transition-all border border-slate-200 dark:border-white/10 active:scale-95 flex items-center justify-center overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+            className="min-w-[40px] min-h-[40px] p-2.5 bg-white/45 dark:bg-white/[0.05] hover:bg-white/75 dark:hover:bg-white/[0.10] rounded-xl text-slate-600 dark:text-slate-300 hover:text-brand-blue transition-all border border-white/60 dark:border-white/10 active:scale-95 flex items-center justify-center overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
-            <div className="relative w-4.5 h-4.5">
+            <div className="relative w-4 h-4">
               <Sun className={cn(
-                'w-4.5 h-4.5 absolute inset-0 transition-transform duration-300',
-                theme === 'dark' ? 'translate-y-8 opacity-0' : 'translate-y-0 opacity-100'
+                'w-4 h-4 absolute inset-0 transition-transform duration-300',
+                theme === 'dark' ? 'translate-y-7 opacity-0' : 'translate-y-0 opacity-100'
               )} />
               <Moon className={cn(
-                'w-4.5 h-4.5 absolute inset-0 transition-transform duration-300',
-                theme === 'dark' ? 'translate-y-0 opacity-100' : '-translate-y-8 opacity-0'
+                'w-4 h-4 absolute inset-0 transition-transform duration-300',
+                theme === 'dark' ? 'translate-y-0 opacity-100' : '-translate-y-7 opacity-0'
               )} />
             </div>
           </button>
@@ -85,10 +77,10 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
           <button
             onClick={onReset}
             aria-label="Start New Session"
-            className="min-w-[44px] min-h-[44px] p-2.5 sm:p-3 bg-slate-100/80 dark:bg-white/[0.04] hover:bg-slate-200/80 dark:hover:bg-white/[0.09] rounded-2xl text-slate-600 dark:text-slate-400 hover:text-app-text transition-all border border-slate-200 dark:border-white/10 active:scale-95 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+            className="min-w-[40px] min-h-[40px] p-2.5 bg-white/45 dark:bg-white/[0.05] hover:bg-white/75 dark:hover:bg-white/[0.10] rounded-xl text-slate-600 dark:text-slate-300 hover:text-app-text transition-all border border-white/60 dark:border-white/10 active:scale-95 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
             title="Start New Session"
           >
-            <RefreshCw className={cn('w-4.5 h-4.5', isProcessing && 'animate-spin text-brand-blue')} />
+            <RefreshCw className={cn('w-4 h-4', isProcessing && 'animate-spin text-brand-blue')} />
           </button>
         </div>
       </div>

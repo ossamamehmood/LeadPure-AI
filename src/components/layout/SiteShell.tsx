@@ -66,7 +66,6 @@ export function SiteShell({
             </div>
             <span className="text-base sm:text-lg font-display font-bold text-app-text tracking-tight">
               Lead<span className="gradient-text">Pure</span>
-              <span className="text-slate-600 dark:text-slate-300 font-semibold ml-1">AI</span>
             </span>
           </a>
 

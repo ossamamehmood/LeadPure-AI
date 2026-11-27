@@ -23,7 +23,7 @@ export function RulesSection({ rules, onToggle }: RulesSectionProps) {
               </h2>
               <p className="text-slate-600 dark:text-slate-400 text-xs font-medium mt-2 flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                LeadPure V14 Protection Rules Active
+                Automated Protection Rules Active
               </p>
             </div>
           </div>

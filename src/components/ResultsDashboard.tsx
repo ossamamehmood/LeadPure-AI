@@ -283,18 +283,18 @@ export function ResultsDashboard({
         </StaggerItem>
 
         <StaggerItem>
-          <GlossyCard className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card h-full">
+          <GlossyCard className="p-5 sm:p-7 rounded-3xl h-full">
             <div className="flex justify-between items-start mb-4">
-              <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Engine Release</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Protection Mode</p>
               <div className="w-8 h-8 rounded-xl gradient-surface flex items-center justify-center border border-brand-blue/25">
                 <Cpu className="w-4 h-4 text-brand-blue" />
               </div>
             </div>
-            <p className="text-3xl sm:text-4xl font-display font-bold gradient-text tracking-tight">V14 Active</p>
+            <p className="text-3xl sm:text-4xl font-display font-bold gradient-text tracking-tight">Live Guard</p>
             <div className="mt-4 flex items-center justify-between">
               <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold tabular-nums">{arrivedTotal} Checked</p>
               <div className="px-3 py-1 gradient-surface text-brand-blue text-[11px] font-semibold rounded-full border border-brand-blue/25">
-                V14 Engine
+                Verified Live
               </div>
             </div>
           </GlossyCard>
@@ -302,7 +302,7 @@ export function ResultsDashboard({
       </StaggerGroup>
 
       {/* Main Results Table Card */}
-      <div className="bg-app-card rounded-3xl sm:rounded-[32px] border border-app-border shadow-2xl overflow-hidden">
+      <div className="liquid-glass rounded-3xl sm:rounded-[32px] overflow-hidden">
         <div className="px-4 sm:px-8 py-6 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-6 border-b border-app-border">
           <div className="flex flex-wrap gap-5 sm:gap-8">
             <button
@@ -384,7 +384,7 @@ export function ResultsDashboard({
                 variant="secondary"
                 size="sm"
                 strength={0.14}
-                onClick={() => onPreview(currentData, 'LeadPure V14 Results Preview')}
+                onClick={() => onPreview(currentData, 'Verification Results Preview')}
                 className="h-11"
               >
                 <Database className="w-4 h-4" />
@@ -469,14 +469,14 @@ export function ResultsDashboard({
           )}
         </div>
 
-        <div className="px-4 sm:px-8 py-5 bg-slate-50/70 dark:bg-app-bg/60 border-t border-app-border flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-400">
+        <div className="px-4 sm:px-8 py-5 border-t border-app-border flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-400">
           <div className="flex items-center gap-3">
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span className="tabular-nums">{filteredData.length} Rows Shown</span>
           </div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-brand-blue" />
-            <span>LeadPure V14 &bull; Engine 1.3.2</span>
+            <span>Real-Time Verification Engine</span>
           </div>
         </div>
       </div>

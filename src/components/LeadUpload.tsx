@@ -77,10 +77,10 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
         <div
           {...getRootProps({ 'aria-label': 'Upload CSV or Excel lead list' })}
           className={cn(
-            'relative transition-all duration-300 rounded-[26px] sm:rounded-[36px] border-2 border-dashed overflow-hidden flex flex-col items-center justify-center min-h-[320px] sm:min-h-[410px] group/drop cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
+            'relative transition-all duration-300 rounded-[26px] sm:rounded-[36px] border-2 border-dashed overflow-hidden flex flex-col items-center justify-center min-h-[320px] sm:min-h-[410px] group/drop cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue liquid-glass',
             isDragActive
-              ? 'border-brand-blue bg-brand-blue/[0.06] scale-[0.992]'
-              : 'border-slate-300/80 dark:border-white/10 hover:border-brand-blue/50 bg-app-card shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+              ? '!border-brand-blue bg-brand-blue/[0.08] scale-[0.992]'
+              : 'border-slate-300/80 dark:border-white/15 hover:border-brand-blue/50'
           )}
         >
           <div
@@ -105,7 +105,7 @@ export function LeadUpload({ onDrop }: LeadUploadProps) {
                 Clean your <span className="gradient-text">lead list</span>
               </h2>
               <p className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm max-w-md mx-auto leading-relaxed font-medium">
-                Upload a spreadsheet to remove undeliverable emails before sending (V14).
+                Upload a spreadsheet to remove undeliverable emails before sending.
               </p>
               <p className="text-slate-500 dark:text-slate-400 text-xs max-w-sm mx-auto">
                 Drag and drop a file here, or click anywhere inside to browse.

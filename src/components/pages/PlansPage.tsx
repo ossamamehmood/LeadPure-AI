@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { ArrowRight, Check, Layers, ShieldCheck, Sparkles, Users } from 'lucide-react';
+import { ArrowRight, Check, Layers, ShieldCheck, Users } from 'lucide-react';
 import { MagneticButton } from '../ui/MagneticButton';
 import { EDITORIAL_EASE } from '../ui/MotionPrimitives';
 import { AppRoutePath } from '../Footer';
@@ -26,7 +26,7 @@ export function PlansPage({ onNavigate }: PlansPageProps) {
           transition={{ duration: 0.45, ease: EDITORIAL_EASE }}
           className="liquid-glass inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium text-slate-700 dark:text-slate-200"
         >
-          <Sparkles className="w-3.5 h-3.5 text-brand-blue" />
+          <Layers className="w-3.5 h-3.5 text-brand-blue" />
           <span>Simple Access &amp; Upcoming Team Tiers</span>
         </motion.div>
 
@@ -122,7 +122,7 @@ export function PlansPage({ onNavigate }: PlansPageProps) {
                 { icon: Layers, text: 'High-priority parallel queues for larger contact databases' },
                 { icon: Users, text: 'Shared team workspaces, unified clean history, and exports' },
                 { icon: ShieldCheck, text: 'Direct CRM connections and automated signup protection links' },
-                { icon: Sparkles, text: 'Scheduled list re-cleaning before lists go stale' },
+                { icon: Check, text: 'Scheduled list re-cleaning before lists go stale' },
               ].map((entry) => {
                 const Icon = entry.icon;
                 return (

@@ -26,11 +26,11 @@ interface CanvasParticle {
 const PARTICLE_COLORS = ['#02FEDC', '#5A5CFF', '#F502FD', '#94A3B8'];
 
 /**
- * Minimsam-inspired spatial background motion engine:
- * - Architectural 64px dot grid + calibrated horizon mesh
- * - Scroll-linked dual neon signature ribbons drawing & rotating smoothly behind `.liquid-glass` cards
- * - GPU ambient multi-color micro-particle `<canvas>` loop with reduced-motion & visibility guards
- * - Interactive pointer-following atmospheric aura
+ * Unified atmospheric canvas active across all public & workspace routes:
+ * - Calibrated mesh glow and 64px architectural dot-matrix grid
+ * - Scroll-linked dual gradient ribbons (#02FEDC -> #5A5CFF -> #F502FD) refracting behind `.liquid-glass` panels
+ * - Bi-directional drifting typographic backdrop across page headers
+ * - Lightweight GPU particle canvas + pointer-tracking chromatic highlight
  */
 export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
   const shouldReduceMotion = useReducedMotion();
@@ -41,24 +41,24 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
   const smoothX = useSpring(pointerX, { stiffness: 65, damping: 24, mass: 0.6 });
   const smoothY = useSpring(pointerY, { stiffness: 65, damping: 24, mass: 0.6 });
 
-  const cursorSpotlight = useMotionTemplate`radial-gradient(620px circle at ${smoothX}px ${smoothY}px, rgba(90, 92, 255, 0.13), rgba(2, 254, 220, 0.05) 38%, transparent 72%)`;
+  const cursorSpotlight = useMotionTemplate`radial-gradient(640px circle at ${smoothX}px ${smoothY}px, rgba(90, 92, 255, 0.14), rgba(2, 254, 220, 0.06) 38%, transparent 72%)`;
 
   const { scrollYProgress } = useScroll();
-  const smoothScroll = useSpring(scrollYProgress, { stiffness: 70, damping: 24, restDelta: 0.001 });
-  const primaryPathLength = useTransform(smoothScroll, [0, 1], [0.14, 0.96]);
-  const secondaryPathLength = useTransform(smoothScroll, [0, 1], [0.05, 0.88]);
-  const ribbonY = useTransform(smoothScroll, [0, 1], ['2%', '-24%']);
+  const smoothScroll = useSpring(scrollYProgress, { stiffness: 72, damping: 24, restDelta: 0.001 });
+  const primaryPathLength = useTransform(smoothScroll, [0, 1], [0.2, 0.98]);
+  const secondaryPathLength = useTransform(smoothScroll, [0, 1], [0.1, 0.9]);
+  const ribbonY = useTransform(smoothScroll, [0, 1], ['2%', '-22%']);
   const ribbonRotate = useTransform(smoothScroll, [0, 1], [0, 14]);
 
   useEffect(() => {
-    if (shouldReduceMotion || variant !== 'hero') return;
+    if (shouldReduceMotion) return;
     const handlePointerMove = (e: PointerEvent) => {
       pointerX.set(e.clientX);
       pointerY.set(e.clientY);
     };
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
     return () => window.removeEventListener('pointermove', handlePointerMove);
-  }, [shouldReduceMotion, variant, pointerX, pointerY]);
+  }, [shouldReduceMotion, pointerX, pointerY]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -82,13 +82,13 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
     };
     resize();
 
-    const count = variant === 'hero' ? 42 : 24;
+    const count = variant === 'hero' ? 40 : 22;
     const particles: CanvasParticle[] = Array.from({ length: count }, (_, i) => ({
       x: ((i * 197) % Math.max(width, 320)),
       y: ((i * 251) % Math.max(height, 320)),
       vx: ((i % 7) - 3) * 0.09,
       vy: -0.14 - (i % 5) * 0.05,
-      radius: 1 + (i % 3) * 0.6,
+      radius: 1 + (i % 3) * 0.55,
       alpha: 0.25 + (i % 4) * 0.12,
       color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
     }));
@@ -134,59 +134,95 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
       {/* Precision masked 64px architectural dot matrix */}
       <div className="absolute inset-0 architectural-grid opacity-85" />
 
-      {/* Scroll-Linked Neon Signature Ribbons (refract vibrantly behind `.liquid-glass` panels in Dark & Light modes) */}
-      {variant === 'hero' && (
-        <motion.div
-          className="fixed -inset-x-[12vw] -top-[18vh] h-[140vh] w-[124vw] opacity-[0.42] dark:opacity-[0.60]"
-          style={
-            shouldReduceMotion
-              ? undefined
-              : {
-                  y: ribbonY,
-                  rotate: ribbonRotate,
-                  willChange: 'transform',
-                }
+      {/* Vibrant scroll-linked dual gradient ribbons refracting behind all glass panels */}
+      <motion.div
+        className={
+          variant === 'hero'
+            ? 'fixed -inset-x-[12vw] -top-[18vh] h-[140vh] w-[124vw] opacity-[0.55] dark:opacity-[0.75]'
+            : 'fixed -inset-x-[12vw] -top-[18vh] h-[140vh] w-[124vw] opacity-[0.38] dark:opacity-[0.46]'
+        }
+        style={
+          shouldReduceMotion
+            ? undefined
+            : {
+                y: ribbonY,
+                rotate: ribbonRotate,
+                willChange: 'transform',
+              }
+        }
+      >
+        <svg
+          viewBox="0 0 1440 1024"
+          fill="none"
+          preserveAspectRatio="xMidYMid slice"
+          className="w-full h-full"
+        >
+          <defs>
+            <linearGradient id="leadpureScrollRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#02FEDC" />
+              <stop offset="48%" stopColor="#5A5CFF" />
+              <stop offset="100%" stopColor="#F502FD" />
+            </linearGradient>
+            <linearGradient id="leadpureScrollRibbonAlt" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#F502FD" stopOpacity="0.82" />
+              <stop offset="52%" stopColor="#5A5CFF" stopOpacity="0.85" />
+              <stop offset="100%" stopColor="#02FEDC" stopOpacity="0.78" />
+            </linearGradient>
+          </defs>
+
+          <motion.path
+            d="M -340 940 C 180 760, 420 260, 840 360 C 1220 450, 1460 120, 1820 210"
+            stroke="url(#leadpureScrollRibbon)"
+            strokeWidth={145}
+            strokeLinecap="round"
+            style={shouldReduceMotion ? { pathLength: 0.72 } : { pathLength: primaryPathLength }}
+          />
+
+          <motion.path
+            d="M 1800 940 C 1280 820, 1020 440, 620 560 C 260 670, 20 280, -320 140"
+            stroke="url(#leadpureScrollRibbonAlt)"
+            strokeWidth={100}
+            strokeLinecap="round"
+            style={shouldReduceMotion ? { pathLength: 0.56 } : { pathLength: secondaryPathLength }}
+          />
+        </svg>
+      </motion.div>
+
+      {/* Bi-directional scrolling header background typography active on every page */}
+      <div
+        className="absolute top-16 sm:top-20 inset-x-0 overflow-hidden select-none"
+        style={{
+          maskImage: 'linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%)',
+        }}
+      >
+        <div
+          className={
+            variant === 'hero'
+              ? 'space-y-1 sm:space-y-2 text-[4.5rem] sm:text-[7.5rem] lg:text-[9.5rem] font-display font-black uppercase tracking-[-0.04em] leading-[0.88] whitespace-nowrap text-slate-900/[0.045] dark:text-white/[0.045]'
+              : 'space-y-1 text-[3.8rem] sm:text-[6rem] lg:text-[7.5rem] font-display font-black uppercase tracking-[-0.04em] leading-[0.88] whitespace-nowrap text-slate-900/[0.03] dark:text-white/[0.028]'
           }
         >
-          <svg
-            viewBox="0 0 1440 1024"
-            fill="none"
-            preserveAspectRatio="xMidYMid slice"
-            className="w-full h-full"
+          <motion.div
+            className="flex w-max"
+            animate={shouldReduceMotion ? undefined : { x: ['0%', '-50%'] }}
+            transition={shouldReduceMotion ? undefined : { duration: 42, repeat: Infinity, ease: 'linear' }}
           >
-            <defs>
-              <linearGradient id="leadpureScrollRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#02FEDC" />
-                <stop offset="48%" stopColor="#5A5CFF" />
-                <stop offset="100%" stopColor="#F502FD" />
-              </linearGradient>
-              <linearGradient id="leadpureScrollRibbonAlt" x1="100%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#F502FD" stopOpacity="0.68" />
-                <stop offset="52%" stopColor="#5A5CFF" stopOpacity="0.72" />
-                <stop offset="100%" stopColor="#02FEDC" stopOpacity="0.62" />
-              </linearGradient>
-            </defs>
+            <span>LEADPURE HYGIENE &middot; REAL INBOX VERIFIER &middot;&nbsp;</span>
+            <span>LEADPURE HYGIENE &middot; REAL INBOX VERIFIER &middot;&nbsp;</span>
+          </motion.div>
+          <motion.div
+            className="flex w-max"
+            animate={shouldReduceMotion ? undefined : { x: ['-50%', '0%'] }}
+            transition={shouldReduceMotion ? undefined : { duration: 48, repeat: Infinity, ease: 'linear' }}
+          >
+            <span>ZERO BOUNCE PROTECTION &middot; CATCH-ALL SHIELD &middot;&nbsp;</span>
+            <span>ZERO BOUNCE PROTECTION &middot; CATCH-ALL SHIELD &middot;&nbsp;</span>
+          </motion.div>
+        </div>
+      </div>
 
-            <motion.path
-              d="M -340 940 C 180 760, 420 260, 840 360 C 1220 450, 1460 120, 1820 210"
-              stroke="url(#leadpureScrollRibbon)"
-              strokeWidth={145}
-              strokeLinecap="round"
-              style={shouldReduceMotion ? { pathLength: 0.7 } : { pathLength: primaryPathLength }}
-            />
-
-            <motion.path
-              d="M 1800 940 C 1280 820, 1020 440, 620 560 C 260 670, 20 280, -320 140"
-              stroke="url(#leadpureScrollRibbonAlt)"
-              strokeWidth={100}
-              strokeLinecap="round"
-              style={shouldReduceMotion ? { pathLength: 0.5 } : { pathLength: secondaryPathLength }}
-            />
-          </svg>
-        </motion.div>
-      )}
-
-      {/* Drifting bokeh & telemetry particle `<canvas>` */}
+      {/* Drifting chromatic particles */}
       {!shouldReduceMotion && (
         <canvas
           ref={canvasRef}
@@ -194,22 +230,19 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
         />
       )}
 
-      {/* Ultra-fine matte film surface preventing gradient banding */}
-      <div className="absolute inset-0 matte-grain" />
-
-      {/* Interactive pointer-reactive light aura */}
-      {!shouldReduceMotion && variant === 'hero' && (
+      {/* Pointer-reactive chromatic light sheen */}
+      {!shouldReduceMotion && (
         <motion.div
-          className="absolute inset-0 opacity-85 dark:opacity-100"
+          className="absolute inset-0 opacity-90"
           style={{ background: cursorSpotlight }}
         />
       )}
 
-      {/* Soft peripheral depth glow spheres (provide colorful light for Light & Dark glass refraction) */}
+      {/* Peripheral chromatic ambient anchors powering edge refraction */}
       {!shouldReduceMotion && (
         <>
           <motion.div
-            className="absolute -top-36 -left-24 w-[440px] h-[440px] sm:w-[640px] sm:h-[640px] rounded-full blur-3xl opacity-[0.16] dark:opacity-[0.09]"
+            className="absolute -top-36 -left-24 w-[440px] h-[440px] sm:w-[640px] sm:h-[640px] rounded-full blur-3xl opacity-[0.18] dark:opacity-[0.11]"
             style={{ background: 'radial-gradient(circle, #02FEDC 0%, transparent 70%)', willChange: 'transform' }}
             animate={{
               x: [0, 48, -22, 0],
@@ -220,7 +253,7 @@ export function BackgroundMotion({ variant = 'hero' }: BackgroundMotionProps) {
           />
 
           <motion.div
-            className="absolute -bottom-36 -right-24 w-[420px] h-[420px] sm:w-[620px] sm:h-[620px] rounded-full blur-3xl opacity-[0.13] dark:opacity-[0.08]"
+            className="absolute -bottom-36 -right-24 w-[420px] h-[420px] sm:w-[620px] sm:h-[620px] rounded-full blur-3xl opacity-[0.16] dark:opacity-[0.10]"
             style={{ background: 'radial-gradient(circle, #F502FD 0%, transparent 70%)', willChange: 'transform' }}
             animate={{
               x: [0, -48, 22, 0],

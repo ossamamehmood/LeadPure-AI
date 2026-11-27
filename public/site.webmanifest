@@ -1,0 +1,17 @@
+{
+  "name": "LeadPure",
+  "short_name": "LeadPure",
+  "description": "Email hygiene and list verification workspace for single contacts and spreadsheets up to 5,000 rows.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07080F",
+  "theme_color": "#5A5CFF",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
