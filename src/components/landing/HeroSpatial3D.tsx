@@ -7,46 +7,71 @@ interface HeroSpatial3DProps {
   theme?: 'dark' | 'light';
 }
 
-function createShieldShape(scale = 1): THREE.Shape {
-  const s = scale;
-  const shape = new THREE.Shape();
-  shape.moveTo(0, 0.72 * s);
-  shape.quadraticCurveTo(0.42 * s, 0.70 * s, 0.62 * s, 0.50 * s);
-  shape.lineTo(0.62 * s, 0.04 * s);
-  shape.bezierCurveTo(0.62 * s, -0.35 * s, 0.30 * s, -0.60 * s, 0, -0.76 * s);
-  shape.bezierCurveTo(-0.30 * s, -0.60 * s, -0.62 * s, -0.35 * s, -0.62 * s, 0.04 * s);
-  shape.lineTo(-0.62 * s, 0.50 * s);
-  shape.quadraticCurveTo(-0.42 * s, 0.70 * s, 0, 0.72 * s);
-  return shape;
-}
+const VERTEX_SHADER = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+  }
+`;
 
-function createCheckmarkShape(scale = 1): THREE.Shape {
-  const s = scale;
-  const shape = new THREE.Shape();
-  shape.moveTo(-0.24 * s, 0.02 * s);
-  shape.lineTo(-0.16 * s, 0.10 * s);
-  shape.lineTo(-0.04 * s, -0.02 * s);
-  shape.lineTo(0.20 * s, 0.22 * s);
-  shape.lineTo(0.28 * s, 0.14 * s);
-  shape.lineTo(-0.04 * s, -0.18 * s);
-  shape.closePath();
-  return shape;
-}
+const FRAGMENT_SHADER = `
+  precision highp float;
+  varying vec2 vUv;
+  uniform float uTime;
+  uniform vec2 uMouse;
+  uniform float uLight;
+
+  void main() {
+    vec2 uv = vUv;
+    vec2 p = uv * 2.0 - 1.0;
+
+    // Gentle cursor parallax bend
+    vec2 mouseOffset = (uMouse - 0.5) * 0.28;
+    p += mouseOffset * (1.0 - length(p) * 0.35);
+
+    float t = uTime * 0.28;
+
+    // Harmonic flowing liquid silk waves
+    float wave1 = sin(p.x * 2.1 + t + cos(p.y * 1.6 - t * 0.8) * 1.3);
+    float wave2 = cos(p.x * 1.5 - t * 0.7 + sin(p.y * 2.3 + t * 0.9) * 1.1);
+    float wave3 = sin((p.x + p.y) * 1.8 - t * 0.5);
+
+    float bandA = smoothstep(0.95, 0.05, abs(p.y * 1.45 - wave1 * 0.32 + 0.05));
+    float bandB = smoothstep(1.05, 0.08, abs(p.y * 1.30 + wave2 * 0.36 - 0.10));
+    float bandC = smoothstep(1.10, 0.12, abs(p.x * 0.55 + p.y * 0.9 - wave3 * 0.38));
+
+    vec3 cyan = vec3(0.008, 0.996, 0.863);   // #02FEDC
+    vec3 blue = vec3(0.353, 0.361, 1.000);   // #5A5CFF
+    vec3 pink = vec3(0.961, 0.008, 0.992);   // #F502FD
+
+    vec3 silk = cyan * bandA * 0.65 + blue * bandB * 0.85 + pink * bandC * 0.55;
+
+    // Soft elliptical radial horizon falloff so edges melt seamlessly into canvas
+    float radial = smoothstep(1.18, 0.12, length(vec2(p.x * 0.78, p.y * 1.05)));
+    float alpha = clamp((bandA * 0.36 + bandB * 0.42 + bandC * 0.28) * radial, 0.0, 0.78);
+
+    // Calibrate luminosity cleanly between deep Dark void and crisp Light porcelain
+    vec3 finalCol = mix(silk, mix(vec3(0.92, 0.95, 1.0), silk, 0.55), uLight);
+    float finalAlpha = alpha * mix(0.68, 0.44, uLight);
+
+    gl_FragColor = vec4(finalCol, finalAlpha);
+  }
+`;
 
 /**
- * Showstopping 3D Iridescent Chrome & Liquid-Glass Verification Shield Sculpture.
- * Combines a flowing sculpted iridescent liquid-chrome halo knot with an iconic
- * 3D beveled Verification Shield & Checkmark core so the hero immediately looks
- * futuristic and unmistakably represents email deliverability protection.
+ * Cinema-grade GLSL WebGL Fluid Silk Aurora Horizon replacing heavy 3D primitives.
+ * Renders pure flowing bioluminescent gradients in `#02FEDC -> #5A5CFF -> #F502FD`
+ * tuned per theme with interactive pointer refraction and clean unmount disposal.
  */
 export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const themeRef = useRef<'dark' | 'light'>(theme);
+  const lightTargetRef = useRef<number>(theme === 'light' ? 1 : 0);
   const [webglReady, setWebglReady] = useState(true);
   const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
-    themeRef.current = theme;
+    lightTargetRef.current = theme === 'light' ? 1 : 0;
   }, [theme]);
 
   useEffect(() => {
@@ -58,10 +83,8 @@ export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DP
 
     let renderer: THREE.WebGLRenderer | null = null;
     let animationFrameId = 0;
+    let resizeRafId = 0;
     let isVisible = true;
-    let pmremGenerator: THREE.PMREMGenerator | null = null;
-    let envTexture: THREE.CanvasTexture | null = null;
-    let envRenderTarget: THREE.WebGLRenderTarget | null = null;
 
     try {
       renderer = new THREE.WebGLRenderer({
@@ -74,12 +97,10 @@ export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DP
       return;
     }
 
-    const width = Math.max(container.clientWidth, 280);
+    const width = Math.max(container.clientWidth, 320);
     const height = Math.max(container.clientHeight, 260);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(width, height);
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.24;
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
     renderer.domElement.style.display = 'block';
@@ -88,182 +109,30 @@ export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DP
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const initialAspect = width / height;
-    const camera = new THREE.PerspectiveCamera(34, initialAspect, 0.1, 100);
-    const computeCameraZ = (aspect: number) => (aspect < 1 ? 6.4 / Math.max(aspect, 0.72) : 5.75);
-    camera.position.set(0, 0.02, computeCameraZ(initialAspect));
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-    // Multi-chromatic studio reflection dome: cyan, sapphire, magenta, warm amber highlight, and crisp studio softboxes
-    const envCanvas = document.createElement('canvas');
-    envCanvas.width = 256;
-    envCanvas.height = 128;
-    const ctx = envCanvas.getContext('2d');
-    if (ctx) {
-      const grad = ctx.createLinearGradient(0, 0, 256, 128);
-      grad.addColorStop(0.0, '#040814');
-      grad.addColorStop(0.18, '#02fedc');
-      grad.addColorStop(0.38, '#ffffff');
-      grad.addColorStop(0.56, '#5a5cff');
-      grad.addColorStop(0.76, '#f502fd');
-      grad.addColorStop(0.90, '#ff9a62');
-      grad.addColorStop(1.0, '#070b18');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 256, 128);
+    const uniforms = {
+      uTime: { value: 0 },
+      uMouse: { value: new THREE.Vector2(0.5, 0.5) },
+      uLight: { value: lightTargetRef.current },
+    };
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
-      ctx.fillRect(26, 10, 74, 14);
-      ctx.fillRect(160, 24, 58, 12);
-      ctx.fillStyle = 'rgba(2, 254, 220, 0.85)';
-      ctx.fillRect(20, 94, 88, 12);
-    }
-
-    envTexture = new THREE.CanvasTexture(envCanvas);
-    envTexture.mapping = THREE.EquirectangularReflectionMapping;
-    envTexture.colorSpace = THREE.SRGBColorSpace;
-    pmremGenerator = new THREE.PMREMGenerator(renderer);
-    envRenderTarget = pmremGenerator.fromEquirectangular(envTexture);
-    scene.environment = envRenderTarget.texture;
-
-    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
-    keyLight.position.set(2.8, 4.2, 5.2);
-    scene.add(keyLight);
-
-    const cyanLight = new THREE.PointLight(0x02fedc, 36, 18);
-    cyanLight.position.set(-3.4, 2.2, 3.0);
-    scene.add(cyanLight);
-
-    const pinkLight = new THREE.PointLight(0xf502fd, 32, 18);
-    pinkLight.position.set(3.4, -2.1, 2.8);
-    scene.add(pinkLight);
-
-    const blueLight = new THREE.PointLight(0x5a5cff, 38, 20);
-    blueLight.position.set(0.0, 2.4, -2.5);
-    scene.add(blueLight);
-
-    const disposables: Array<{ dispose: () => void }> = [];
-    const stageGroup = new THREE.Group();
-    scene.add(stageGroup);
-
-    const isLight = themeRef.current === 'light';
-
-    // 1. Flowing Chrome-Iridescent Liquid Ribbon Orbiting the Core (reference hero luxury gloss sheen)
-    const sculptureGeo = new THREE.TorusKnotGeometry(1.18, 0.24, 200, 36, 2, 3);
-    disposables.push(sculptureGeo);
-
-    const sculptureMat = new THREE.MeshPhysicalMaterial({
-      color: isLight ? 0xe0eaff : 0x202744,
-      metalness: isLight ? 0.42 : 0.72,
-      roughness: 0.05,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.02,
-      iridescence: 1.0,
-      iridescenceIOR: 1.38,
-      iridescenceThicknessRange: [180, 560],
-      reflectivity: 1.0,
-      envMapIntensity: isLight ? 1.65 : 2.15,
-    });
-    disposables.push(sculptureMat);
-
-    const sculptureMesh = new THREE.Mesh(sculptureGeo, sculptureMat);
-    sculptureMesh.position.z = -0.32;
-    stageGroup.add(sculptureMesh);
-
-    // 2. Iconic Foreground Beveled Liquid-Glass Verification Shield Crest (keeps the centerpiece unmistakably about Inbox Protection)
-    const shieldGroup = new THREE.Group();
-    shieldGroup.position.set(0, 0, 0.52);
-    stageGroup.add(shieldGroup);
-
-    const shieldShape = createShieldShape(1.0);
-    const shieldGeo = new THREE.ExtrudeGeometry(shieldShape, {
-      depth: 0.16,
-      bevelEnabled: true,
-      bevelThickness: 0.068,
-      bevelSize: 0.055,
-      bevelSegments: 10,
-      curveSegments: 24,
-    });
-    shieldGeo.center();
-    disposables.push(shieldGeo);
-
-    const shieldMat = new THREE.MeshPhysicalMaterial({
-      color: isLight ? 0xf8fbff : 0x10172d,
-      metalness: 0.14,
-      roughness: 0.05,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.02,
-      iridescence: 0.9,
-      iridescenceIOR: 1.33,
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const material = new THREE.ShaderMaterial({
+      vertexShader: VERTEX_SHADER,
+      fragmentShader: FRAGMENT_SHADER,
+      uniforms,
       transparent: true,
-      opacity: isLight ? 0.92 : 0.90,
-      envMapIntensity: 1.9,
+      depthWrite: false,
     });
-    disposables.push(shieldMat);
 
-    const shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
-    shieldGroup.add(shieldMesh);
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
 
-    // Luminous glowing emerald-cyan beveled checkmark centered inside the liquid-glass shield
-    const checkShape = createCheckmarkShape(1.42);
-    const checkGeo = new THREE.ExtrudeGeometry(checkShape, {
-      depth: 0.07,
-      bevelEnabled: true,
-      bevelThickness: 0.022,
-      bevelSize: 0.018,
-      bevelSegments: 6,
-    });
-    checkGeo.center();
-    disposables.push(checkGeo);
-
-    const checkMat = new THREE.MeshPhysicalMaterial({
-      color: 0x02fedc,
-      emissive: 0x02fedc,
-      emissiveIntensity: 0.45,
-      metalness: 0.15,
-      roughness: 0.04,
-      clearcoat: 1.0,
-    });
-    disposables.push(checkMat);
-
-    const checkMesh = new THREE.Mesh(checkGeo, checkMat);
-    checkMesh.position.set(0, 0.02, 0.14);
-    shieldGroup.add(checkMesh);
-
-    // 3. Sleek Precision Verification Orbit Halo & Verified Signal Satellites
-    const haloGeo = new THREE.TorusGeometry(1.78, 0.014, 14, 128);
-    const haloMat = new THREE.MeshBasicMaterial({
-      color: 0x02fedc,
-      transparent: true,
-      opacity: 0.55,
-    });
-    disposables.push(haloGeo, haloMat);
-
-    const haloMesh = new THREE.Mesh(haloGeo, haloMat);
-    haloMesh.rotation.x = Math.PI * 0.36;
-    haloMesh.rotation.y = Math.PI * 0.18;
-    stageGroup.add(haloMesh);
-
-    const satGeo = new THREE.SphereGeometry(0.068, 20, 20);
-    const satMatCyan = new THREE.MeshPhysicalMaterial({ color: 0x02fedc, emissive: 0x02fedc, emissiveIntensity: 0.85, roughness: 0.05 });
-    const satMatPink = new THREE.MeshPhysicalMaterial({ color: 0xf502fd, emissive: 0xf502fd, emissiveIntensity: 0.75, roughness: 0.05 });
-    disposables.push(satGeo, satMatCyan, satMatPink);
-
-    const satA = new THREE.Mesh(satGeo, satMatCyan);
-    satA.position.set(1.78, 0, 0);
-    haloMesh.add(satA);
-
-    const satB = new THREE.Mesh(satGeo, satMatPink);
-    satB.position.set(-1.78, 0, 0);
-    haloMesh.add(satB);
-
-    let pointerTiltX = 0;
-    let pointerTiltY = 0;
+    const targetMouse = new THREE.Vector2(0.5, 0.5);
     const handlePointerMove = (e: PointerEvent) => {
-      const nx = (e.clientX / Math.max(window.innerWidth, 1)) * 2 - 1;
-      const ny = (e.clientY / Math.max(window.innerHeight, 1)) * 2 - 1;
-      pointerTiltY = nx * 0.28;
-      pointerTiltX = -ny * 0.20;
+      targetMouse.x = e.clientX / Math.max(window.innerWidth, 1);
+      targetMouse.y = 1.0 - e.clientY / Math.max(window.innerHeight, 1);
     };
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
 
@@ -271,19 +140,14 @@ export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DP
       (entries) => {
         isVisible = entries[0]?.isIntersecting ?? true;
       },
-      { threshold: 0.05 }
+      { threshold: 0.02 }
     );
     observer.observe(container);
 
-    let resizeRafId = 0;
     const handleResize = () => {
       if (!container || !renderer) return;
-      const nextW = Math.max(container.clientWidth, 240);
-      const nextH = Math.max(container.clientHeight, 240);
-      const nextAspect = nextW / nextH;
-      camera.aspect = nextAspect;
-      camera.position.z = computeCameraZ(nextAspect);
-      camera.updateProjectionMatrix();
+      const nextW = Math.max(container.clientWidth, 320);
+      const nextH = Math.max(container.clientHeight, 260);
       renderer.setSize(nextW, nextH);
     };
     const scheduleResize = () => {
@@ -294,35 +158,14 @@ export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DP
     const resizeObserver = new ResizeObserver(scheduleResize);
     resizeObserver.observe(container);
 
-    const darkChrome = new THREE.Color(0x202744);
-    const lightChrome = new THREE.Color(0xdce8ff);
-    const darkShield = new THREE.Color(0x10172d);
-    const lightShield = new THREE.Color(0xf8fbff);
     const clock = new THREE.Clock();
-
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
       if (!isVisible || document.hidden || !renderer) return;
 
-      const elapsed = clock.getElapsedTime();
-      const scrollRatio = Math.min(window.scrollY / 900, 1.4);
-      const light = themeRef.current === 'light';
-
-      sculptureMat.color.lerp(light ? lightChrome : darkChrome, 0.08);
-      sculptureMat.metalness = light ? 0.36 : 0.72;
-      shieldMat.color.lerp(light ? lightShield : darkShield, 0.08);
-
-      sculptureMesh.rotation.y = elapsed * 0.24 + scrollRatio * 0.9;
-      sculptureMesh.rotation.x = Math.sin(elapsed * 0.32) * 0.18 + scrollRatio * 0.3;
-
-      shieldGroup.rotation.y = Math.sin(elapsed * 0.85) * 0.14;
-      shieldGroup.rotation.x = Math.cos(elapsed * 0.7) * 0.06;
-      shieldGroup.position.y = Math.sin(elapsed * 1.15) * 0.05;
-
-      haloMesh.rotation.z = elapsed * 0.34;
-
-      stageGroup.rotation.y += (pointerTiltY - stageGroup.rotation.y) * 0.06;
-      stageGroup.rotation.x += (pointerTiltX - stageGroup.rotation.x) * 0.06;
+      uniforms.uTime.value = clock.getElapsedTime();
+      uniforms.uMouse.value.lerp(targetMouse, 0.05);
+      uniforms.uLight.value += (lightTargetRef.current - uniforms.uLight.value) * 0.08;
 
       renderer.render(scene, camera);
     };
@@ -336,15 +179,13 @@ export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DP
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('resize', scheduleResize);
 
-      for (const d of disposables) d.dispose();
-      envRenderTarget?.dispose();
-      envTexture?.dispose();
-      pmremGenerator?.dispose();
+      geometry.dispose();
+      material.dispose();
       if (renderer) {
         try {
           renderer.forceContextLoss();
         } catch {
-          // ignore if context was already lost
+          // ignore
         }
         renderer.dispose();
         if (renderer.domElement.parentNode === container) {
@@ -357,13 +198,13 @@ export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DP
   return (
     <div ref={containerRef} aria-hidden="true" className={`relative select-none ${className}`}>
       {!webglReady && (
-        <div className="w-full h-full flex items-center justify-center">
-          <div className="w-40 h-44 rounded-3xl liquid-glass flex items-center justify-center">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-500 font-bold text-2xl">
-              ✓
-            </div>
-          </div>
-        </div>
+        <div
+          className="w-full h-full opacity-60 blur-3xl"
+          style={{
+            background:
+              'radial-gradient(ellipse 75% 65% at 50% 45%, rgba(2,254,220,0.22), rgba(90,92,255,0.24) 48%, rgba(245,2,253,0.16) 78%, transparent 100%)',
+          }}
+        />
       )}
     </div>
   );

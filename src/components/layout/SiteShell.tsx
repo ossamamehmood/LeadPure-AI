@@ -156,7 +156,7 @@ export function SiteShell({
         </header>
       </div>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 sm:pt-14 pb-16 space-y-24 sm:space-y-32 relative z-10">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-16 space-y-24 sm:space-y-32 relative z-10">
         {children}
         <Footer variant="landing" onNavigate={onNavigate} />
       </main>
