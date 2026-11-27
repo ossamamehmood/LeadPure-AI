@@ -1,0 +1,39 @@
+[
+  {
+    "input": "bssesessional@gmail.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com",
+        "alt2.gmail-smtp-in.l.google.com",
+        "alt3.gmail-smtp-in.l.google.com",
+        "alt4.gmail-smtp-in.l.google.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "bssesessional@gmail.com",
+      "domain": "gmail.com",
+      "is_valid_syntax": true,
+      "username": "bssesessional"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK d2e1a72fcca58-8c870585d90si52666631b3a.16 - gsmtp",
+      "freemail": true
+    }
+  }
+]
