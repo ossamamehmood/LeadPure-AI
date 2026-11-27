@@ -10,34 +10,38 @@ interface KineticTextProps {
 }
 
 /**
- * Staggered typographic word entrance tuned for crisp editorial headlines.
+ * Staggered typographic word entrance using standard inline line flow so
+ * browsers never collapse words into vertical columns on narrow screens.
  */
 export function KineticText({
   text,
   className = '',
   staggerMs = 40,
-  duration = 0.36,
+  duration = 0.34,
 }: KineticTextProps) {
   const shouldReduceMotion = useReducedMotion();
   const words = text.split(' ');
 
   return (
-    <span className={`inline-flex flex-wrap gap-x-[0.24em] ${className}`}>
+    <span className={`block ${className}`}>
       {words.map((word, index) => (
-        <span key={`${word}-${index}`} className="inline-block overflow-hidden py-[0.04em]">
-          <motion.span
-            className="inline-block"
-            initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: '85%' }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration,
-              delay: index * (staggerMs / 1000),
-              ease: EDITORIAL_EASE,
-            }}
-          >
-            {word}
-          </motion.span>
-        </span>
+        <React.Fragment key={`${word}-${index}`}>
+          <span className="inline-block overflow-hidden align-bottom py-[0.04em]">
+            <motion.span
+              className="inline-block"
+              initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: '85%' }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration,
+                delay: index * (staggerMs / 1000),
+                ease: EDITORIAL_EASE,
+              }}
+            >
+              {word}
+            </motion.span>
+          </span>
+          {index < words.length - 1 ? ' ' : null}
+        </React.Fragment>
       ))}
     </span>
   );

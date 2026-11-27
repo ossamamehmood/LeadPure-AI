@@ -193,7 +193,7 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="user@company.com"
                       aria-label="Email address to verify"
-                      className="w-full bg-white dark:bg-[#0B0D13] border border-slate-200 dark:border-white/10 rounded-xl h-13 sm:h-14 pl-10 pr-9 text-sm font-medium text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-all"
+                      className="w-full bg-white/65 dark:bg-white/[0.04] border border-white/70 dark:border-white/10 rounded-xl h-13 sm:h-14 pl-10 pr-9 text-sm font-medium text-app-text placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-brand-blue/60 focus:ring-2 focus:ring-brand-blue/15 transition-all"
                     />
                     {email.length > 0 && !isVerifying && (
                       <button
@@ -273,7 +273,7 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className="h-full min-h-[280px] flex items-center justify-center border border-dashed border-app-border rounded-3xl p-6 bg-slate-50/40 dark:bg-white/[0.015]"
+                className="h-full min-h-[240px] sm:min-h-[280px] flex items-center justify-center border border-dashed border-app-border rounded-3xl p-6 liquid-glass"
               >
                 <div className="text-center space-y-3">
                   <div className="w-14 h-14 rounded-2xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20 mx-auto">

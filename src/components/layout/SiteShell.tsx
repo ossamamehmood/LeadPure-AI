@@ -48,7 +48,7 @@ export function SiteShell({
       <BackgroundMotion variant="hero" />
 
       <div className="sticky top-0 z-50 px-3 sm:px-6 pt-3 sm:pt-4 pointer-events-none">
-        <header className="liquid-glass pointer-events-auto max-w-5xl mx-auto px-3 sm:px-5 h-15 sm:h-16 rounded-full flex items-center justify-between gap-2 sm:gap-4">
+        <header className="liquid-glass pointer-events-auto max-w-6xl mx-auto px-3 sm:px-5 h-15 sm:h-16 rounded-full flex items-center justify-between gap-2 sm:gap-4">
           <a
             href="/"
             onClick={(e) => {
@@ -155,7 +155,7 @@ export function SiteShell({
         </header>
       </div>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-16 space-y-24 sm:space-y-32 relative z-10">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 pb-16 space-y-20 sm:space-y-28 relative z-10">
         {children}
         <Footer variant="landing" onNavigate={onNavigate} />
       </main>

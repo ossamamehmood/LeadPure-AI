@@ -184,15 +184,15 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               </p>
             </div>
 
-            <h1 className="text-[1.85rem] sm:text-4xl lg:text-[2.95rem] xl:text-[3.2rem] font-display font-bold tracking-[-0.04em] leading-[1.08] text-app-text text-balance">
-              <KineticText text="Know every email is real" className="text-app-text" />
+            <h1 className="text-[1.75rem] sm:text-4xl lg:text-[2.95rem] xl:text-[3.2rem] font-display font-bold tracking-[-0.035em] leading-[1.08] text-app-text">
+              <KineticText text="Verify every inbox" className="text-app-text" />
               <span className="inline-block sm:whitespace-nowrap gradient-text mt-1">
                 before you hit send.
               </span>
             </h1>
 
             <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-[54ch]">
-              Verify single leads right away or clean spreadsheets of up to 5,000 contacts inside your browser so your campaigns reach active inboxes.
+              Check individual contacts right away or clean spreadsheets up to 5,000 rows locally so every campaign lands in active inboxes.
             </p>
 
             {/* Quick-Check Form */}
@@ -233,9 +233,9 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
             </form>
 
             {/* Proof Metrics Strip */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-5 border-t border-app-border max-w-lg">
+            <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-5 border-t border-app-border max-w-lg">
               <div>
-                <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums">
+                <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums whitespace-nowrap">
                   &lt; <CounterMetric to={1} duration={0.75} />%
                 </p>
                 <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -243,7 +243,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                 </p>
               </div>
               <div>
-                <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums">
+                <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums whitespace-nowrap">
                   <CounterMetric to={5000} separator="," duration={1.05} />
                 </p>
                 <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -251,7 +251,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                 </p>
               </div>
               <div>
-                <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums">
+                <p className="text-xl sm:text-2xl font-display font-bold text-app-text tabular-nums whitespace-nowrap">
                   <CounterMetric to={2} duration={0.7} />x
                 </p>
                 <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -474,6 +474,11 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               <ArrowRight className="w-4 h-4" />
             </MagneticButton>
           </SparkBurstButton>
+        </div>
+
+        <div className="sm:hidden flex items-center justify-end gap-1 text-[11px] font-mono text-slate-500 dark:text-slate-400 pr-1 -mb-6">
+          <span>Swipe table to compare</span>
+          <ArrowRight className="w-3 h-3" />
         </div>
 
         <LiquidSpotlightCard

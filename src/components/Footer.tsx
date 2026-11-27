@@ -85,7 +85,7 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
             </a>
 
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm">
-              Know every email is real before you hit send. Built to help sales and marketing teams protect their sender reputation and prevent avoidable bounces.
+              Verify every inbox before you hit send. Built to help sales and marketing teams protect their sender reputation and prevent avoidable bounces.
             </p>
 
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/55 dark:bg-white/[0.04] border border-white/75 dark:border-app-border text-[11px] font-medium text-slate-700 dark:text-slate-300">

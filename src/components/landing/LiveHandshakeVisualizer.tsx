@@ -146,8 +146,8 @@ export function LiveHandshakeVisualizer({ onNavigate, theme = 'dark' }: LiveHand
           </span>
         </div>
 
-        {/* Minimal Scenario Switcher */}
-        <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Sample email scenarios">
+        {/* Minimal Scenario Switcher (2x2 balanced grid on narrow mobile, horizontal pills on tablet/desktop) */}
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-1.5" role="tablist" aria-label="Sample email scenarios">
           {CONTACTS.map((item, idx) => (
             <button
               key={item.id}

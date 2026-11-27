@@ -69,7 +69,7 @@ export default function App() {
     const ROUTE_SEO: Record<AppRoutePath, { title: string; description: string }> = {
       '/': {
         title: 'LeadPure | Email Verification & List Hygiene',
-        description: 'Know every email is real before you hit send. Real-time verification and local spreadsheet cleanup up to 5,000 contacts.',
+        description: 'Verify every inbox before you hit send. Real-time verification and local spreadsheet cleanup up to 5,000 contacts.',
       },
       '/dashboard': {
         title: 'Workspace | LeadPure',

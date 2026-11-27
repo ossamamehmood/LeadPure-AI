@@ -178,7 +178,7 @@ export function ResultsDashboard({
     <div className="max-w-6xl mx-auto w-full space-y-6 sm:space-y-10 pb-20">
       {/* Live Chunk Progress Header while running */}
       {isProcessing && (
-        <GlossyCard glow="blue" className="p-5 sm:p-8 rounded-3xl border border-brand-blue/30 bg-app-card">
+        <GlossyCard glow="blue" className="p-5 sm:p-8 rounded-3xl border border-brand-blue/30">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
             <div>
               {/* Technical note: runs up to 3 concurrent GitHub Actions Port-25 batches of 100 emails */}
@@ -229,7 +229,7 @@ export function ResultsDashboard({
       {/* Summary Cards (Built strictly from arrived engine results) */}
       <StaggerGroup staggerDelay={0.05} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StaggerItem>
-          <GlossyCard glow="gradient" className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card h-full">
+          <GlossyCard glow="gradient" className="p-5 sm:p-7 rounded-3xl h-full">
             <div className="flex justify-between items-start mb-4">
               <p className="text-emerald-600 dark:text-emerald-400 text-xs font-semibold uppercase tracking-wider">SAFE</p>
               <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/25">
@@ -246,7 +246,7 @@ export function ResultsDashboard({
         </StaggerItem>
 
         <StaggerItem>
-          <GlossyCard glow="pink" className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card h-full">
+          <GlossyCard glow="pink" className="p-5 sm:p-7 rounded-3xl h-full">
             <div className="flex justify-between items-start mb-4">
               <p className="text-rose-600 dark:text-rose-400 text-xs font-semibold uppercase tracking-wider">Risky &amp; Invalid</p>
               <div className="w-8 h-8 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/25">
@@ -266,7 +266,7 @@ export function ResultsDashboard({
         </StaggerItem>
 
         <StaggerItem>
-          <GlossyCard className="p-5 sm:p-7 rounded-3xl shadow-xl border-app-border bg-app-card h-full">
+          <GlossyCard className="p-5 sm:p-7 rounded-3xl h-full">
             <div className="flex justify-between items-start mb-4">
               <p className="text-slate-600 dark:text-slate-400 text-xs font-semibold uppercase tracking-wider">Definitive Rate</p>
               <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/25">
