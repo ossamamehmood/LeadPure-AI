@@ -178,7 +178,7 @@ function KineticHeadlineLine({
     return (
       <span className="inline-block overflow-hidden py-[0.04em] max-w-full">
         <motion.span
-          className="inline-block gradient-text"
+          className="inline-block gradient-text sm:whitespace-nowrap"
           initial={shouldReduceMotion ? { y: 0, opacity: 1 } : { y: '105%', opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.58, delay: delayBase, ease: EDITORIAL_EASE }}
@@ -232,10 +232,10 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
         </div>
 
         {/* 3-Column Monumental Centerpiece Grid inspired by top agency hero layouts */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.22fr_1fr_0.78fr] gap-6 lg:gap-5 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.34fr_0.96fr_0.74fr] gap-6 lg:gap-4 items-center">
           {/* Left Flank: Display Lockup + Core Action */}
           <div className="text-center lg:text-left space-y-5 z-20">
-            <h1 className="text-[2.15rem] sm:text-5xl lg:text-[2.85rem] xl:text-[3.15rem] font-display font-bold tracking-[-0.04em] leading-[1.05] text-app-text">
+            <h1 className="text-[2.05rem] sm:text-5xl lg:text-[2.6rem] xl:text-[2.9rem] font-display font-bold tracking-[-0.04em] leading-[1.06] text-app-text">
               <KineticHeadlineLine words={['Verify', 'Every', 'Lead']} delayBase={0.04} leftDesktop />
               <br className="hidden lg:block" />{' '}
               <KineticHeadlineLine words={['before', 'you', 'hit', 'send.']} delayBase={0.2} gradient />
@@ -259,7 +259,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                 href="#live-demo"
                 className="liquid-glass min-h-[54px] sm:min-h-[58px] px-6 py-3 rounded-full text-sm font-semibold text-app-text flex items-center justify-center gap-2 w-full sm:w-auto transition-all lg:hidden"
               >
-                <span>See Live Preview</span>
+                <span>See Live Proof</span>
               </a>
             </div>
           </div>

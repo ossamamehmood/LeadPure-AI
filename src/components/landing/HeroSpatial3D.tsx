@@ -275,6 +275,7 @@ export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DP
     );
     observer.observe(container);
 
+    let resizeRafId = 0;
     const handleResize = () => {
       if (!container || !renderer) return;
       const nextW = Math.max(container.clientWidth, 240);
@@ -285,8 +286,12 @@ export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DP
       camera.updateProjectionMatrix();
       renderer.setSize(nextW, nextH);
     };
-    window.addEventListener('resize', handleResize);
-    const resizeObserver = new ResizeObserver(handleResize);
+    const scheduleResize = () => {
+      if (resizeRafId) cancelAnimationFrame(resizeRafId);
+      resizeRafId = requestAnimationFrame(handleResize);
+    };
+    window.addEventListener('resize', scheduleResize);
+    const resizeObserver = new ResizeObserver(scheduleResize);
     resizeObserver.observe(container);
 
     const darkChrome = new THREE.Color(0x202744);
@@ -325,18 +330,26 @@ export function HeroSpatial3D({ className = '', theme = 'dark' }: HeroSpatial3DP
 
     return () => {
       cancelAnimationFrame(animationFrameId);
+      if (resizeRafId) cancelAnimationFrame(resizeRafId);
       observer.disconnect();
       resizeObserver.disconnect();
       window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', scheduleResize);
 
       for (const d of disposables) d.dispose();
       envRenderTarget?.dispose();
       envTexture?.dispose();
       pmremGenerator?.dispose();
-      renderer?.dispose();
-      if (renderer?.domElement.parentNode === container) {
-        container.removeChild(renderer.domElement);
+      if (renderer) {
+        try {
+          renderer.forceContextLoss();
+        } catch {
+          // ignore if context was already lost
+        }
+        renderer.dispose();
+        if (renderer.domElement.parentNode === container) {
+          container.removeChild(renderer.domElement);
+        }
       }
     };
   }, [shouldReduceMotion]);
