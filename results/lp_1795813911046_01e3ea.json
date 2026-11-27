@@ -1,0 +1,34 @@
+[
+  {
+    "input": "kristina@beautifulmedspa.com",
+    "is_reachable": "safe",
+    "misc": {
+      "is_disposable": false,
+      "is_role_account": false
+    },
+    "mx": {
+      "accepts_mail": true,
+      "records": [
+        "SMTP.GOOGLE.com"
+      ]
+    },
+    "smtp": {
+      "can_connect_smtp": true,
+      "has_full_inbox": false,
+      "is_catch_all": false,
+      "is_deliverable": true,
+      "is_disabled": false
+    },
+    "syntax": {
+      "address": "kristina@beautifulmedspa.com",
+      "domain": "beautifulmedspa.com",
+      "is_valid_syntax": true,
+      "username": "kristina"
+    },
+    "debug": {
+      "backend_name": "leadpure-own-engine",
+      "engine_version": "1.3.2",
+      "rcpt_reply": "250 2.1.5 OK 46e09a7af769-86316915ad1si39611086a34.121 - gsmtp"
+    }
+  }
+]
