@@ -59,12 +59,13 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
         </p>
 
         {/* Monochrome Toggle Switch */}
-        <div className="inline-flex p-1.5 rounded-full liquid-glass">
+        <div className="inline-flex p-1.5 rounded-full liquid-glass" role="group" aria-label="List cleaning preview state">
           <button
             type="button"
+            aria-pressed={!cleaned}
             onClick={() => setCleaned(false)}
             className={cn(
-              'relative px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer',
+              'relative px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
               !cleaned ? '!text-white dark:!text-slate-950' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
             )}
           >
@@ -80,9 +81,10 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
 
           <button
             type="button"
+            aria-pressed={cleaned}
             onClick={() => setCleaned(true)}
             className={cn(
-              'relative px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5',
+              'relative px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
               cleaned ? '!text-white dark:!text-slate-950' : 'text-slate-600 dark:text-slate-400 hover:text-app-text'
             )}
           >
@@ -93,7 +95,7 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
                 className="absolute inset-0 rounded-full bg-slate-900 dark:bg-white shadow-sm"
               />
             )}
-            <CheckCircle2 className="w-3.5 h-3.5 relative z-10" />
+            <CheckCircle2 className="w-3.5 h-3.5 relative z-10" aria-hidden="true" />
             <span className="relative z-10">Cleaned by LeadPure</span>
           </button>
         </div>
@@ -121,9 +123,10 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
         <motion.div style={shouldReduceMotion ? undefined : { rotateX: cardRotateX, y: cardY }}>
           <LiquidSpotlightCard
             spotlightColor={theme === 'dark' ? 'rgba(2, 254, 220, 0.14)' : 'rgba(90, 92, 255, 0.10)'}
-            className="p-5 sm:p-7 rounded-3xl space-y-3"
+            className="rounded-3xl"
+            contentClassName="p-6 sm:p-7 flex flex-col gap-4"
           >
-            <div className="flex items-center justify-between text-xs pb-3 border-b border-black/[0.07] dark:border-white/[0.08]">
+            <div className="flex items-center justify-between text-xs pb-3.5 border-b border-black/[0.07] dark:border-white/[0.08]">
               <span className="font-display font-bold text-app-text">
                 {cleaned ? 'Sorted Contact List' : 'Unchecked Spreadsheet'}
               </span>
@@ -132,7 +135,7 @@ export function ArchitecturePipeline({ theme = 'dark' }: ArchitecturePipelinePro
               </span>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-2.5" aria-live="polite">
               {sortedRows.map((row) => {
                 const badgeStyle = !cleaned
                   ? 'bg-slate-200/70 dark:bg-white/[0.06] text-slate-600 dark:text-slate-300 border-transparent'

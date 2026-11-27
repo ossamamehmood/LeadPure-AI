@@ -5,6 +5,7 @@ import { cn } from '../../lib/utils';
 interface LiquidSpotlightCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
+  contentClassName?: string;
   spotlightColor?: string;
 }
 
@@ -15,6 +16,7 @@ interface LiquidSpotlightCardProps extends React.HTMLAttributes<HTMLDivElement> 
 export function LiquidSpotlightCard({
   children,
   className,
+  contentClassName,
   spotlightColor = 'rgba(90, 92, 255, 0.14)',
   ...rest
 }: LiquidSpotlightCardProps) {
@@ -42,7 +44,7 @@ export function LiquidSpotlightCard({
       ref={ref}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className={cn('liquid-glass relative overflow-hidden group rounded-3xl', className)}
+      className={cn('liquid-glass relative overflow-hidden group rounded-3xl flex flex-col', className)}
       {...rest}
     >
       {!shouldReduceMotion && (
@@ -52,7 +54,7 @@ export function LiquidSpotlightCard({
           style={{ background: surfaceGlow }}
         />
       )}
-      <div className="relative z-10 h-full">{children}</div>
+      <div className={cn('relative z-10 flex-1', contentClassName)}>{children}</div>
     </div>
   );
 }

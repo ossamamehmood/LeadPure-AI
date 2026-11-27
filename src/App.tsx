@@ -96,20 +96,26 @@ export default function App() {
     };
     const meta = ROUTE_SEO[route] || ROUTE_SEO['/'];
     document.title = meta.title;
-    const descTag = document.querySelector('meta[name="description"]');
-    if (descTag) descTag.setAttribute('content', meta.description);
-    const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute('content', meta.title);
-    const ogDesc = document.querySelector('meta[property="og:description"]');
-    if (ogDesc) ogDesc.setAttribute('content', meta.description);
+    const setMeta = (selector: string, content: string) => {
+      const el = document.querySelector(selector);
+      if (el) el.setAttribute('content', content);
+    };
+    setMeta('meta[name="description"]', meta.description);
+    setMeta('meta[property="og:title"]', meta.title);
+    setMeta('meta[property="og:description"]', meta.description);
+    setMeta('meta[name="twitter:title"]', meta.title);
+    setMeta('meta[name="twitter:description"]', meta.description);
     if (typeof window !== 'undefined') {
+      const canonicalUrl = `${window.location.origin}${route === '/' ? '/' : route}`;
+      setMeta('meta[property="og:url"]', canonicalUrl);
+      setMeta('meta[name="twitter:url"]', canonicalUrl);
       let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
       if (!canonical) {
         canonical = document.createElement('link');
         canonical.rel = 'canonical';
         document.head.appendChild(canonical);
       }
-      canonical.href = `${window.location.origin}${route === '/' ? '/' : route}`;
+      canonical.href = canonicalUrl;
     }
   }, [route]);
 
@@ -522,7 +528,7 @@ export default function App() {
                   className="space-y-12 sm:space-y-16"
                 >
                   {resumableScan && (
-                    <GlossyCard glow="blue" className="p-5 sm:p-6 rounded-3xl border border-brand-blue/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <GlossyCard glow="blue" className="rounded-3xl border border-brand-blue/30" contentClassName="p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div>
                         <p className="text-xs font-semibold text-brand-blue uppercase tracking-wider">Unfinished Scan Found</p>
                         <h4 className="text-sm sm:text-base font-display font-bold text-app-text mt-1">

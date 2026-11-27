@@ -5,22 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LeadPure | Email Verification &amp; List Hygiene</title>
     <meta name="description" content="Verify single email addresses in real time or clean spreadsheets up to 5,000 rows right in your browser before launching outreach." />
-    <meta name="keywords" content="email verification, email checker, bounce rate reduction, catch-all detection, spreadsheet email cleaner, deliverability" />
-    <meta name="robots" content="index, follow" />
+    <meta name="keywords" content="email verification, email checker, bulk email cleaner, bounce rate reduction, catch-all detection, deliverability" />
+    <meta name="robots" content="index, follow, max-snippet:160, max-image-preview:large" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta name="application-name" content="LeadPure" />
     <meta name="theme-color" content="#07080F" />
+    <link rel="canonical" href="https://leadpureai.vercel.app/" />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:site_name" content="LeadPure" />
+    <meta property="og:url" content="https://leadpureai.vercel.app/" />
     <meta property="og:title" content="LeadPure | Email Verification &amp; List Hygiene" />
     <meta property="og:description" content="Verify every inbox before you hit send. Real-time verification and local spreadsheet cleanup up to 5,000 contacts." />
+    <meta property="og:image" content="https://leadpureai.vercel.app/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="LeadPure live inbox verification and bounce protection overview" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://leadpureai.vercel.app/" />
     <meta name="twitter:title" content="LeadPure | Email Verification &amp; List Hygiene" />
     <meta name="twitter:description" content="Verify single email addresses or clean spreadsheets up to 5,000 contacts before you hit send." />
+    <meta name="twitter:image" content="https://leadpureai.vercel.app/og-image.png" />
+    <meta name="twitter:image:alt" content="LeadPure live inbox verification and bounce protection overview" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <script>
       (function () {
@@ -35,16 +48,49 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "LeadPure",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web",
-        "description": "Verify single email addresses in real time or clean spreadsheets up to 5,000 rows locally before launching outreach.",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        }
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://leadpureai.vercel.app/#organization",
+            "name": "LeadPure",
+            "url": "https://leadpureai.vercel.app/",
+            "logo": "https://leadpureai.vercel.app/icon-512.png"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://leadpureai.vercel.app/#website",
+            "url": "https://leadpureai.vercel.app/",
+            "name": "LeadPure",
+            "description": "Email hygiene and list verification workspace for single contacts and spreadsheets up to 5,000 rows.",
+            "publisher": {
+              "@id": "https://leadpureai.vercel.app/#organization"
+            }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://leadpureai.vercel.app/#app",
+            "name": "LeadPure",
+            "url": "https://leadpureai.vercel.app/",
+            "image": "https://leadpureai.vercel.app/og-image.png",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "description": "Verify single email addresses in real time or clean spreadsheets up to 5,000 rows locally before launching outreach.",
+            "featureList": [
+              "Real-time mailbox deliverability verification without sending email",
+              "Double-checked strict corporate firewall rejections",
+              "Accept-all, disposable, and role account isolation",
+              "Browser-local spreadsheet parsing and name/phone normalization up to 5,000 rows"
+            ],
+            "publisher": {
+              "@id": "https://leadpureai.vercel.app/#organization"
+            },
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            }
+          }
+        ]
       }
     </script>
   </head>

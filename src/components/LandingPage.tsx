@@ -112,14 +112,14 @@ function ComparisonCell({ cell, primary = false }: { cell: MatrixCell; primary?:
           )}
           aria-label="Yes"
         >
-          <Check className="w-3.5 h-3.5" />
+          <Check className="w-3.5 h-3.5" aria-hidden="true" />
         </span>
       ) : (
         <span
           className="w-6 h-6 rounded-full flex items-center justify-center bg-slate-200/45 dark:bg-white/[0.03] border border-slate-300/50 dark:border-white/[0.08] text-slate-400 dark:text-slate-500"
           aria-label="No"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3.5 h-3.5" aria-hidden="true" />
         </span>
       )}
       {cell.note && (
@@ -174,7 +174,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
     <div className="space-y-24 sm:space-y-32">
       {/* 1. ASYMMETRIC PRODUCT-FIRST HERO + LIVE VERIFICATION INSPECTOR */}
       <section className="relative pt-2 sm:pt-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center relative z-10">
           {/* Left Editorial Column + Interactive Quick Check Bar */}
           <div className="lg:col-span-6 space-y-6">
             <div className="flex items-center gap-3">
@@ -299,9 +299,10 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
           <div className="lg:col-span-7">
             <LiquidSpotlightCard
               spotlightColor={theme === 'dark' ? 'rgba(90, 92, 255, 0.16)' : 'rgba(90, 92, 255, 0.09)'}
-              className="p-6 sm:p-8 rounded-3xl h-full flex flex-col justify-between gap-6"
+              className="rounded-3xl h-full"
+              contentClassName="p-6 sm:p-8 flex flex-col justify-between gap-6"
             >
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="inline-flex items-center gap-2 text-xs font-semibold text-app-text">
                     <ShieldCheck className="w-4 h-4 text-emerald-500" aria-hidden="true" />
@@ -346,7 +347,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
               </div>
 
               {/* Translucent Interactive Pass Readout */}
-              <div className="rounded-2xl border border-white/55 dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.025] p-4 space-y-2.5">
+              <div className="rounded-2xl border border-white/55 dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.025] p-4 sm:p-5 space-y-2.5">
                 <div className="flex items-center justify-between gap-3 text-xs">
                   <span className="font-mono font-semibold text-app-text truncate">
                     alex.desk@enterprise.example
@@ -375,11 +376,12 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
           <div className="lg:col-span-5 flex flex-col gap-5 sm:gap-6">
             <LiquidSpotlightCard
               spotlightColor={theme === 'dark' ? 'rgba(2, 254, 220, 0.14)' : 'rgba(90, 92, 255, 0.08)'}
-              className="p-6 rounded-3xl space-y-4"
+              className="rounded-3xl"
+              contentClassName="p-6 flex flex-col gap-4"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="inline-flex items-center gap-2 text-xs font-semibold text-app-text">
-                  <SlidersHorizontal className="w-4 h-4 text-brand-blue" />
+                  <SlidersHorizontal className="w-4 h-4 text-brand-blue" aria-hidden="true" />
                   Sheet Auto-Formatter
                 </span>
                 <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
@@ -394,7 +396,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                   Fixes name capitalization, cities, and international phone formatting right in your browser before exporting.
                 </p>
               </div>
-              <div className="rounded-xl border border-white/55 dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.025] px-3.5 py-2.5 space-y-1 text-xs font-mono">
+              <div className="rounded-xl border border-white/55 dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.025] px-3.5 py-3 space-y-1.5 text-xs font-mono">
                 <div className="flex items-center justify-between gap-2 text-slate-400">
                   <span className="text-[10px] uppercase tracking-wider">Raw</span>
                   <span className="line-through truncate">tariq hussain &middot; 3128471928</span>
@@ -408,11 +410,12 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
 
             <LiquidSpotlightCard
               spotlightColor={theme === 'dark' ? 'rgba(245, 2, 253, 0.14)' : 'rgba(90, 92, 255, 0.08)'}
-              className="p-6 rounded-3xl space-y-4 flex-1 flex flex-col justify-between"
+              className="rounded-3xl flex-1"
+              contentClassName="p-6 flex flex-col justify-between gap-4"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="inline-flex items-center gap-2 text-xs font-semibold text-app-text">
-                  <Layers className="w-4 h-4 text-brand-pink" />
+                  <Layers className="w-4 h-4 text-brand-pink" aria-hidden="true" />
                   Honest Risk Buckets
                 </span>
                 <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
@@ -496,37 +499,37 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
             <table className="w-full min-w-[740px] text-left border-collapse">
               <thead>
                 <tr className="border-b border-black/[0.07] dark:border-white/[0.08] bg-white/30 dark:bg-white/[0.025] text-xs font-display font-bold text-app-text">
-                  <th className="py-5 px-6 w-[28%] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+                  <th scope="col" className="py-5 px-6 w-[28%] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
                     Capability
                   </th>
-                  <th className="py-5 px-4 w-[16%] text-center bg-white/25 dark:bg-white/[0.03] border-x border-black/[0.06] dark:border-white/[0.07]">
+                  <th scope="col" className="py-5 px-4 w-[16%] text-center bg-white/25 dark:bg-white/[0.03] border-x border-black/[0.06] dark:border-white/[0.07]">
                     <div className="inline-flex items-center gap-1.5 justify-center">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
                       <span className="text-sm font-bold text-app-text">LeadPure</span>
                     </div>
                   </th>
-                  <th className="py-5 px-4 w-[14%] text-center">
-                    <a href="https://www.zerobounce.net/" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-1 hover:text-brand-blue">
-                      ZeroBounce <ExternalLink className="w-3 h-3 opacity-45" />
+                  <th scope="col" className="py-5 px-4 w-[14%] text-center">
+                    <a href="https://www.zerobounce.net/" target="_blank" rel="noreferrer" aria-label="ZeroBounce website (opens in a new tab)" className="inline-flex items-center justify-center gap-1 hover:text-brand-blue transition-colors">
+                      ZeroBounce <ExternalLink className="w-3 h-3 opacity-45" aria-hidden="true" />
                     </a>
                   </th>
-                  <th className="py-5 px-4 w-[14%] text-center">
-                    <a href="https://emailable.com/" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-1 hover:text-brand-blue">
-                      Emailable <ExternalLink className="w-3 h-3 opacity-45" />
+                  <th scope="col" className="py-5 px-4 w-[14%] text-center">
+                    <a href="https://emailable.com/" target="_blank" rel="noreferrer" aria-label="Emailable website (opens in a new tab)" className="inline-flex items-center justify-center gap-1 hover:text-brand-blue transition-colors">
+                      Emailable <ExternalLink className="w-3 h-3 opacity-45" aria-hidden="true" />
                     </a>
                   </th>
-                  <th className="py-5 px-4 w-[14%] text-center">
-                    <a href="https://hunter.io/email-verifier" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-1 hover:text-brand-blue">
-                      Hunter <ExternalLink className="w-3 h-3 opacity-45" />
+                  <th scope="col" className="py-5 px-4 w-[14%] text-center">
+                    <a href="https://hunter.io/email-verifier" target="_blank" rel="noreferrer" aria-label="Hunter Email Verifier website (opens in a new tab)" className="inline-flex items-center justify-center gap-1 hover:text-brand-blue transition-colors">
+                      Hunter <ExternalLink className="w-3 h-3 opacity-45" aria-hidden="true" />
                     </a>
                   </th>
-                  <th className="py-5 px-4 w-[14%] text-center">Reacher</th>
+                  <th scope="col" className="py-5 px-4 w-[14%] text-center">Reacher</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/[0.06] dark:divide-white/[0.07] text-xs">
                 {COMPARISON_ROWS.map((row) => (
                   <tr key={row.feature} className="hover:bg-white/20 dark:hover:bg-white/[0.02] transition-colors">
-                    <td className="py-4 px-6 font-medium text-app-text align-middle">{row.feature}</td>
+                    <th scope="row" className="py-4 px-6 font-medium text-app-text align-middle text-left">{row.feature}</th>
                     <td className="py-4 px-4 bg-white/20 dark:bg-white/[0.025] border-x border-black/[0.06] dark:border-white/[0.07] align-middle">
                       <ComparisonCell cell={row.leadpure} primary />
                     </td>
@@ -576,7 +579,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
                   className="w-full py-5 flex items-center justify-between gap-4 text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-lg"
                 >
                   <span className="text-sm sm:text-base font-display font-bold text-app-text">{item.q}</span>
-                  <span className="w-7 h-7 rounded-full border border-app-border flex items-center justify-center text-slate-500 shrink-0">
+                  <span className="w-7 h-7 rounded-full border border-app-border flex items-center justify-center text-slate-500 shrink-0" aria-hidden="true">
                     {isOpen ? <Minus className="w-3.5 h-3.5 text-brand-blue" /> : <Plus className="w-3.5 h-3.5" />}
                   </span>
                 </button>
@@ -613,7 +616,7 @@ export function LandingPage({ onOpenDashboard, onNavigate, theme }: LandingPageP
           <SparkBurstButton className="w-full sm:w-auto">
             <MagneticButton onClick={() => onOpenDashboard()} variant="primary" size="lg" className="px-9 w-full sm:w-auto rounded-full">
               <span>Start Verifying Free</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </MagneticButton>
           </SparkBurstButton>
           <button

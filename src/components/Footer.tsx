@@ -65,6 +65,18 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
     );
   }
 
+  const handleHashRoute = (e: React.MouseEvent, targetId: string) => {
+    if (!onNavigate) return;
+    if (typeof window !== 'undefined' && window.location.pathname === '/') {
+      e.preventDefault();
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    e.preventDefault();
+    onNavigate('/');
+    setTimeout(() => document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' }), 90);
+  };
+
   return (
     <footer className="pt-8 pb-6">
       <div className="liquid-glass rounded-3xl sm:rounded-[34px] p-7 sm:p-10 space-y-8">
@@ -77,9 +89,9 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
               className="inline-flex items-center gap-2.5 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue rounded-full"
             >
               <div className="w-8 h-8 rounded-full gradient-cta flex items-center justify-center text-white shadow-[0_6px_18px_-4px_rgba(90,92,255,0.5)]">
-                <Zap className="w-4 h-4 fill-white" />
+                <Zap className="w-4 h-4 fill-white" aria-hidden="true" />
               </div>
-              <span className="text-lg font-display font-bold text-app-text tracking-tight">
+              <span translate="no" className="text-lg font-display font-bold text-app-text tracking-tight">
                 Lead<span className="gradient-text">Pure</span>
               </span>
             </a>
@@ -89,7 +101,7 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
             </p>
 
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/55 dark:bg-white/[0.04] border border-white/75 dark:border-app-border text-[11px] font-medium text-slate-700 dark:text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
               <span>Real-Time Verification Ready</span>
             </div>
           </div>
@@ -106,7 +118,7 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
                   onClick={(e) => handleRoute(e, '/dashboard')}
                   className="hover:text-brand-blue transition-colors inline-flex items-center gap-1"
                 >
-                  Open App <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+                  Open App <ArrowUpRight className="w-3.5 h-3.5 opacity-60" aria-hidden="true" />
                 </a>
               </li>
               <li>
@@ -128,7 +140,11 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
                 </a>
               </li>
               <li>
-                <a href="/#compare" className="hover:text-brand-blue transition-colors">
+                <a
+                  href="/#compare"
+                  onClick={(e) => handleHashRoute(e, 'compare')}
+                  className="hover:text-brand-blue transition-colors"
+                >
                   Compare Tools
                 </a>
               </li>
@@ -142,17 +158,29 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
             </p>
             <ul className="space-y-2.5 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
               <li>
-                <a href="/#live-demo" className="hover:text-brand-blue transition-colors">
+                <a
+                  href="/#live-demo"
+                  onClick={(e) => handleHashRoute(e, 'live-demo')}
+                  className="hover:text-brand-blue transition-colors"
+                >
                   Live Preview
                 </a>
               </li>
               <li>
-                <a href="/#preview" className="hover:text-brand-blue transition-colors">
+                <a
+                  href="/#preview"
+                  onClick={(e) => handleHashRoute(e, 'preview')}
+                  className="hover:text-brand-blue transition-colors"
+                >
                   List Cleaner
                 </a>
               </li>
               <li>
-                <a href="/#faq" className="hover:text-brand-blue transition-colors">
+                <a
+                  href="/#faq"
+                  onClick={(e) => handleHashRoute(e, 'faq')}
+                  className="hover:text-brand-blue transition-colors"
+                >
                   Common Questions
                 </a>
               </li>
@@ -190,7 +218,7 @@ export function Footer({ variant = 'dashboard', onNavigate }: FooterProps) {
                   rel="noreferrer"
                   className="text-brand-blue hover:opacity-80 transition-opacity font-semibold inline-flex items-center gap-1"
                 >
-                  Support Development <ArrowUpRight className="w-3.5 h-3.5" />
+                  Support Development <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
                 </a>
               </li>
             </ul>

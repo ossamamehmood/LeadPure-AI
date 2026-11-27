@@ -361,7 +361,7 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
                   <StaggerItem>
                     <GlossyCard className="p-5 sm:p-6 rounded-3xl overflow-hidden relative h-full">
                       <div className={cn(
-                        'absolute top-0 right-0 w-28 h-28 blur-[70px] -mr-12 -mt-12 opacity-25 transition-all pointer-events-none',
+                        'absolute top-0 right-0 w-28 h-28 blur-[70px] -mr-12 -mt-12 opacity-25 transition-opacity duration-300 pointer-events-none',
                         verdict === 'SAFE' ? 'bg-emerald-500' :
                         verdict === 'RISKY' ? 'bg-amber-400' :
                         verdict === 'INVALID' ? 'bg-rose-500' : 'bg-slate-500'
@@ -394,7 +394,7 @@ export function SingleValidation({ initialEmail, onConsumeInitialEmail }: Single
                 </div>
 
                 <StaggerItem>
-                  <GlossyCard className="p-5 sm:p-6 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between border-app-border gap-4">
+                  <GlossyCard className="rounded-3xl border-app-border" contentClassName="p-5 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-start sm:items-center gap-4 min-w-0">
                       <div className={cn(
                         'w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0',

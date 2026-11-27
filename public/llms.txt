@@ -1,0 +1,17 @@
+# LeadPure
+
+> Email hygiene and inbox verification platform for sales, marketing, and RevOps teams. Verify single email addresses in real time or clean outreach spreadsheets up to 5,000 rows locally in the browser without sending any message to recipients.
+
+## Key Capabilities
+- Real-Time Mailbox Verification: Confirms active mailboxes directly without sending emails (`Safe`, `Risky`, `Invalid`, `Unconfirmed` honest labels).
+- Second-Pass Confirmation: Re-checks strict initial corporate firewall rejections from a secondary route before dropping valid leads.
+- Honest Risk Isolation: Separates accept-all domains, disposable mailboxes, and role accounts instead of inflating Safe exports.
+- Privacy-First Local Sheet Formatting: Contact names, phone numbers, and extra spreadsheet columns stay in the browser; normalized email addresses run stateless verification with temporary outputs clearing after 7 days.
+
+## Public Pages
+- Home (`/`): Overview, interactive Live Check Preview, cleaner comparison, and FAQs.
+- Verification Workspace (`/dashboard`): Instant Email Checker and CSV/XLSX bulk spreadsheet cleaner (up to 5,000 rows).
+- Deliverability Guide (`/deliverability`): Plain-language benchmarks on bounce rates, accept-all domains, and honest risk labels.
+- Plans & Access (`/pricing`): Free core verification access and planned enterprise roadmap.
+- Privacy Policy (`/privacy`): Data handling, browser-local formatting, and 7-day automatic cleanup terms.
+- Terms of Service (`/terms`): Permitted outreach usage and realistic deliverability terms.

@@ -79,7 +79,7 @@ export function DataPreviewModal({ isOpen, onClose, data, title }: DataPreviewMo
             exit={{ opacity: 0, scale: 0.95, y: 16 }}
             className="w-full max-w-7xl h-full max-h-[90vh] relative z-10"
           >
-            <GlossyCard className="w-full h-full flex flex-col rounded-3xl sm:rounded-[40px] overflow-hidden border-app-border shadow-2xl">
+            <GlossyCard className="w-full h-full rounded-3xl sm:rounded-[40px] overflow-hidden border-app-border shadow-2xl" contentClassName="flex flex-col h-full">
               <div className="p-4 sm:p-8 border-b border-app-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-50/70 dark:bg-white/[0.02]">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20 shrink-0">

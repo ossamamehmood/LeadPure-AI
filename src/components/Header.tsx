@@ -59,10 +59,10 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
           <button
             onClick={(e) => onToggleTheme(e)}
             aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className="min-w-[40px] min-h-[40px] p-2.5 bg-white/45 dark:bg-white/[0.05] hover:bg-white/75 dark:hover:bg-white/[0.10] rounded-xl text-slate-600 dark:text-slate-300 hover:text-brand-blue transition-all border border-white/60 dark:border-white/10 active:scale-95 flex items-center justify-center overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+            className="min-w-[40px] min-h-[40px] p-2.5 bg-white/45 dark:bg-white/[0.05] hover:bg-white/75 dark:hover:bg-white/[0.10] rounded-xl text-slate-600 dark:text-slate-300 hover:text-brand-blue transition-[color,background-color,border-color,transform] duration-200 border border-white/60 dark:border-white/10 active:scale-[0.97] flex items-center justify-center overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
             title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
-            <div className="relative w-4 h-4">
+            <div className="relative w-4 h-4" aria-hidden="true">
               <Sun className={cn(
                 'w-4 h-4 absolute inset-0 transition-transform duration-300',
                 theme === 'dark' ? 'translate-y-7 opacity-0' : 'translate-y-0 opacity-100'
@@ -77,10 +77,10 @@ export function Header({ appState, isProcessing, onDownload, onReset, theme, onT
           <button
             onClick={onReset}
             aria-label="Start New Session"
-            className="min-w-[40px] min-h-[40px] p-2.5 bg-white/45 dark:bg-white/[0.05] hover:bg-white/75 dark:hover:bg-white/[0.10] rounded-xl text-slate-600 dark:text-slate-300 hover:text-app-text transition-all border border-white/60 dark:border-white/10 active:scale-95 flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+            className="min-w-[40px] min-h-[40px] p-2.5 bg-white/45 dark:bg-white/[0.05] hover:bg-white/75 dark:hover:bg-white/[0.10] rounded-xl text-slate-600 dark:text-slate-300 hover:text-app-text transition-[color,background-color,border-color,transform] duration-200 border border-white/60 dark:border-white/10 active:scale-[0.97] flex items-center justify-center cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
             title="Start New Session"
           >
-            <RefreshCw className={cn('w-4 h-4', isProcessing && 'animate-spin text-brand-blue')} />
+            <RefreshCw className={cn('w-4 h-4', isProcessing && 'animate-spin text-brand-blue')} aria-hidden="true" />
           </button>
         </div>
       </div>

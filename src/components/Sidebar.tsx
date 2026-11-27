@@ -117,16 +117,16 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
                   onClick={() => (item.id === 'home' ? onNavigateHome?.() : setTab(item.id))}
                   aria-label={item.label}
                   className={cn(
-                    'relative group w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
+                    'relative group w-12 h-12 rounded-2xl flex items-center justify-center transition-[color,background-color,border-color,transform,box-shadow] duration-200 cursor-pointer active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue',
                     item.active
                       ? 'gradient-cta text-white shadow-[0_0_24px_-4px_rgba(90,92,255,0.68),0_0_14px_-4px_rgba(245,2,253,0.42)]'
                       : 'text-slate-500 dark:text-slate-400 hover:text-app-text hover:bg-white/45 dark:hover:bg-white/[0.08] border border-transparent hover:border-white/60 dark:hover:border-white/10'
                   )}
                 >
-                  <Icon className="w-5 h-5 relative z-10 transition-transform duration-200 group-hover:scale-105" />
+                  <Icon className="w-5 h-5 relative z-10 transition-transform duration-200 group-hover:scale-105" aria-hidden="true" />
                   <span
                     role="tooltip"
-                    className="pointer-events-none absolute left-full ml-3 px-3 py-1.5 rounded-xl liquid-glass text-xs font-semibold text-app-text whitespace-nowrap opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:translate-x-0 transition-all duration-150 shadow-xl z-[70]"
+                    className="pointer-events-none absolute left-full ml-3 px-3 py-1.5 rounded-xl liquid-glass text-xs font-semibold text-app-text whitespace-nowrap opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:translate-x-0 transition-[opacity,transform] duration-150 shadow-xl z-[70]"
                   >
                     {item.label}
                   </span>
@@ -186,9 +186,9 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
             aria-expanded={false}
             aria-label="Expand sidebar"
             title="Expand sidebar"
-            className="w-9 h-9 rounded-full border border-white/55 dark:border-white/10 bg-white/40 dark:bg-white/[0.04] hover:bg-white/75 dark:hover:bg-white/[0.10] text-slate-600 dark:text-slate-300 hover:text-app-text flex items-center justify-center transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+            className="w-9 h-9 rounded-full border border-white/55 dark:border-white/10 bg-white/40 dark:bg-white/[0.04] hover:bg-white/75 dark:hover:bg-white/[0.10] text-slate-600 dark:text-slate-300 hover:text-app-text flex items-center justify-center transition-[color,background-color,border-color,transform] duration-200 cursor-pointer active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
       ) : (
@@ -199,9 +199,9 @@ export function Sidebar({ currentTab, setTab, onNavigateHome }: SidebarProps) {
             aria-expanded={true}
             aria-label="Collapse sidebar"
             title="Collapse sidebar"
-            className="w-full h-10 rounded-full border border-white/55 dark:border-white/10 bg-white/40 dark:bg-white/[0.04] hover:bg-white/75 dark:hover:bg-white/[0.10] text-slate-700 dark:text-slate-200 hover:text-app-text flex items-center justify-center gap-2 text-xs font-semibold transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+            className="w-full h-10 rounded-full border border-white/55 dark:border-white/10 bg-white/40 dark:bg-white/[0.04] hover:bg-white/75 dark:hover:bg-white/[0.10] text-slate-700 dark:text-slate-200 hover:text-app-text flex items-center justify-center gap-2 text-xs font-semibold transition-[color,background-color,border-color,transform] duration-200 cursor-pointer active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             <span>Collapse sidebar</span>
           </button>
         </div>
